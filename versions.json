@@ -1,0 +1,52 @@
+{
+  "schema_version": "axiom_docs_versions_v1",
+  "source_migration": {
+    "repository": "axiom-data",
+    "commit": "cb19c8e7661bf6bb86caa19aaf5be5c4b71ae6b0"
+  },
+  "implementations": {
+    "axiom-data": {
+      "commit": "27c1c73375dffc5741c4e6e49020415648dbef00",
+      "version": "0.3.4",
+      "wheel_sha256": "9a17091f7b6cccada45a49de8d7fdc094c95b48ce90a48ee12ea6bf48562ee88"
+    },
+    "axiom-research": {
+      "commit": "eb6ae3a596d46627c8d52470b595d015cf659711",
+      "version": "0.1.1",
+      "wheel_sha256": "47ab757918003e372cb89ee59e73ea261debdc697d6ae33d9e6ac075bdedf696"
+    },
+    "axiom-engine": {
+      "core_commit": "c8a506b2070a9c89b20cfe14a0a93155c238f204",
+      "core_tree_modified": false,
+      "runtime_status": "local_uncommitted_not_published"
+    },
+    "axiom-ui": {
+      "git_commit": null,
+      "status": "local_directory_not_a_git_repository_not_published"
+    }
+  },
+  "validation": {
+    "data_scoped_tests": 16,
+    "research_scoped_tests": 15,
+    "tutorial_fresh_code_cells": 4,
+    "tutorial_fresh_errors": 0,
+    "tutorial_other_retained_code_cells": 93,
+    "supplier_requests": 0,
+    "formal_data_root_writes": false
+  },
+  "bulk": {
+    "status": "paused_by_user",
+    "builder_version": "0.3.3",
+    "builder_commit": "cb19c8e7661bf6bb86caa19aaf5be5c4b71ae6b0",
+    "builder_wheel_sha256": "8bbdd1c5ea5497d5a40e5680a032d9d5c199fd2a10169084310bde020e01a011",
+    "receipts_retained": 1849,
+    "operation_json_files_retained": 51,
+    "current_published": false,
+    "etf_started": false
+  },
+  "limits": [
+    "no twelve-year bulk acceptance",
+    "no multi-year feature-build scale benchmark or one-day guarantee",
+    "fixed Core identity/pct_change/asof recipe; no arbitrary FeaturePlans, derived TTM, labels/training/model/backtest platform"
+  ]
+}

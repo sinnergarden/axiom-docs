@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+build/
+*.egg-info/
+.env*
+*tushare*token*
+docs/*validation.json
