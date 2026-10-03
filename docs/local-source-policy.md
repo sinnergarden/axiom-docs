@@ -1,6 +1,6 @@
 # Tushare 来源与观察语义
 
-统一入口是 `prepare → plan → run → verify → audit`。`plan` 默认包含已启用的行情、财务与事件；`--market-only` 明确限制为行情。请求按来源支持的批次执行，共享限速，Raw 先于规范化落地。完整小样本命令见 [三个月调试](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/full_scope_debug_202606_202608.md)，调度与恢复见 [批量作业](bulk-jobs.md)。
+统一入口是 `prepare → plan → run → verify → audit`。`plan` 默认包含已启用的行情、财务与事件；`--market-only` 明确限制为行情。请求按来源支持的批次执行，共享限速，Raw 先于规范化落地。完整小样本命令见 [三个月调试](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/full_scope_debug_202606_202608.md)，调度与恢复见 [批量作业](bulk-jobs.md)。
 
 每次请求保留 endpoint、参数、字段和实际接收时间。相同字节只保存一份内容，观察日志追加；同值事实不产生无意义的 Canonical 修订。恢复先复用已成功 Raw，再继续未完成请求。成功空响应只表示供应商此次没有返回数据，不能直接解释为停牌、非成员或财报为零。
 

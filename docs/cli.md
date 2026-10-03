@@ -10,7 +10,7 @@ python -m pip install -e .
 axiom-data --help
 ```
 
-一年完整来源配置使用 [配置样例](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/delivery_csi1800_one_year.json)：2025-09-01 至 2026-08-31。生产数据只取 Tushare：`prepare` 保存六个 `stock_basic` 上市状态切片、三个 `index_basic` 选择器、三指数组逐月 `index_weight` 原响应及沪深 `trade_cal`。成员采用每个供应商实际 `trade_date` 的整组快照，并从该日延续至下一次快照；月底名单不倒填月初。准备窗口额外覆盖起始日前一完整月，供起始日选择最近已有快照。`required_symbol_count: 1800` 是固定样本的锚点断言；历史并集范围可以超过 1800。供应商内容与外部来源不同只记警告，不改变生产成员或退市字段。
+一年完整来源配置使用 [配置样例](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/delivery_csi1800_one_year.json)：2025-09-01 至 2026-08-31。生产数据只取 Tushare：`prepare` 保存六个 `stock_basic` 上市状态切片、三个 `index_basic` 选择器、三指数组逐月 `index_weight` 原响应及沪深 `trade_cal`。成员采用每个供应商实际 `trade_date` 的整组快照，并从该日延续至下一次快照；月底名单不倒填月初。准备窗口额外覆盖起始日前一完整月，供起始日选择最近已有快照。`required_symbol_count: 1800` 是固定样本的锚点断言；历史并集范围可以超过 1800。供应商内容与外部来源不同只记警告，不改变生产成员或退市字段。
 
 ```sh
 mkdir -p delivery
@@ -68,7 +68,7 @@ axiom-data --data-root /absolute/data read --kind states --snapshot current --qu
 
 ## 显式Qlib导出与读取验证
 
-`qlib-export`仅读取已固定的本地Snapshot和查询，不请求供应商，也不推进current。配置包含同证券顺序、同开放日历的`queries`列表，以及可选`instrument_map`、`field_aliases`、`universe_query`、`universe_name`、`rtol`、`atol`。股票/ETF真实原型分别有[股票样例](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/qlib_stock_debug.spec.json)与[ETF样例](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/qlib_etf_debug.spec.json)，替换范围时一并调整固定身份、完整开放日历、预热与cutoff。
+`qlib-export`仅读取已固定的本地Snapshot和查询，不请求供应商，也不推进current。配置包含同证券顺序、同开放日历的`queries`列表，以及可选`instrument_map`、`field_aliases`、`universe_query`、`universe_name`、`rtol`、`atol`。股票/ETF真实原型分别有[股票样例](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/qlib_stock_debug.spec.json)与[ETF样例](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/qlib_etf_debug.spec.json)，替换范围时一并调整固定身份、完整开放日历、预热与cutoff。
 
 ```sh
 axiom-data --data-root /absolute/data qlib-export --snapshot current \
@@ -95,7 +95,7 @@ axiom-data --data-root /absolute/restored-data import --bundle /absolute/transfe
 
 `rebuild --request rebuild.json` 保留给需要指定 Raw 列表、domain override 或构建上下文的高级操作。`export` 和 `import` 的目标必须尚不存在；包包含所选 Snapshot 的祖先、引用的 Raw 及源码副本。`verify` 对包做逐字节离线检查。
 
-一年验收通过后，可用 [12 年历史候选并集配置](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/delivery_csi1800_twelve_year.json)在独立数据根开始 2014-11-01 至 2026-09-28 的作业。该配置有新的 preparation/operation ID，不截断候选并集，也不要求它恰为 1800：
+一年验收通过后，可用 [12 年历史候选并集配置](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/delivery_csi1800_twelve_year.json)在独立数据根开始 2014-11-01 至 2026-09-28 的作业。该配置有新的 preparation/operation ID，不截断候选并集，也不要求它恰为 1800：
 
 ```sh
 axiom-data --data-root /absolute/data-12y prepare \
@@ -131,7 +131,7 @@ Query 不要求先生成磁盘 View。读取一次固定 Snapshot 得到的 Data
 历史成员准备之后若 Tushare 新快照出现新代码，重新 `prepare` 扩展稳定身份与候选行情范围，并以新的操作 ID 固定新计划；旧 Raw、计划和 Snapshot 保持原样。
 
 
-固定 1800 的十二年工程样本见 [配置](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/delivery_csi1800_twelve_year_fixed1800.json)，只用于容量排期；真实历史成员与行情范围应采用历史并集配置。当前 Tushare-only 容量/时间模型（本地记录：`delivery/csi1800_twelve_year_tushare_v4.capacity.json`）估算：2014-11-01 至 2026-09-28 固定样本的行情、日历和七类事件预日历上界为 24,582 次；准备阶段另有 144 个月×3 指数的 432 次月度成员请求和 11 次基础请求，共约 25,025 次基础请求。历史并集规模在真实 `prepare` 后才知道；每多一个标的增加一次基础前十股东请求，实际开市日可降低行情与限价次数，限额拆分和重试会增加请求。300 次/分钟纯节流下界约 83 分钟，预留 2–6 小时作为工程排期而非保证。建议单根预留 5–9 GiB，含搬移与恢复副本预留 15–27 GiB。该模型未执行十二年网络请求，也没有伪造可运行计划。
+固定 1800 的十二年工程样本见 [配置](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/delivery_csi1800_twelve_year_fixed1800.json)，只用于容量排期；真实历史成员与行情范围应采用历史并集配置。当前 Tushare-only 容量/时间模型（本地记录：`delivery/csi1800_twelve_year_tushare_v4.capacity.json`）估算：2014-11-01 至 2026-09-28 固定样本的行情、日历和七类事件预日历上界为 24,582 次；准备阶段另有 144 个月×3 指数的 432 次月度成员请求和 11 次基础请求，共约 25,025 次基础请求。历史并集规模在真实 `prepare` 后才知道；每多一个标的增加一次基础前十股东请求，实际开市日可降低行情与限价次数，限额拆分和重试会增加请求。300 次/分钟纯节流下界约 83 分钟，预留 2–6 小时作为工程排期而非保证。建议单根预留 5–9 GiB，含搬移与恢复副本预留 15–27 GiB。该模型未执行十二年网络请求，也没有伪造可运行计划。
 
 旧工作根保存的中证指数官网历史档案仍是独立的交叉核对材料，不进入 Tushare-only 生产计划、成员 Canonical、退市字段或发布门槛。真实频率探测见 Tushare 月度成员响应（本地记录：`docs/tushare-membership-cadence.json`）：2026-06-12 和 06-15 三指数组为空，整月请求与 06-30 单日请求给出同一份 300/500/1000 快照。
 
@@ -147,7 +147,7 @@ Query 不要求先生成磁盘 View。读取一次固定 Snapshot 得到的 Data
 
 ## 七只 ETF 日线数据
 
-ETF 使用独立数据根与 [12 年配置](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/etf_rotation_daily_twelve_year.json)，不附加股票财务事件或中证成员计划。`prepare` 保存 Tushare `fund_basic`、沪深交易日历并保证起点前至少 21 个开市日；`plan` 冻结七只基金、基准、身份和预热窗口；`run` 获取 `fund_daily`、`fund_adj`、`etf_limit`、`suspend_d`、`fund_div` 与 `index_daily`。按每只基金不超过五年的区间请求，基金分红按代码获取供应商原始历史。Data 只提供数据，不计算轮动、动量、交易信号或佣金。
+ETF 使用独立数据根与 [12 年配置](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/etf_rotation_daily_twelve_year.json)，不附加股票财务事件或中证成员计划。`prepare` 保存 Tushare `fund_basic`、沪深交易日历并保证起点前至少 21 个开市日；`plan` 冻结七只基金、基准、身份和预热窗口；`run` 获取 `fund_daily`、`fund_adj`、`etf_limit`、`suspend_d`、`fund_div` 与 `index_daily`。按每只基金不超过五年的区间请求，基金分红按代码获取供应商原始历史。Data 只提供数据，不计算轮动、动量、交易信号或佣金。
 
 ```sh
 axiom-data --data-root /absolute/etf-data prepare \
@@ -166,7 +166,7 @@ axiom-data --data-root /absolute/etf-data audit --plan delivery/etf-twelve-year.
   --snapshot current --output delivery/etf-twelve-year.audit.json
 ```
 
-此 12 年 ETF 配置尚未执行。真实 2026-06 至 08 的七基金小样本见 报告（本地记录：`delivery/etf_rotation_daily_202606_202608.report.json`）：41 份 Raw、2,921 行 Canonical，来源映射审计通过；可用[相应配置](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/etf_rotation_daily_202606_202608.json)、范围（本地记录：`delivery/etf_rotation_daily_202606_202608.scope.json`）和计划（本地记录：`delivery/etf_rotation_daily_202606_202608.plan.json`）在原数据根上无凭据重复执行验证。基金日线、因子、涨跌停用 `Data.read`，分红用 `Data.events`；真实稳定身份从 scope 的 `identity_map` 读取。
+此 12 年 ETF 配置尚未执行。真实 2026-06 至 08 的七基金小样本见 报告（本地记录：`delivery/etf_rotation_daily_202606_202608.report.json`）：41 份 Raw、2,921 行 Canonical，来源映射审计通过；可用[相应配置](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/etf_rotation_daily_202606_202608.json)、范围（本地记录：`delivery/etf_rotation_daily_202606_202608.scope.json`）和计划（本地记录：`delivery/etf_rotation_daily_202606_202608.plan.json`）在原数据根上无凭据重复执行验证。基金日线、因子、涨跌停用 `Data.read`，分红用 `Data.events`；真实稳定身份从 scope 的 `identity_map` 读取。
 
 
 新的0.3.1独立安装包已用同入口完成近期和2014年股票完整源及7ETF采集、中断恢复、重复执行和来源映射审计，见[当前preflight](bulk-preflight.md)。`symbol_limit`可用于小事实样本，准备的供应商成员/上市Raw和稳定身份仍保留完整来源。

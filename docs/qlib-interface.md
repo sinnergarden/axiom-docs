@@ -25,7 +25,7 @@ reference = view.reference  # 保存P04引用，与研究结果一起留存。
 
 Research adapter实际调用`qlib.init`和`D.features`，返回Qlib的`instrument/datetime`索引与`$field`列。`reference`保留Snapshot、完整查询、映射、单位、价格口径、Reader/exporter版本、float32合同和view ID。它不伪造逐键PIT元数据；需要逐键来源时，重读所引用Snapshot的相同Data查询。
 
-安装Data本体可导出和核对格式，不需要Qlib。消费或运行完整教程时安装`axiom-data[qlib]`；实际使用的环境记录在[requirements-qlib.lock](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/requirements-qlib.lock)。Research adapter位于Research仓库；直接使用Qlib的研究者也可以用其原生API加载同一个目录。
+安装Data本体可导出和核对格式，不需要Qlib。消费或运行完整教程时安装`axiom-data[qlib]`；实际使用的环境记录在[requirements-qlib.lock](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/requirements-qlib.lock)。Research adapter位于Research仓库；直接使用Qlib的研究者也可以用其原生API加载同一个目录。
 
 ## 格式、时间与单位
 
@@ -71,6 +71,6 @@ axiom-data --data-root /absolute/source-root qlib-verify \
   --view /absolute/new-qlib-view --against-reader
 ```
 
-两份[实际spec](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/qlib_stock_debug.spec.json)、[ETF spec](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/qlib_etf_debug.spec.json)对应现有原型。扩展十二年时按实际prepare后的身份、完整日历、所需字段及cutoff构造QuerySpecs，代码入口相同，不重拉供应商数据，也不要求agent提供补救脚本。
+两份[实际spec](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/qlib_stock_debug.spec.json)、[ETF spec](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/qlib_etf_debug.spec.json)对应现有原型。扩展十二年时按实际prepare后的身份、完整日历、所需字段及cutoff构造QuerySpecs，代码入口相同，不重拉供应商数据，也不要求agent提供补救脚本。
 
 真实验收（本地记录：`delivery/qlib_actual_20261003.acceptance.json`）使用Qlib0.9.7：股票2证券×65交易日、ETF7证券×114交易日，9个字段合计8352个数值单元，与Reader的键和NaN位置一致，数值满足声明容差；股票成员区间一致。导出分别约0.17秒、35KiB与74KiB，不外推为十二年速度。独立反例另验证cutoff不可见、缺价、退出/再入、未知成员、文件损坏、精度失败、provider切换和搬移；训练、模型、策略回测与任意processor等价性属于消费者验收。

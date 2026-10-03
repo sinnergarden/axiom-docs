@@ -5828,7 +5828,7 @@ assert (ETF_ROOT/&#x27;current.json&#x27;).read_bytes() == ETF_CURRENT_BEFORE
 print(&#x27;正式数据根的 current 未变化；教程无供应商调用。临时文件即将清理。&#x27;)
 TEMPDIR.cleanup()
 </pre></details></section><section id="section-17" class="markdown"><h2>17. 离线扩标：使用原 Raw 的显式新选择</h2>
-<p>下面是合成响应，专门验证“Raw 已保存全市场、Canonical 只收了 A”的边界。<code>domain_overrides.canonical_symbols</code> 可显式扩到 A+B，同时追加稳定身份。派生选择记入新 build context，原网络请求与 receipt 不改。所选域整体替换，需提供完整 Raw 闭包和目标选择；未选域保留，实际受影响月重建，不能把它称为自动只补新证券分区。Raw 没有 B 时仍缺失，需要另行明确补采。</p>
+<p>下面是合成响应，专门验证“Raw 已保存全市场、Canonical 只收了 A”的边界。<code>domain_overrides.canonical_symbols</code> 可显式扩到 A+B，同时追加稳定身份。派生选择记入新 build context，原网络请求与 receipt 不改。所选域整体替换，需提供完整 Raw 闭包和目标选择；未选域保留，实际受影响月重建，不能把它称为自动只补新证券分区。0.3.5 的后续默认 rebuild 继承已生效的选择、合同和映射；新 operation 不需重复提交 override。下面再次重建并断言 A+B 仍在；普通 CLI 也有独立回归。Raw 没有 B 时仍缺失，需要另行明确补采。</p>
 <p>多字段、多期的真实 Research 例子在 Researcher 教程末节；其 Core 计算和持久化复用已独立检查。字段从 Raw 扩展、时间追加与证券追加分别处理；不因正文或链接变化重采、重导出或全量重测。</p>
 </section><section class="example"><div class="example-label">真实执行 · 合成全市场 Raw：离线扩标验证</div><div class="table-scroll"><div>
 <style scoped>
@@ -5905,7 +5905,7 @@ TEMPDIR.cleanup()
       <td>2020-01-02</td>
       <td>terminal:b1aff9240533b40e4b5c54bf01e0e262b8a03...</td>
       <td>None</td>
-      <td>b_4b069448b778415998e1f914d5ac0e2e</td>
+      <td>b_514af82a04e84564b598aa40b27930e3</td>
       <td>2026-10-03T00:00:00+00:00</td>
       <td>2026-10-03T00:00:00+00:00</td>
       <td>first_observed_at</td>
@@ -5918,7 +5918,7 @@ TEMPDIR.cleanup()
       <td>2020-01-02</td>
       <td>terminal:8f628a202b500b043ef0c97996e28db6082d1...</td>
       <td>None</td>
-      <td>b_4b069448b778415998e1f914d5ac0e2e</td>
+      <td>b_514af82a04e84564b598aa40b27930e3</td>
       <td>2026-10-03T00:00:00+00:00</td>
       <td>2026-10-03T00:00:00+00:00</td>
       <td>first_observed_at</td>
@@ -5927,7 +5927,8 @@ TEMPDIR.cleanup()
     </tr>
   </tbody>
 </table>
-</div></div><pre class="output-text">仅新建分支 Snapshot；原 Raw/receipt/current 不变，供应商请求 0。
+</div></div><pre class="output-text">新 operation 默认 rebuild 继承 A+B，无需重复 override。
+仅新建分支 Snapshot；原 Raw/receipt/current 不变，供应商请求 0。
 </pre><details><summary>展开示例代码</summary><pre class="code">from axiom_data import IngestBatch, UpdateRequest
 from axiom_data.provider_local import CONTRACTS as SOURCE_CONTRACTS, profile_for
 
@@ -5956,6 +5957,19 @@ result=offline.read(snapshot=expanded.snapshot_id,query=QuerySpec(&#x27;market_d
 display(result.frame)
 display(pd.DataFrame(result.field_meta[&#x27;close&#x27;][&#x27;by_key&#x27;]))
 assert result.frame.close.tolist()==[10,10]
+# Ordinary default rebuild with a new operation: inherit effective A+B.
+replayed=offline.rebuild(base_snapshot=expanded.snapshot_id,raw_batch_ids=raw_ids,
+    domains=(&#x27;market_daily&#x27;,),operation_id=&#x27;synthetic-default-rebuild&#x27;,
+    build_context={&#x27;synthetic&#x27;:True},promote=False)
+expanded_domain=offline.store.load_snapshot(expanded.snapshot_id)[&#x27;domains&#x27;][&#x27;market_daily&#x27;]
+replayed_domain=offline.store.load_snapshot(replayed.snapshot_id)[&#x27;domains&#x27;][&#x27;market_daily&#x27;]
+assert replayed_domain[&#x27;partitions&#x27;]==expanded_domain[&#x27;partitions&#x27;]
+assert replayed_domain[&#x27;source_profile&#x27;]==expanded_domain[&#x27;source_profile&#x27;]
+assert replayed_domain[&#x27;build_context&#x27;][&#x27;canonical_selection&#x27;]=={&#x27;market_daily&#x27;:list(ids)}
+replayed_result=offline.read(snapshot=replayed.snapshot_id,query=QuerySpec(&#x27;market_daily&#x27;,(&#x27;close&#x27;,),
+    tuple(ids.values()),(&#x27;2020-01-02&#x27;,),&#x27;operational_pit_v1&#x27;,{&#x27;2020-01-02&#x27;:&#x27;2026-10-04T00:00:00Z&#x27;}))
+assert replayed_result.frame.close.tolist()==[10,10]
+print(&#x27;新 operation 默认 rebuild 继承 A+B，无需重复 override。&#x27;)
 assert (offline.store.root/&#x27;raw/fetches.jsonl&#x27;).read_bytes()==receipt_bytes
 assert (offline.store.root/&#x27;snapshots&#x27;/f&#x27;{first.snapshot_id}.json&#x27;).read_bytes()==old_snapshot_bytes
 assert offline.resolve(&#x27;current&#x27;)==first.snapshot_id

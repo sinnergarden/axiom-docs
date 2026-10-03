@@ -128,7 +128,7 @@ preserving prior failed receipts. A local validator correction can reclassify
 saved supplier bytes at their original receipt time without another request.
 Source retries and offline normalization retries are different operations.
 The complete runnable small sample is
-[the two-security, three-month scope](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/examples/full_scope_debug_202606_202608.md).
+[the two-security, three-month scope](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/examples/full_scope_debug_202606_202608.md).
 
 Raw contains exact request parameters and original bytes; candidate manifests
 summarize bounded request chunks rather than repeating every full request.

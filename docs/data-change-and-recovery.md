@@ -30,6 +30,8 @@ axiom-data --data-root /absolute/data rebuild --snapshot SNAPSHOT_ID \
   --domain market_daily --operation-id market-mapping-fix --no-promote
 ```
 
+Data 0.3.5 的默认重建继承基础 Snapshot 的有效合同、来源映射和已保存 Canonical 选择；新 operation ID 仍保留离线新增的字段和 A+B 范围，不会退回原 Raw 捕获时的 A。显式 domain override 覆盖继承值，显式 normalizer 也保存供后续重建。原 Raw 元数据保持不变。
+
 以 `axiom-data rebuild --help` 的实际参数为准。**重建替换整个所选域**，不是把一个窗口的 Raw 自动 patch 到原全域。高级 `--request` 必须给足这个域需保留的 Raw 集合；未选域沿用原 manifest，旧 Snapshot 不动。改变解释代码/配置后产生新候选，验证后才能明确发布；不要重跑相同错误逻辑便称修复成功。
 
 历史字段扩展是另一种明确选择：后来 fetch 的已声明字段可能没有变化，因此没有新 Snapshot，但其 Raw 已含新增字段。用只读 `data.select_raw(domains=('market_daily',), receipt_cutoff='2026-10-03T12:00:00Z')` 预览成功/空响应的 ID、receipt 和摘要，保存预览，再把完整 ID 集合交给 `data.rebuild(..., domain_overrides=...)` 或高级 `--request`。cutoff 是实际接收时刻的包含上界；后续 append 不改变已保存的 ID。没有收到字段的响应仍是 null。
@@ -40,11 +42,11 @@ axiom-data --data-root /absolute/data rebuild --snapshot SNAPSHOT_ID \
 
 Data 查询重放至少保存具体 Snapshot、完整 QuerySpec/EventQuery、PIT policy、每 session cutoff，以及 Reader/稳定派生版本。完整实验再保存实际研究代码 artifact 或 commit、参数、环境锁、种子（若使用）和结果。dirty checkout 只有 HEAD 不足以冻结实际源码。bundle 可以携带代码；若以后重建需原归一化行为，要带当时的代码，而非拿最新包冒充原构建器。
 
-0.3.2 的实际构建来源在 `build_context.builder`，由[实际构建器](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/src/axiom_data/builder.py)记录：干净源码 commit 与仓库来源，或完整安装 wheel 的 origin/SHA256/RECORD；同时保存依赖锁摘要和实际 Python/包版本。wheel 必须留存，Git 历史必须可取回。operation checkpoint 固定 builder 和实际配置，未完成作业更换 builder 会拒绝继续；用原 builder 续跑，或为修正版建立明确的新操作。调用者旧 `code_ref` 只是附带说明，不能代替实际来源。未改域保持原 context；重建的成员/生命周期域更新 builder，同时保留冻结供应商输入。dirty 源码拒绝构建，不创建通用源码打包平台。bundle 导出时携带的源码不是自动推定的历史 builder。新增[离线反例](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/tests/test_observation_recovery.py)覆盖后续 Raw 字段、完整 Raw 备份、成员首次合建/同日修正/A→B→A、事件空日期、Qlib闭市修订与持久复用。
+0.3.2 的实际构建来源在 `build_context.builder`，由[实际构建器](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/src/axiom_data/builder.py)记录：干净源码 commit 与仓库来源，或完整安装 wheel 的 origin/SHA256/RECORD；同时保存依赖锁摘要和实际 Python/包版本。wheel 必须留存，Git 历史必须可取回。operation checkpoint 固定 builder 和实际配置，未完成作业更换 builder 会拒绝继续；用原 builder 续跑，或为修正版建立明确的新操作。调用者旧 `code_ref` 只是附带说明，不能代替实际来源。未改域保持原 context；重建的成员/生命周期域更新 builder，同时保留冻结供应商输入。dirty 源码拒绝构建，不创建通用源码打包平台。bundle 导出时携带的源码不是自动推定的历史 builder。新增[离线反例](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/tests/test_observation_recovery.py)覆盖后续 Raw 字段、完整 Raw 备份、成员首次合建/同日修正/A→B→A、事件空日期、Qlib闭市修订与持久复用。
 
 可复现回答“同一输入和代码能否再次产生同一结果”，正确性回答“输入和计算是否适合研究问题”。两者分别验证。发现错误时记录 issue、受影响域/字段/时间/版本、原因、替代版本与复核状态，标记关联实验待重算；旧结果保留作对照，未受影响研究继续使用。当前不会自动分析所有实验依赖或判定整个研究库失效，不需要先建设一个全局 registry。
 
-当前接口依据：[Raw 存储](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/src/axiom_data/storage.py)、[显式重建](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/src/axiom_data/updates.py)、[Reader](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/src/axiom_data/reader.py)、[便携闭包](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/src/axiom_data/portable.py)、[CLI](cli.md)。真实验收按测试、有限原型、同机搬移和十二年采集分别报告。
+当前接口依据：[Raw 存储](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/src/axiom_data/storage.py)、[显式重建](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/src/axiom_data/updates.py)、[Reader](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/src/axiom_data/reader.py)、[便携闭包](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/src/axiom_data/portable.py)、[CLI](cli.md)。真实验收按测试、有限原型、同机搬移和十二年采集分别报告。
 ## 三个增量维度与重做范围
 
 时间扩展使用新的显式窗口，含必要预热和修订回看，合并触及的月份并复用其他分区。标的扩展允许追加稳定身份、用新标的计划并入同一根；既有代码不可改绑。已有字段的新 Feature 公式在 Research 处理；源字段已在 Raw 时先离线 rebuild 所选域，没收到字段才补采实际接口/窗口。旧 Snapshot 与分区保留，旧回测固定原输入和代码，不被 current 更新覆盖。

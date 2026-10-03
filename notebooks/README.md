@@ -11,7 +11,7 @@ Researcher 从事实链路、固定版本和第一次读取开始，解释时间
 ```sh
 python -m pip install -r ../axiom-data/requirements-local.lock
 python -m pip wheel ../axiom-data --no-deps --no-build-isolation --wheel-dir /absolute/retained-wheels
-python -m pip install /absolute/retained-wheels/axiom_data-0.3.4-py3-none-any.whl
+python -m pip install /absolute/retained-wheels/axiom_data-0.3.5-py3-none-any.whl
 python -m pip install -r ../axiom-data/requirements-notebooks.txt -r ../axiom-data/requirements-qlib.lock
 python -m pip install ../axiom-engine "../axiom-research[build]"
 python -m ipykernel install --user --name axiom-data --display-name 'Axiom Data'

@@ -276,7 +276,7 @@ read 不采集、不修复、不隐式物化。Qlib已纳入本轮交付：显�
 
 ## 9. 从零实施顺序与工期
 
-本节保留从零规划时的粗估，假设AI持续实现、人工及时确认来源语义、一个主要来源和权限可用。它描述最初行情闭环的实施顺序，不是当前剩余工期或交付范围。当前已约定并完成的Data范围包括财务/事件和Qlib，实际代码、运行时间与验收证据见[交付说明](https://github.com/sinnergarden/axiom-data/blob/27c1c73375dffc5741c4e6e49020415648dbef00/DELIVERY.md)；完整Engine/UI产品和实盘由各owner负责。
+本节保留从零规划时的粗估，假设AI持续实现、人工及时确认来源语义、一个主要来源和权限可用。它描述最初行情闭环的实施顺序，不是当前剩余工期或交付范围。当前已约定并完成的Data范围包括财务/事件和Qlib，实际代码、运行时间与验收证据见[交付说明](https://github.com/sinnergarden/axiom-data/blob/f6b8fad9684caad7e25abfb7fa695785258e0a5c/DELIVERY.md)；完整Engine/UI产品和实盘由各owner负责。
 
 | 累计里程碑 | 范围 | 估计 |
 |---|---|---|
