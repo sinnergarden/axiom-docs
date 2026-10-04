@@ -196,6 +196,103 @@ Legacy baseline 可封存并用于 forensic 数值对照，但不因冻结就认
 
 后续 ETF 长历史消费必须显式绑定 Data 新阶段验收后的最终 Snapshot，保留原固定小样本，不以 current 替换。策略仍沿用现有七证券参考集合、20 session 动量、正值 Top1 和周首交易日/严格前一 session 信号；先核实上市边界与完整交易日历，滚动窗口包含 20 个前置 session。上市前、warmup 与内部缺价/因子缺证分别保留 invalid 及原因，不压缩日历、不补零、不将参考集合伪装成历史成员证据。先用不超过现有 114 sessions 的固定窗口量测耗时、内存与写入体积并声明预算，再开展已授权的多年消费；不重新采集数据，不以短样本推断多年性能。
 
+<a id="stock-qlib-lightgbm-minimal"></a>
+### 4.5 股票 Qlib + LightGBM 五交易日最小闭环
+
+2026-10-04 实施范围：先固定训练 2023-10—12、OOS 2024-01（预热另含此前 21 个实际
+交易 session），再按月扩展 2024；不按结果选月份、不调参。若固定 Snapshot 不覆盖此范围，
+在执行前声明替代短窗口，不能依据收益选择。真实输入通过 Data 公共 Reader 与 P04 Qlib
+导出，保存 Snapshot/query/export digest；先连续历史 union 与 lookback，再按每 session
+可见 CSI300 dated membership 筛选，不能替换为当前成分。缺成员证据阻断该日期；
+best-effort 来源限制原样保留，不声称严格历史 PIT。已核实本机 Python 3.12.14、
+Qlib 0.9.7、LightGBM 4.7.0 可导入；依赖已存在不等于股票样本已验收。
+
+**Feature 唯一源**为 Research 机器可读 catalog，列 `group/id/name/formula/dependencies/
+lookback/normalization/missing_policy/semantic_version`；模型 config 按 id+version 选择有序列。
+ID 按动量、波动、价格、量等意群留号，不连续编号、不重编。首版六项为 1/5/20 session
+复权 close 回报、(high−low)/close、close/open−1、amount_cny/5-session 均值；定义编译为既有
+Core FeaturePlan，不另写执行器。公式/单位/窗口与实际 plan 同源，文档表自动生成，规划项
+不冒充已实现。采用同 session 可见成员截面的 cs_zscore（ddof=0、epsilon=1e−12、无 clip、
+缺值跳过且原缺值保留、常量截面 missing、池外 missing）；它不是 beta/行业中性化。
+本轮没有拟合型 scaler；以后增加时仅在该 fold 训练分区 fit 并保存参数。
+
+**LabelSpec** 固定 `forward_5_session_open_close_v1`：feature session f 后真实交易日历的
+第 1 个 session open 至第 5 个 session close，`close(f+5)/open(f+1)−1`，两端使用同锚点
+可见复权价，原始绝对收益、无成本。原始收益保留用于标签证据与 IC/RankIC；训练 target
+另按 feature session 的历史可见成员、Feature 全部有效且结果实际成熟的样本执行既有 Core
+cs_zscore（ddof=0、epsilon=1e−12、无 clip、缺值跳过且原缺值保留、常量截面 missing）。
+保存 raw_return、normalized_target、截面实际 eligible keys/section ref、Core plan/context/frame refs，
+以及原始 label_available_at 与归一化依赖的 normalized_available_at；归一化是 outcome-only
+结果处理，不将未来标签接入 decision facts。每行保存实际 start/end session、端点价格/
+因子来源与 `label_available_at`（所有必要结果事实可用时间最大值），只有它不晚于 fold
+fit cutoff 才训练；H=180 也须真实端点与成熟事实，不能自然日减 180 或只解析名称。
+结果查询与 decision facts 分离，缺价/因子/终点不填零。每月 fit cutoff 在首个预测日期之前，
+扩大训练只能加入当时已成熟历史；本轮无早停或验证选参，后续 validation 必须整日期切分。
+
+**最小持久链**为 `FeatureBuild → LabelBuild/Dataset → ModelRelease → Prediction/SignalRun →
+SignalEvidence → 同一 Engine`。CPU LightGBM regression 固定 100 trees、learning_rate=.05、
+num_leaves=31、max_depth=5、min_data_in_leaf=20、seed=42、num_threads=1、feature_fraction=1、
+bagging_fraction=1、deterministic=true、force_col_wise=true；不搬旧调优参数。模型保存原生
+booster、列顺序、训练键/成熟 cutoff、输入与实现/环境 refs，可独立加载预测。缓存身份绑定
+这些依赖。完全相同实验复用不得重读事实、执行 Core 或训练；仅修改标签或训练时可复用
+已冻结 Feature 与原始 Label，身份绑定原实验/Feature/Label refs，且不重跑 Feature。
+明确 prediction_raw、signal_score、rank、target_weight；本模型输出为标准化 target 的预测分数，
+`score_semantics=forward_5_session_cs_zscore_prediction`，无量纲，不解释为五日收益率或百分比。
+IC/RankIC 仍与保存的原始五 session 收益按日联合有效成员计算（n≥20，
+常量/不足为 null），保存覆盖数、排除原因及成熟标签 refs，不当作账户收益。
+
+Research 公开保存件为 `stock_prediction_run_v1`，顶层含 `signal_run_ref`（除自身之外全部
+文档的固定 digest）、`signal_stage=prediction_raw`、上述 `score_semantics`、
+`score_unit=dimensionless`、`model_ref`、`feature_ref`、有序固定 `universe`、`rows` 和来源限制。
+每行 `{security_id, session, knowledge_cutoff, available_at, score, valid, invalid_reason,
+member, source_refs}`；键 security_id+session 唯一，所有日期保留完整历史 union。`member`
+是该 feature session 的历史可见成员布尔值；池外为 member=false、valid=false、score=null、
+invalid_reason=NOT_MEMBER。成员内缺 Feature 也保留 invalid/null；不会移除 union 行或补零。
+有效 score 必须有限且 available_at≤knowledge_cutoff，来源 refs 绑定 FeatureBuild、ModelRelease、
+catalog 和固定 Qlib view。Engine 从这一已冻结原始预测构建中立 ML 输入，保留 signal/model/
+feature 原 refs、完整 union/member/validity 和原截面时钟；不冒用 ETF momentum frame，也不
+在 Research 重建排名或 target_weight。
+
+每周首个真实交易 session 使用严格前一 session 预测，降序稳定 security_id tie-break、
+Top5 等权，不加正值门槛；不足五个有效成员为 NO_DECISION。Core/Runtime owner 需冻结
+中立 ML 信号与动态候选合同；旧 momentum `signal_frame_v1`/Top1 不改名冒用。Research
+不实现撮合。股票事件、T+1、价限、状态、税费、持仓出池与估值准入未齐时，真实模型/
+信号/IC 先验收，Engine 保存明确 BLOCKED 原因，UI 只读这些 owner 产物；不能用 ETF
+profile 宣称完整股票账户闭环。账户准入通过后才交既有 Engine 运行。
+
+验收固定输入再现、冷构建/缓存复用、独立进程模型预测/只读加载、标签晚到与不规则日历
+边界、缺失/常量截面，以及 Engine 合同消费。分别记录 Qlib 导出、Feature、Label/Dataset、
+训练、预测、账户回放的实测 wall time/规模/峰值内存/文件体积；未运行阶段明确空缺。
+以首个真实月的测量再估算 2020—2026 扩展时间，不提供未经测量的理想吞吐估计。
+
+SysQ 固定 [852bcb7 的使用/架构](https://github.com/sinnergarden/SysQ/blob/852bcb73125f8781b7a80618b8188928ef4d38f2/docs/requirements/domains/research.md)
+及关键源码已只读核对：**可复用**连续历史后成员过滤、完整日期 validation、信号缓存与账户
+回放分离；**要改**逐行 label_available_at、冻结模型归档、派生输入 digest 和明确 score
+阶段；**不采用**工作日 fallback、缺失填零、当前成员替代历史、旧调优参数、旧 matcher/UI
+建表副作用。具体证据为
+[generator](https://github.com/sinnergarden/SysQ/blob/852bcb73125f8781b7a80618b8188928ef4d38f2/qsys/research/generators/lightgbm_single_label.py)、
+[training](https://github.com/sinnergarden/SysQ/blob/852bcb73125f8781b7a80618b8188928ef4d38f2/qsys/signal/alpha_v1/training.py)、
+[calendar/maturity](https://github.com/sinnergarden/SysQ/blob/852bcb73125f8781b7a80618b8188928ef4d38f2/qsys/research/generators/utils.py)。
+借合同与经验，不迁移另一平台；参数可复现范围依
+[LightGBM 官方说明](https://lightgbm.readthedocs.io/en/stable/Parameters.html)。
+
+<!-- stock-feature-catalog: generated; source axiom-research/src/axiom_research/catalogs/stock_ml_v1.json -->
+# stock_ml_v1
+
+Catalog identity: sha256:41bcf9f3640eabdc375bc9f481d11e163ac10e7eb486bc70b89290df171ca862
+
+Lookback counts the current feature session. Inputs use a visible common anchor; amount remains CNY.
+
+| Group | ID | Name | Version | Formula | Dependencies | Lookback | Normalization | Missing policy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| MOM | MOM010 | ret1 | 1.0.0 | adjusted_close[t] / adjusted_close[t-1] - 1; common anchor = feature session | ["market_daily.close","adjustment_factors.factor"] | 2 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; require complete finite positive close window; never fill zero |
+| MOM | MOM020 | ret5 | 1.0.0 | adjusted_close[t] / adjusted_close[t-5] - 1; common anchor = feature session | ["market_daily.close","adjustment_factors.factor"] | 6 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; require complete finite positive close window; never fill zero |
+| MOM | MOM030 | ret20 | 1.0.0 | adjusted_close[t] / adjusted_close[t-20] - 1; common anchor = feature session | ["market_daily.close","adjustment_factors.factor"] | 21 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; require complete finite positive close window; never fill zero |
+| VOL | VOL010 | intraday_range | 1.0.0 | (high[t] - low[t]) / close[t] | ["market_daily.high","market_daily.low","market_daily.close","adjustment_factors.factor"] | 1 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; zero denominator missing; never fill zero |
+| PRC | PRC010 | close_to_open | 1.0.0 | close[t] / open[t] - 1 | ["market_daily.close","market_daily.open","adjustment_factors.factor"] | 1 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; zero denominator missing; never fill zero |
+| LIQ | LIQ010 | amount_relative_5 | 1.0.0 | amount_cny[t] / rolling_mean(amount_cny, window=5, inclusive_current=true) | ["market_daily.amount_cny"] | 5 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; complete five-session window; zero denominator missing; never fill zero |
+<!-- /stock-feature-catalog -->
+
 ## 5. SignalRun、表达式与评估（P06/P10）
 
 本轮 ETF 导出 Core 中立 `signal_frame_v1`：顶层固定 `signal_run_ref`、`signal_stage=final`、`score_semantics=momentum_20d` 与完整 `universe`；行包含 `security_id/session/knowledge_cutoff/available_at/score/valid/invalid_reason/source_refs`，score 为有限 float 或 null，键唯一。warmup/缺数保留 invalid，不把缺信号变成零。source refs 固定 FeatureBuild 和逻辑 Data Views；账户消费采用严格前一交易日信号。该确定性配方尚无 IC/标签/OOS 评估结论。
