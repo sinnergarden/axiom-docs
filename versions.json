@@ -10,6 +10,23 @@
       "version": "0.3.5",
       "wheel_sha256": "1773c1e588b1802d976c7766e80854060875e767bbb869bd5eae93bdae9bb75f",
       "latest_verified_source": {
+        "commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c",
+        "version": "0.3.8",
+        "scope": "reviewed official fund_share_conversions and new fixed Snapshot; previous calendar audit retained; bounded frozen consumers accepted with original limitations",
+        "review_status": "parent_review_passed",
+        "package_status": "original installed and bulk builder identities retained",
+        "merge_commit": "44bad96924e83bc0d34048a3a6aa2452ed40ce79",
+        "pull_request": "https://github.com/sinnergarden/axiom-data/pull/37",
+        "source_tree": "ca36b4f14b9058d912620e57eb6759c61f924d6e",
+        "source_tree_unchanged_after_merge": true
+      },
+      "previous_event_source": {
+        "commit": "54e98c62cb594da2e4bd83d71b1167d4ba1877bf",
+        "version": "0.3.8",
+        "scope": "explicit continuation and cutoff-visible unavailable event scope",
+        "package_status": "original installed and bulk builder identities retained"
+      },
+      "previous_calendar_audit_source": {
         "commit": "e62774cbfeaaab3eae7522ce98d953a1d9dcf100",
         "version": "0.3.8",
         "scope": "source corrections and exchange-specific audit calendar grouping; frozen daily inputs consumed in bounded ETF and stock acceptance",
@@ -18,12 +35,6 @@
         "merge_commit": "93872ac3f75889ed99b90daa6cc15e18dac1b32a",
         "pull_request": "https://github.com/sinnergarden/axiom-data/pull/36",
         "source_tree_unchanged_after_merge": true
-      },
-      "previous_event_source": {
-        "commit": "54e98c62cb594da2e4bd83d71b1167d4ba1877bf",
-        "version": "0.3.8",
-        "scope": "explicit continuation and cutoff-visible unavailable event scope",
-        "package_status": "original installed and bulk builder identities retained"
       }
     },
     "axiom-research": {
@@ -295,7 +306,11 @@
       "Research_registration": "same frozen owner result and exact evaluation refs; no additional account",
       "chart_binding": "original market-replay query and complete common-field native batch digest retained",
       "limitations": "original missing facts and execution approximations retained; not alpha or general multi-year throughput proof",
-      "private_outputs": "local only"
+      "private_outputs": "local only",
+      "unit_split_validation": {
+        "real_saved_run": "two split applications NO_ENTITLEMENT with zero position; reference-price bridging only",
+        "positive_position_proportion_and_ceil": "synthetic golden checks; not real held-position split evidence"
+      }
     },
     "stock_account_round": {
       "source_commit": "cb94d7aad0ef9b1a5e8f5e885c1aed6f28fa3310",
@@ -366,7 +381,7 @@
   "as_of": "2026-10-04",
   "pending_implementations": {
     "axiom-data": {
-      "source_commit": "e62774cbfeaaab3eae7522ce98d953a1d9dcf100",
+      "source_commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c",
       "status": "frozen_daily_inputs_consumed_in_bounded_ETF_and_stock_scope; complete_twelve_year_use_coverage_not_claimed",
       "evidence": "parent-confirmed final fixed owner account/evaluation handoffs; original builder bindings retained",
       "long_history_limit_probe": {
@@ -397,7 +412,10 @@
         "required_next_gate": "none for this saved bounded ETF engineering acceptance; broader coverage and performance remain separate",
         "bounded_research_preflight": "previous fixed-Snapshot start-only preflight retained as historical; final fixed-Snapshot signal/account result is separate"
       },
-      "calendar_audit_status": "e62774c_parent_review_passed_corrected_report_completed"
+      "calendar_audit_status": "e62774c_parent_review_passed_corrected_report_completed",
+      "merge_commit": "44bad96924e83bc0d34048a3a6aa2452ed40ce79",
+      "pull_request": "https://github.com/sinnergarden/axiom-data/pull/37",
+      "official_fund_share_conversions": "reviewed source and new fixed Snapshot; PR37 parent reviewed and merged"
     },
     "axiom-ui": {
       "source_commit": "bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4",
