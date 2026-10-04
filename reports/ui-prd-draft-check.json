@@ -15,7 +15,7 @@
   "library_replacements": 0,
   "parent_text_review": "passed_as_discussion_draft_with_three_requested_tightenings",
   "artifacts": {
-    "docs/design/08_axiom_ui_research_prd_draft.md": "13261c48a2f7117982e7e394c352ac5c10f08df6709641db40b3a08f1ba4b07e",
+    "docs/design/08_axiom_ui_research_prd_draft.md": "7913fa067e462d1394f4cfde93ca28f403af0168d810bb21135ef6f43cd2d686",
     "docs/design/ui-prd-assets/figure01_experiment_versions.svg": "383cbb64838e960efb545a4fcf692a9396edfcdb9ee0f2b4849dedf362308aff",
     "docs/design/ui-prd-assets/figure02_comparison.svg": "36241b837e3fc3af88ce93a5b7a334ad0d7b5f7eba1124e6e9eb2d31d2c92148",
     "docs/design/ui-prd-assets/figure03_return_risk.svg": "a32fd9b13ae30cb8786f76246611e6d2aef95a8ac468f6f4dbbcb8ff40734eb3",
@@ -39,5 +39,15 @@
   "fifo_question_removed": true,
   "etf_equal_weight_buy_hold_is_recommendation_only": true,
   "figures_named_by_function": true,
-  "generated_svg_whitespace_normalized": true
+  "generated_svg_whitespace_normalized": true,
+  "boundary_discussion_revision": {
+    "scope": "user-confirmed experiment ownership and version/result presentation; no implementation",
+    "canonical_reference": "docs/design/01_axiom_overview.md#module-boundaries",
+    "canonical_table_owner": "docs task",
+    "canonical_table_fixed_commit": "pending owner report",
+    "experiment_management_owner": "Research",
+    "ui_causal_attribution": false,
+    "metric_candidates_and_figures_unchanged": true,
+    "library_delivery_unchanged_version": 2
+  }
 }
