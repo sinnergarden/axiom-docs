@@ -5,6 +5,7 @@ entries are navigation links. Code, source configuration, fixtures and local
 validation reports remain with their implementation owner.
 
 - [Design](docs/design/README.md)
+- [Design and PRD maintenance (draft)](docs/design-maintenance.md)
 - [Researcher tutorial](notebooks/researcher_tutorial.ipynb)
 - [Developer tutorial](notebooks/developer_tutorial.ipynb)
 - [Tutorial runtime and offline execution](notebooks/README.md)

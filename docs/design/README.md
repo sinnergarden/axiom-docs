@@ -1,6 +1,6 @@
 # Axiom 设计入口
 
-这一目录是整体设计的唯一权威正文。文档存放在 Data repo，Core、Trade、Research、UI 的逻辑职责仍按总纲划分。修改在此提交，其他仓引用明确版本。
+这一目录是整体设计的唯一权威正文。文档存放在 axiom-docs，Core、Trade、Research、UI 的逻辑职责仍按总纲划分。修改在此提交，其他仓引用明确版本。
 
 1. [整体架构与仓库边界](01_axiom_overview.md)
 2. [Data 设计](02_axiom_data.md)
