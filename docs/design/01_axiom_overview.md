@@ -56,10 +56,12 @@ Axiom 同时承担研究平台、投资辅助和自动交易系统三个角色�
 | Owner（仓库/逻辑域） | 负责范围 | 输入 | 输出 | 消费者 | 不负责范围 |
 |---|---|---|---|---|---|
 | [Data](02_axiom_data.md) · `axiom-data` | 采集、标准事实、PIT、事实口径的稳定派生、snapshot、数据验证；执行事实 Query/View、事实导出及复用 | 来源事实及配置；Research 的事实需求；Research/Engine/UI 的固定版本、字段、范围和时间查询 | `DataSnapshotRef`、`FactViewRef`、`MarketReplayViewRef`、`QlibViewRef`、`UniverseRef`；事实查询结果、显式导出及来源/质量证据 | Research；Engine/Runtime；UI 的事实层 | 研究派生 Feature/模型输入产物管理、预测 Feature 选择、label 定义、训练、实验管理、策略与成交、Feature 有效性裁决 |
-| [Engine/Core](03_axiom_core.md) · `axiom-engine/core` | 共享 Feature 执行、推理、信号变换、组合/风险/订单规划、策略状态转换 | Research 发布的 Feature/模型/信号计划与执行包；Research/Runtime adapter 注入的固定事实、账户/策略状态及规则 | 版本化执行库、输入输出类型；`FeatureFrame`、`PredictionFrame`、`SignalFrame`、确定性决策结果与 trace | Research；Engine/Runtime；UI 随保存产物读取 trace | 采集、找最新版本、具体研究配方、实验管理、训练编排、撮合、数据库、调度；直接响应 UI 计算请求 |
-| [Research](05_axiom_research.md) · `axiom-research` | 提出事实需求；管理派生 Feature 与模型输入产物，其构建复用 Core；管理训练、信号评估与发布；管理实验假设、参数、输入输出版本、运行关联及版本差异，关联 Engine 标准结果 | 固定 Data Query/View 结果、事实导出及版本引用；研究假设与参数；Core 执行结果；Engine 的回测和账户评估产物 | 事实需求；`FeatureRelease`、`FeatureBuild`、模型输入阶段产物、`TrainingDataset`、`ModelRelease`、`SignalRun`、`StrategyRelease`；实验说明、版本关系、运行与结果引用、差异说明 | Data 接收需求；Core 消费执行包；Engine/Runtime 消费信号与策略；UI 展示研究投影；研究者查看证据 | 另写 Feature 执行器或账户回测引擎、重算 Engine 账户指标、券商接口、真实账户账本、修改 Data 内部文件 |
-| [Engine/Trade Runtime](04_axiom_trade.md) · `axiom-engine/runtime` | runtime、唯一账户回测、shadow/real、Broker、账户核算、ledger、恢复和对账；计算标准账户指标与评估 | 固定市场回放/事实视图；Research 的 `SignalRun` 或策略/模型包；账户初值、执行及评估配置；Core 决策结果 | `RunManifest`、`BacktestRun`、订单/成交/持仓事件、账户快照、标准账户指标/评估报告、部署记录 | Research 关联并比较结果；UI 展示运行及账户；运行/对账工具 | 管理 Research 实验假设与版本差异、另写 Feature/预测/选股规则、改变上游事实、自动证明 alpha |
-| [UI](06_axiom_ui.md) · `axiom-ui` | 只读展示研究、事实、运行、订单与账户；选择、比较和图表联动，格式化 owner 保存结果 | Data 事实投影；Research 实验及版本关联、Feature/模型输入/信号产物；Engine 运行、账户及标准评估结果 | 页面、公共只读入口的查询组合、选择/比较联动、可重建展示索引与页面偏好 | 研究者和开发者浏览、比较、复盘；各 owner 接收只读查询需求 | 管理实验及其业务版本、从参数猜实验假设或用户意图、重算业务指标、触发 Feature/训练/回测、修数据、改持仓、下单、隐式发布策略 |
+| [Engine/Core](03_axiom_core.md) · `axiom-engine/core` | 共享 Feature 执行、推理、信号变换、组合/风险/订单规划、策略状态转换；产生结构化决策 trace | Research 发布的 Feature/模型/信号计划与执行包；Research/Runtime adapter 注入的固定事实、账户/策略状态及规则 | 版本化执行库、输入输出类型；`FeatureFrame`、`PredictionFrame`、`SignalFrame`、确定性决策结果；决策条件、候选排名、买卖原因的结构化 trace，实际运行方固定保存 | Research；Engine/Runtime；UI 随保存产物读取 trace | 采集、找最新版本、具体研究配方、实验管理、训练编排、撮合、数据库、调度；直接响应 UI 计算请求 |
+| [Research](05_axiom_research.md) · `axiom-research` | 提出事实需求；管理派生 Feature 与模型输入产物，其构建复用 Core；管理训练、信号评估与发布；管理实验分组、假设、参数、输入输出版本、运行关联及版本差异、实验标签/收藏/搁置记录，关联 Engine 标准结果 | 固定 Data Query/View 结果、事实导出及版本引用；研究假设、参数及实验记录；Core 执行结果；Engine 的回测和账户评估产物 | 事实需求；`FeatureRelease`、`FeatureBuild`、模型输入阶段产物、`TrainingDataset`、`ModelRelease`、`SignalRun`、`StrategyRelease`；保存的特征/模型分数及版本、IC/ICIR 等信号评价；实验分组与说明、版本关系、运行与结果引用、差异、标签/收藏/搁置记录 | Data 接收需求；Core 消费执行包；Engine/Runtime 消费信号与策略；UI 展示研究投影；研究者查看证据 | 另写 Feature 执行器、信号执行路径或账户回测引擎、重算 Engine 账户指标、券商接口、真实账户账本、修改 Data 内部文件 |
+| [Engine/Trade Runtime](04_axiom_trade.md) · `axiom-engine/runtime` | runtime、唯一账户回测、shadow/real、Broker、账户核算、ledger、恢复和对账；保存 Core 决策依据及成交/拒单依据；计算账户评估、完整持仓段和月收益统计 | 固定市场回放/事实视图；Research 的 `SignalRun` 或策略/模型包；账户初值、执行及评估配置；Core 决策结果及 trace | `RunManifest`、`BacktestRun`、订单/成交/持仓事件、账户快照、决策/成交/拒单依据、标准账户评估及完整持仓段/月收益统计、部署记录 | Research 关联并比较结果；UI 展示运行、账户及保存依据；运行/对账工具 | 管理 Research 实验假设与版本差异、另写 Feature/预测/选股规则、改变上游事实、自动证明 alpha |
+| [UI](06_axiom_ui.md) · `axiom-ui` | 只读展示研究、事实、运行、订单与账户；选择、比较和图表联动，展示 owner 保存的评价及决策/执行依据 | Data 事实投影；Research 实验记录、版本关联、特征/模型分数与信号评价；Engine 保存的决策/成交/拒单依据、账户评估、完整持仓段和月收益统计 | 页面、公共只读入口的查询组合、选择/比较联动、可重建展示索引与页面偏好 | 研究者和开发者浏览、比较、复盘；各 owner 接收只读查询需求 | 管理实验及标签/收藏/搁置等业务记录、从参数猜实验假设或用户意图、重算业务指标、触发 Feature/训练/回测、修数据、改持仓、下单、隐式发布策略 |
+
+实验标签是研究组织记录，不是预测目标 `LabelSpec`。新增产物职责是设计要求；**决策 debug 为低优先级后续需求，非已实现功能**。UI 仅读取保存依据，缺失时明确未提供，不重新执行策略补出解释。
 
 ```text
 供应商 → axiom-data → 固定的事实视图 ─────────────┐
@@ -205,6 +207,8 @@ SignalFrame + AccountState + StrategyState + DecisionContext
 
 `DecisionContext` 显式提供决策时间、可用数据截止点、有效交易规则、约束和事件序号。Core 不从系统时钟自行读“现在”。
 
+Core 产生结构化决策 trace，包含条件、候选排名与买卖原因；实际运行方绑定该次输入与版本固定保存。Core 保持纯计算库，无 I/O；UI 读取已保存依据，低优先级 debug 的具体细节留待后续设计与验收。
+
 通用排序、归一化、目标权重转数量、限仓检查等可在 Core；“60/180 日如何混合”“何时换仓”“什么 Feature 有效”等属于研究配置或冻结插件，不能变成 Core 中不断增加的策略特例。
 
 ### 5.2 不包含什么
@@ -247,6 +251,8 @@ releases/       Feature/Model/Strategy 发布包与研究决策
 ```
 
 信号评估不是第二套回测。修改仓位、换仓、退出规则时，优先复用 SignalRun，不重复训练；更换数据或 Feature 时则构建对应新版本，不能偷换缓存。
+
+实验分组、版本、运行关联及标签/收藏/搁置记录由 Research 管理；向消费者提供保存的特征/模型分数及版本、信号评价和 Engine 结果引用，不因定义信号另建执行路径。
 
 ### 6.2 Feature、样本与训练合同
 
@@ -565,6 +571,8 @@ Research 的统一评估至少包括 IC/Rank IC、ICIR、分位组收益、覆�
 | 贡献与路径 | 单票/行业/阶段贡献、持仓 episode、capture/giveback、集中度 | 防止收益被少数标的或短阶段主导 |
 
 **本版细化：**信号评估实现归 Research；账户净值、回测与 shadow/real 共用的指标实现归 Trade 的 reporting。Research 引用标准 BacktestEvaluation，不另写一套 CAGR/DD；UI 只展示。共同结果 envelope 统一对象引用、metric spec、scope、数据表和警告。
+
+完整持仓段和月收益统计由 Runtime 按确认口径生成并保存；Research 关联结果，UI 只读联动。本次职责确认不自动采用 PRD 中仍待讨论的分段或统计公式。
 
 ### 10.5 门禁分开，不设万能绿色勾
 
