@@ -27,7 +27,9 @@ Data保存未复权价格和因子供消费者选择共同锚点，并保留Snap
 
 ## 消费者交接
 
-Research拥有20D动量、正值过滤、并列排序、Top1/现金目标和每周调仓日。Engine/Runtime拥有开盘成交近似、卖出失败后的现金约束、停牌/涨跌停处理、佣金0.0003、税费0、最低佣金0、零滑点及账户核算。已确认的日线执行约定作为交接需求保留，不进入Data采集器或事实schema。
+2026-10-04 有界配方使用每个 feature session 当日 20:30 +08:00 的 cutoff；Data 公共 `adjust_prices(common_anchor_price_v1)` 将整个 21 观察窗口按同一 cutoff 与 feature session 锚点调整，Core 只对完整、有限且正的 21 收盘观察计算 pct_change(20)，cs_rank 作为平均并列诊断。缺因子/缺数不降级到原价。每个 ISO 周首个 exchange session 在开盘执行侧使用严格前一 session 最终信号；本轮配置是固定验收默认，不证明与历史聚宽基线数值等价。参考集合由 Research 声明，不冒称 Data 历史成员。实际 API、冻结 SignalFrame 与账本证据统一见 [当前交付](current-delivery.md)。
+
+Research定义并冻结20D动量、正值过滤、Top1/现金与每周调仓政策；Engine/Core执行纯目标/意图规划，分数并列按security_id升序。Engine/Runtime拥有开盘成交近似、卖出失败后的现金约束、停牌/涨跌停处理、佣金0.0003、税费0、最低佣金0、零滑点及账户核算。已确认的日线执行约定作为交接需求保留，不进入Data采集器或事实schema。
 
 Data交付不包含轮动策略函数、派生feature、排名表、交易目标或回测结果。Notebook展示实际数据、格式、时间语义与公共读取接口。
 
@@ -39,4 +41,7 @@ Data交付不包含轮动策略函数、派生feature、排名表、交易目标
 
 分红端点返回的是历史事件列表，44条中包含一条2026-09-15公告；查询全部保留历史并截至08-31时正确只返回43条，其中10条早于2014-11-01。正式研究仍按自己的起止范围筛选。保留来源事实与按查询时间筛可见行是两层操作，见搬移后实际读取（本地记录：`delivery/etf_rotation_qlib_code_20261003.read-probe.json`）。
 
-盘前价格限制的best-effort假设为08:45，日线/因子为当日20:00；分红整行取原公告日与实施公告日中较晚日期的20:00，实施公告为空时才使用原公告。strict仍用实际receipt；开盘价是事后执行结果，不能因此让当日完整日线进入开盘前决策。空停牌响应不构造normal_trading。最终搬移、安装与教程证据见[交付清单](completion-checklist.md)，本范围不声称策略回测已实现。
+盘前价格限制的best-effort假设为08:45，日线/因子为当日20:00；分红整行取原公告日与实施公告日中较晚日期的20:00，实施公告为空时才使用原公告。strict仍用实际receipt；开盘价是事后执行结果，不能因此让当日完整日线进入开盘前决策。空停牌响应不构造normal_trading。最终搬移、安装与教程证据见[交付清单](completion-checklist.md)。Data交付本身不包含回测；本轮消费者另已完成固定小样本 Feature/Signal→账户→只读报告，见[当前交付](current-delivery.md)。
+
+
+官方 [suspend_d](https://tushare.pro/document/2?doc_id=214)描述股票停复牌，没有证明 ETF 状态完整。空响应和 observed OHLCV 不改写为 normal_trading。Runtime 默认严格 block；用户批准的本轮 `etf_daily_observed` 只针对特定 ETF 缺源原因开放日线模拟准入，保留 UNKNOWN、原原因和 `ETF_OBSERVED_DAILY_ASSUMPTION`，已知/日内停牌及其他执行约束照常阻断。全天成交量是执行侧容量近似，不证明开盘或09:35可成交；当前实验结算/lot参数未验证为真实ETF规则，不作实盘依据。

@@ -5377,7 +5377,7 @@ print(&#x27;旧日严格 cutoff 早于原 Raw 接收，不能回填日线可见�
 </tbody>
 </table>
 <p>四个 repo 同机函数调用即可。Core 不直接读 Parquet；UI 不自己重算事实，也不触发供应商请求。</p>
-<p><strong>发布状态（本轮核对）：</strong> Research 0.1.1（<code>eb6ae3a</code>）已发布 Data/Qlib/ViewRef adapter 和具名、多字段、多报告期联合输入与持久复用。Engine Core <code>c8a506b</code> 已发布且未修改；Runtime/UI 仍为本地未发布实现。本附录含这些本地链路，只证明实际调用。新的公共联合输入示例只依赖已发布的 Data、Research 与 Core；任意 FeaturePlan、TTM 联合投影、标签/训练/模型/OOS/策略回测及多年规模性能尚未交付。</p>
+<p><strong>证据日期与当前源码：</strong> 本附录保留此前薄接口实际输出，只证明当时调用；不当作新账户回测证据。2026-10-04 固定 ETF 消费链另由 Research 0.1.2、Engine 0.2.1、UI 0.1.0 验收并推送源码，严格对照和用户批准的日线近似分别记录于<a href="../docs/current-delivery.md">当前交付</a>。完整模型/OOS、Runtime/Broker 和 UI 产品仍待验。本轮仅更新本 Notebook 的说明与入口并渲染保存输出，执行代码单元为 0。</p>
 </section><section class="example"><div class="example-label">真实执行 · Research / Core / Runtime / UI 真实薄接口 · 1</div><details><summary>展开示例代码</summary><pre class="code">sys.path.insert(0, str(WORKSPACE / &#x27;axiom-research&#x27; / &#x27;src&#x27;))
 sys.path.insert(0, str(WORKSPACE / &#x27;axiom-engine&#x27; / &#x27;src&#x27;))
 sys.path.insert(0, str(WORKSPACE / &#x27;axiom-ui&#x27; / &#x27;src&#x27;))
@@ -5800,7 +5800,7 @@ print(&#x27;相同字节复用对象；重复观察保留接收记录。小样�
 <tr>
   <td>成员、Research/Core/Runtime/UI 薄接口</td>
   <td>Tushare 成员观测和价格进入真实薄接口，来源频率与延续规则在章节内明确</td>
-  <td>十二年逐日来源完整性、严格历史成员 PIT、持仓全回测、完整 UI 产品</td>
+  <td>十二年逐日来源完整性、严格历史成员 PIT、完整模型/账户/Broker 与 UI 产品；本轮有界 ETF 链见<a href="../docs/current-delivery.md">当前交付</a></td>
 </tr>
 <tr>
   <td>财务 / 通用事件、TTM、撤销修订</td>
@@ -5810,7 +5810,7 @@ print(&#x27;相同字节复用对象；重复观察保留接收记录。小样�
 <tr>
   <td>七只 ETF 的日线数据</td>
   <td>独立 Tushare Snapshot 的身份、114 交易日 OHLCV/因子/涨跌停、分红、日历和基准，真实 API 读取及8域搬移重建</td>
-  <td>十二年 ETF 范围、归消费者所有的研究信号、开盘撮合或策略回测</td>
+  <td>十二年 ETF 范围、真实开盘流动性/撮合、完整策略平台；消费者短样本信号/账户另见<a href="../docs/current-delivery.md">当前交付</a></td>
 </tr>
 <tr>
   <td>Qlib</td>

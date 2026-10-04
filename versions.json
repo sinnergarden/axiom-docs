@@ -11,47 +11,102 @@
       "wheel_sha256": "1773c1e588b1802d976c7766e80854060875e767bbb869bd5eae93bdae9bb75f"
     },
     "axiom-research": {
-      "commit": "eb6ae3a596d46627c8d52470b595d015cf659711",
-      "version": "0.1.1",
-      "wheel_sha256": "47ab757918003e372cb89ee59e73ea261debdc697d6ae33d9e6ac075bdedf696"
+      "commit": "f88a24fdcc6b28f399444c854b1f37702c7a5389",
+      "version": "0.1.2",
+      "branch": "codex/research-etf-experiment-20261004",
+      "status": "source_pushed_parent_reviewed_not_main_merged",
+      "wheel_status": "no_new_wheel_evidence",
+      "previous_verified_package": {
+        "commit": "eb6ae3a596d46627c8d52470b595d015cf659711",
+        "version": "0.1.1",
+        "wheel_sha256": "47ab757918003e372cb89ee59e73ea261debdc697d6ae33d9e6ac075bdedf696"
+      }
     },
     "axiom-engine": {
-      "core_commit": "c8a506b2070a9c89b20cfe14a0a93155c238f204",
-      "core_tree_modified": false,
-      "runtime_status": "local_uncommitted_not_published"
+      "commit": "381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6",
+      "version": "0.2.1",
+      "branch": "engine/etf-account-backtest",
+      "status": "source_pushed_parent_reviewed_not_main_merged",
+      "wheel_status": "no_new_wheel_evidence",
+      "previous_core_commit": "c8a506b2070a9c89b20cfe14a0a93155c238f204"
     },
     "axiom-ui": {
-      "git_commit": null,
-      "status": "local_directory_not_a_git_repository_not_published"
+      "repository": "sinnergarden/axiom-ui",
+      "git_commit": "d5f097e46580b2794d08ececddccb123d292d3ea",
+      "version": "0.1.0",
+      "branch": "publish/ui-readonly",
+      "status": "public_source_parent_reviewed_bounded_readonly_report",
+      "wheel_status": "no_new_wheel_evidence",
+      "legacy_local_directory": "old_non_git_copy_retained_pending_navigation_migration",
+      "library_delivery": "latest_daily_html_delivered_parent_confirmed_after_owner_report",
+      "screenshot_qa": "not_completed"
     }
   },
   "validation": {
-    "data_scoped_tests": 16,
-    "research_scoped_tests": 15,
-    "tutorial_fresh_code_cells": 4,
-    "tutorial_fresh_errors": 0,
-    "tutorial_other_retained_code_cells": 93,
-    "supplier_requests": 0,
-    "formal_data_root_writes": false,
-    "default_rebuild_scoped_tests": 17,
-    "default_rebuild_cases": [
-      "ordinary CLI new operation retains expanded symbols",
-      "new operation retains added field contract/profile/normalizer"
-    ]
+    "previous_data_and_joint_tutorial_round": {
+      "data_scoped_tests": 16,
+      "research_scoped_tests": 15,
+      "tutorial_fresh_code_cells": 4,
+      "tutorial_fresh_errors": 0,
+      "tutorial_other_retained_code_cells": 93,
+      "supplier_requests": 0,
+      "formal_data_root_writes": false,
+      "default_rebuild_scoped_tests": 17,
+      "default_rebuild_cases": [
+        "ordinary CLI new operation retains expanded symbols",
+        "new operation retains added field contract/profile/normalizer"
+      ]
+    },
+    "etf_round": {
+      "research_distinct_affected_tests": 16,
+      "engine_final_tests": 53,
+      "ui_final_tests": 14,
+      "independent_owner_reviews": "passed_for_bounded_scope",
+      "snapshot": "s_e32f4511b69d4fce9accad609feb4005f371cc5cb833ca260d6ae563b75558d1",
+      "signal_run_ref": "sha256:e2966ff9febf2b72268091f979afbc29a836218dab008305c2ef40c6dcc6b030",
+      "daily_backtest_run_ref": "sha256:c2bed666e2509ed1a8747bfae23f5d94a39f6d6db9227cd2a67f181ffcc3d77b",
+      "strict_control_run_ref": "sha256:6db153261ab0f6c933959aac448b66b6fbef7162d57d8ad8dcdc4031747b95ea",
+      "evidence_index": "docs/current-delivery.md"
+    },
+    "documentation_round": {
+      "fresh_code_cells": 0,
+      "supplier_requests": 0,
+      "formal_data_root_writes": false,
+      "notebook_code_and_saved_outputs": "retained",
+      "html_source": "canonical_notebooks_saved_outputs"
+    }
   },
   "bulk": {
-    "status": "paused_by_user",
+    "status": "market_download_complete_financial_conflict_repair_pending",
     "builder_version": "0.3.3",
     "builder_commit": "cb19c8e7661bf6bb86caa19aaf5be5c4b71ae6b0",
     "builder_wheel_sha256": "8bbdd1c5ea5497d5a40e5680a032d9d5c199fd2a10169084310bde020e01a011",
-    "receipts_retained": 1849,
-    "operation_json_files_retained": 51,
-    "current_published": false,
-    "etf_started": false
+    "previous_paused_checkpoint": {
+      "receipts_retained": 1849,
+      "operation_json_files_retained": 51,
+      "current_published": false,
+      "etf_started": false,
+      "status": "paused_by_user"
+    },
+    "acceptance": "twelve_year_bulk_not_accepted",
+    "status_evidence": "parent_status_report_2026-10-04_not_process_inspection",
+    "builder_identity_policy": "original_0.3.3_not_replaced_by_pending_source"
   },
   "limits": [
     "no twelve-year bulk acceptance",
     "no multi-year feature-build scale benchmark or one-day guarantee",
-    "fixed Core identity/pct_change/asof recipe; no arbitrary FeaturePlans, derived TTM, labels/training/model/backtest platform"
-  ]
+    "bounded deterministic ETF features/signals and offline daily account simulation only; no arbitrary FeaturePlans, derived TTM projection, labels/training/OOS model platform",
+    "UNKNOWN facts retained; ETF observed daily execution is explicit approximation, default strict block retained; not live rules",
+    "no live Broker, SQLite crash recovery, split/delisting support or complete BFF/browser product; screenshot QA not completed"
+  ],
+  "as_of": "2026-10-04",
+  "pending_implementations": {
+    "axiom-data": {
+      "version": "0.3.6",
+      "local_commit_abbreviation": "48b8f4f",
+      "status": "not_pushed_explicit_continuation_pending_validation",
+      "evidence": "parent_status_report_2026-10-04",
+      "accepted_version_unchanged": "0.3.5"
+    }
+  }
 }

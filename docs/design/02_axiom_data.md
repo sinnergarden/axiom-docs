@@ -1,7 +1,7 @@
 # axiom-data：个人维护版设计与实施边界
 
 > 文档编号：AX-DATA · 个人版修订 v0.4 · 2026-10-03。\
-> 状态：目标合同；生产来源按用户最新决定统一为 Tushare，外部 cross-check 只产生 warning，不改写事实或阻断发布。约定的Data代码范围及两份真实教程已验收，证据见实现仓库交付说明；十二年全量已启动并暂停，尚未验收。\
+> 状态：目标合同；生产来源按用户最新决定统一为 Tushare，外部 cross-check 只产生 warning，不改写事实或阻断发布。约定的Data代码范围及两份真实教程已验收，证据见实现仓库交付说明；十二年全量尚未验收，最新行情/财务修复状态见[当前交付](../current-delivery.md)。\
 > 上位边界：[总纲](01_axiom_overview.md)、[补丁 A](07_重要补丁_A.md)、[补丁 B](07_重要补丁_B.md)。本次个人版约定已同步相关文档；四仓分工与 Engine/Core、Runtime 的逻辑边界不变。\
 > 阅读示例：[For Quant Researcher](../../notebooks/researcher_tutorial.html) · [For Quant Dev](../../notebooks/developer_tutorial.html) · [Notebook 与复运行说明](../../notebooks/README.md)。两种视角使用同一套设计。教程只证明其实际运行范围，不构成全部供应商能力或生产回测验收。
 

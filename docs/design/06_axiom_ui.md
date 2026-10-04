@@ -22,6 +22,8 @@ UI 的只读不是“不能记住页面偏好”：主题、筛选条件、图�
 
 ## 2. 结构与数据来源
 
+2026-10-04 本轮实现是 `axiom-ui` 新 Git 仓中的只读静态报告/CLI：经 `axiom_engine.runtime.load_backtest_run` 验证 owner 保存的 `backtest_run_v1`，显示固定 refs、implementation/profile、逐日 committed watermark、现金/持仓/NAV、decision/order/fill/ledger 及 owner 指标；缺值显示 unavailable。没有 Data 读取、Core/回测调用、owner save 或指标重算。显式日线近似与 UNKNOWN 原因继续展示，UI 不选择执行政策。代码、独立复核和 Library 交付状态见 [当前交付](../current-delivery.md)。下文 BFF/交互控制台仍是目标；原本地非 Git UI 目录保留旧副本，待导航迁移，不成为另一个可编辑事实源。
+
 ```text
 Browser
   → UI read-only BFF / Query Service

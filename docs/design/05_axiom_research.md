@@ -48,9 +48,11 @@ Data 只提供可信事实与稳定派生；Research 不直接读 raw 或未登�
 
 Model/Feature 插件发布为独立、冻结的轻量运行包，生产不 import mutable Research 源码树。Research 可调用 Trade 的离线公共 API，Trade 不依赖 Research 训练主包，避免循环依赖。
 
-Research 0.1.1（`eb6ae3a`）已发布 Data/Qlib/ViewRef adapter 和具名、多字段、多报告期联合输入的最小持久 FeatureBuild。每个 cutoff 由 Data 选修订，各财务流再选最新可见报告期，由 Core identity/pct_change/asof 执行，支持保存、重读和复用。Engine Core `c8a506b` 已发布；本地 Runtime 仍未提交。任意 FeaturePlan、TTM 联合投影、标签、训练、模型/OOS/策略回测及多年规模性能仍不是这次交付。
+2026-10-04 当前有界实现：Research 0.1.2 延续 0.1.1 的联合输入与持久复用，增加固定 ETF 确定性 Feature/Signal 实验；Engine 已有消费冻结信号的离线账户路径，UI 已有保存结果的静态展示。分支源码、实际验收与限制见 [当前交付](../current-delivery.md)；正文中的通用模型/OOS/插件平台仍是目标。
 
 ## 3. 核心产物合同（P01、P05、P06）
+
+当前 ETF 公共入口为 `axiom_research.build_rotation_features`、`build_rotation_experiment`、`load_rotation_experiment`。固定 Data 查询、完整日历与 Research 声明的七证券参考集合，复用 Core 执行；不新增特征执行器。参考集合不是 Data 历史成员证据。已保存实验返回 FeatureBuild、确定性 signal run 和实验身份；本路径没有模型、fold、标签或训练，不将其伪装为 R0 的 model/OOS SignalIdentity。源代码及配置入口见 [当前交付](../current-delivery.md#公开加载与持久复用)。
 
 | 产物 | 必需内容 | 不能混淆 |
 |---|---|---|
@@ -142,6 +144,8 @@ Legacy baseline 可封存并用于 forensic 数值对照，但不因冻结就认
 不能同时改变 universe、PIT、Feature、模型和执行口径，再把收益变化全部归因模型。CSI800 与 CSI1800 的结果分开记录；source history 不足以支持 strict 长历史时，显式限制范围或 best-effort，不能为了训练 8 年而伪造历史版本。
 
 ## 5. SignalRun、表达式与评估（P06/P10）
+
+本轮 ETF 导出 Core 中立 `signal_frame_v1`：顶层固定 `signal_run_ref`、`signal_stage=final`、`score_semantics=momentum_20d` 与完整 `universe`；行包含 `security_id/session/knowledge_cutoff/available_at/score/valid/invalid_reason/source_refs`，score 为有限 float 或 null，键唯一。warmup/缺数保留 invalid，不把缺信号变成零。source refs 固定 FeatureBuild 和逻辑 Data Views；账户消费采用严格前一交易日信号。该确定性配方尚无 IC/标签/OOS 评估结论。
 
 Raw 和 Derived SignalRun 使用同一读取/评估/回测协议。必要字段：security_id、feature/decision session、knowledge_cutoff、simulated_available_at 或实际可用时点、score、score semantics、signal_stage、valid/invalid_reason、model/fold/source refs。
 
@@ -241,6 +245,8 @@ Data 保存文档原文/版本与公开证据
 ## 8. 工程性能：复用，而非第二套快速语义
 
 ### 8.1 阶段缓存身份
+
+已实现的 ETF 产物按内容绑定数据/查询/配方/实际实现身份，原子发布；已有目录须验证文件与 digest，冲突或损坏保留原件并拒绝。Core 来源证明表按引用共享保存；`feature_frames()` 可展开已保存表，`signal_frame()` 可导出中立 JSON，均不执行 Core。相同输入缓存命中不读取 Data 事实、不改 mtime；搬移及新进程只读已测。证据 JSON 仍有明显体积成本，本轮小样本耗时/bytes 见 [当前交付](../current-delivery.md)，不推断多年规模。
 
 | 阶段 | 最低 cache/build key |
 |---|---|

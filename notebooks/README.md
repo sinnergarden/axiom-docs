@@ -26,12 +26,14 @@ AXIOM_TUTORIAL_DATA_PACKAGE="$(python -c 'import sysconfig; print(sysconfig.get_
 
 表格来自一年固定1800行情样本、两证券完整来源样本和七ETF日线样本，三者各有固定版本。两证券原教学样本含留存原供应商响应的离线回放，receipt 属于回放时间；新鲜生产入口验证另见 [bulk preflight](../docs/bulk-preflight.md)。合成测试只证明相应语义边界，不当作供应商数据。
 
-[权威设计](../docs/design/README.md)规定目标，[当前交付](https://github.com/sinnergarden/axiom-data/blob/main/DELIVERY.md)记录已测范围。研究策略、模型、账户回测和 UI 产品仍由其 owner 实现和验收。
+[权威设计](../docs/design/README.md)规定目标，[当前交付](../docs/current-delivery.md)记录已测范围与固定 owner 报告。ETF 信号、离线账户与静态 HTML 已完成短样本消费链；完整模型/OOS、Runtime/Broker 与 UI 产品仍按 owner 范围验收。
 
-Research 0.1.1（`eb6ae3a`）已发布 Data/Qlib/ViewRef adapter 和具名、多字段、多报告期联合输入的最小持久 FeatureBuild。每个 cutoff 由 Data 选修订，各财务流再选最新可见报告期，由 Core identity/pct_change/asof 执行，支持保存、重读和复用。Engine Core `c8a506b` 已发布；本地 Runtime 仍未提交。任意 FeaturePlan、TTM 联合投影、标签、训练、模型/OOS/策略回测及多年规模性能仍不是这次交付。 主线 Data 查询重放不依赖 Research。完整跨仓附录需要本地未发布的 Runtime/UI；新联合输入示例只需要已发布的三仓实现。
+本教程保存的联合输入示例来自 Research 0.1.1；本轮 ETF 另使用 Research 0.1.2、Engine 0.2.1 与 UI 0.1.0 的固定已推源码，见[版本表](../versions.json)与[当前交付](../docs/current-delivery.md)。本页安装命令沿用此前教程的已验 Data wheel；没有新的 Research/Engine/UI wheel 验收。主线 Data 查询重放不依赖 Research，跨仓附录的旧输出只证明当时调用；不以新源码身份追认旧输出为新回测。
 
 上面的 wheel 必须留存原文件，kernel 与运行命令使用同一安装环境。`AXIOM_TUTORIAL_DATA_PACKAGE` 指向该 wheel 的 site-packages；否则 helper 默认读源码树，离线构建需要干净且可恢复的 commit。执行更新 notebook 会使源码树变脏，留存安装包可以独立固定实际 builder；不允许只写一个旧 HEAD 代替真实代码来源。
 
-本轮新增 Researcher 联合输入与 Developer 离线扩标单元，分别连同初始化单元执行：4 个 fresh code cells、0 errors；其余 93 个代码单元保留此前输出，没有声称本轮全量重跑。当前合计 Researcher 43、Developer 54 个代码单元。
+此前新增 Researcher 联合输入与 Developer 离线扩标单元，分别连同初始化单元执行：4 个 fresh code cells、0 errors；其余 93 个代码单元保留此前输出，没有声称本轮全量重跑。当前合计 Researcher 43、Developer 54 个代码单元。
 
 [本轮实现与限制](../docs/current-delivery.md)记录字段/时间/证券三类增量和实际小样本测量。
+
+2026-10-04 ETF 入口：先读[数据与策略交接](../docs/etf-rotation-data.md)，再从[公开加载与复用](../docs/current-delivery.md#公开加载与持久复用)进入 Research 保存实验、Engine 中立回测/只读结果和 UI CLI。使用 owner 指定的固定产物位置，静态报告无需执行研究或访问 Data。教程这一轮只同步 Markdown 并渲染保存输出，代码执行为 0。

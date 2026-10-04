@@ -29,4 +29,4 @@ dictionary = data.dictionary(snapshot=snapshot,
 
 日频值通过 `Data.read + QuerySpec`，成员通过 `Data.members(fields=('is_member',), universe_id=...)`，财务/分红通过 `Data.events + EventQuery`。身份/日历等依赖由 `Data.states`、`Data.plan_scope` 使用；底层合同字段不都能作为日频值查询。时间查询需要显式 policy 和 cutoff，见 [Researcher 教程](../notebooks/researcher_tutorial.html)。
 
-Data 管事实字典；Research 管公式、窗口、缺失处理和配方。Research 0.1.1（`eb6ae3a`）已发布 Data/Qlib/ViewRef adapter 和具名、多字段、多报告期联合输入的最小持久 FeatureBuild。每个 cutoff 由 Data 选修订，各财务流再选最新可见报告期，由 Core identity/pct_change/asof 执行，支持保存、重读和复用。Engine Core `c8a506b` 已发布；本地 Runtime 仍未提交。任意 FeaturePlan、TTM 联合投影、标签、训练、模型/OOS/策略回测及多年规模性能仍不是这次交付。 真实示例见 Researcher 教程末节。
+Data 管事实字典；Research 管公式、窗口、缺失处理和配方。Researcher 教程末节保留 Research 0.1.1 的真实联合输入示例。2026-10-04 的固定 ETF 特征/信号、离线账户回测与静态报告另经三方 owner 验收；适用源码、严格对照和显式日线近似边界统一见 [当前交付](current-delivery.md)。通用模型/OOS、完整 Runtime/UI 和多年规模仍未验收。

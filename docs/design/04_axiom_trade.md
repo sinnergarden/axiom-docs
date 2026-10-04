@@ -71,6 +71,8 @@ model source 只执行保存模型，不在回测里重训。滚动历史有明�
 
 ## 4. Request、ResolvedRunPlan 与运行身份
 
+2026-10-04 本轮公共 `axiom_engine.runtime.BacktestRequest / MarketReplay / run_backtest` 显式接收冻结最终 SignalFrame 与固定回放，不 import Research，不解析 mutable workspace。`backtest_run_v1` 绑定 signal/market/profile refs、全部 Engine Python 实现文件的内容身份、`committed_sequence`、`final_account` 和 `content_digest`。`save_backtest_run / load_backtest_run` 保存/验证已有结果；加载不重新计算。实际源码、结果与审批范围见 [当前交付](../current-delivery.md)。下列通用 ResolvedRunPlan、model source、live 恢复仍是目标。
+
 ### 4.1 请求最低字段
 
 ```yaml
@@ -132,6 +134,8 @@ Plan 记录实际使用的代码来源/发布包、配置、依赖、data roots 
 Decision Reader 与 Simulator Reader 隔离。Simulator 可以处理之后发生的价格区间，但不能把全天 high/low/close/volume 提前交给开盘 Core。日线不足以证明精确开盘可成交量；使用日成交量约束的 profile 必须标明估计成交窗口、可用信息和日级近似，不能据此宣称精确开盘撮合，也不能用尚未确认的日终成交余额进行更早的日内再决策。
 
 ## 6. ExecutionProfile：最低回测真实性
+
+当前 `daily_open_profile()` 默认 `unknown_status_policy="block"`，严格 UNKNOWN 状态阻断保留。用户批准本轮显式 ETF 日线实验设置 `unknown_status_policy="etf_daily_observed"`：仅已识别的 canonical ETF 状态缺源原因可在有效 observed open、正日成交量与合法限价下准入；事实 UNKNOWN 和 order/fill 的 `ETF_OBSERVED_DAILY_ASSUMPTION` 保留。已知/日内停牌、其他未知原因、现金/限价/容量/可卖数量仍阻断。全天 volume 仅在执行侧作容量代理，不进入开盘 Core；它不能证明开盘流动性。T+1/100 基金份额是保守实验参数，未验证为真实 ETF 规则。详见 [ETF 合同](../etf-rotation-data.md#消费者交接) 与 [当前交付](../current-delivery.md#同一输入与两种执行政策)，此 profile 不可当成实盘规则。
 
 | 项目 | 初版要求 | 不允许 |
 |---|---|---|
@@ -226,6 +230,8 @@ Broker 同时提供累计数量和增量回报时，adapter 明确归一化，�
 
 ## 9. 公司行动、估值与权益
 
+本轮离线子集用 Decimal 计算、CNY 整数分持久化，保存 cash/position/cost/fees/NAV 与水位；现金分红按 record/ex/pay 处理应收和到账。合成三笔成交手算与真实短样本账本核对已通过。送转、拆分、退市范围没有能力证据，应由公共 adapter/preflight 拒绝；不得从因子审计推出全部公司行动已支持。下文送转等要求仍属目标。
+
 Data 提供事件事实及日期；Trade 按账户实际权益登记处理。至少区分登记基准、除权、到账、股份上市/可卖日期，不把所有权益在公告日立即加到账户。
 
 现金股息可先记 receivable，到账再转现金，避免除息日净值虚降又在到账日重复获利；送转增股同时处理成本基准和可用数量。税费或后续追缴按实际/模拟 profile 写明确事件。
@@ -313,6 +319,8 @@ src/axiom_trade/
 
 ## 13. 分阶段验收
 
+当前完成 T-M1 的有界 cached ETF 离线路径与保存报告；没有声称通用 model source/SimBroker 全部能力。T-M2 的 SQLite outbox/inbox、Broker crash recovery，以及 T-M3/T-M4 的 shadow/real 未实现或未验收。实际范围以 [owner 证据入口](../current-delivery.md)为准。
+
 | 阶段 | 最小交付 | 不能提前宣称 |
 |---|---|---|
 | T-M1 | 离线单回测、cached signal、Core 接入、SimBroker、核算/标准报告 | 真实 Broker 可用 |
@@ -321,6 +329,8 @@ src/axiom_trade/
 | T-M4 | 明确 Broker adapter/权限/规则/账户验证后受控 real | 通用支持所有券商和证券事件 |
 
 ## 14. 最小验收标准
+
+本轮已有固定输入复现、缺信号/时间边界拒绝、严格状态阻断、显式 ETF 近似准入、T+1/现金/限价/容量、现金分红、保存 digest 和 UI 只读一致性证据。以下 T01–T22 是目标验收目录，53 tests 与合成 handcalc 不等于全部目录通过；特别不能据此宣称数据库事务恢复、实盘对账或全部标准绩效指标已完成。
 
 | ID | 操作/失败点 | 必须结果 |
 |---|---|---|

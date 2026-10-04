@@ -6022,7 +6022,7 @@ verify_qlib_export(etf_qlib.path)
 </table>
 <p>四个 repo 同机函数调用即可。Core 不直接读 Parquet；UI 不自己重算事实，也不触发供应商请求。</p>
 <p>接口示例固定含 Tushare 成员和市场事实的同一统一 Snapshot，选两个真实月末；Core 的 lag/return 因而跨相邻观测月末，绝不是一日收益。这里用 <code>best_effort_vendor_v1</code> 演示薄接口保留价格、单位、供应商快照日、session、policy 与来源，不把 10 月收到的成员依赖伪装成 8 月当时可知信息。</p>
-<p><strong>发布状态（本轮核对）：</strong> Research 0.1.1（<code>eb6ae3a</code>）已发布 Data/Qlib/ViewRef adapter 和具名、多字段、多报告期联合输入与持久复用。Engine Core <code>c8a506b</code> 已发布且未修改；Runtime/UI 仍为本地未发布实现。本附录含这些本地链路，只证明实际调用。新的公共联合输入示例只依赖已发布的 Data、Research 与 Core；任意 FeaturePlan、TTM 联合投影、标签/训练/模型/OOS/策略回测及多年规模性能尚未交付。</p>
+<p><strong>证据日期与当前源码：</strong> 本附录保留此前薄接口实际输出，只证明当时调用；不当作新账户回测证据。2026-10-04 固定 ETF 消费链另由 Research 0.1.2、Engine 0.2.1、UI 0.1.0 验收并推送源码，严格对照和用户批准的日线近似分别记录于<a href="../docs/current-delivery.md">当前交付</a>。完整模型/OOS、Runtime/Broker 和 UI 产品仍待验。本轮仅更新本 Notebook 的说明与入口并渲染保存输出，执行代码单元为 0。</p>
 </section><section class="example"><div class="example-label">真实执行 · 真实跨仓函数与 JSON 协议 · 1</div><details><summary>展开示例代码</summary><pre class="code">sys.path.insert(0, str(WORKSPACE / &#x27;axiom-research&#x27; / &#x27;src&#x27;))
 sys.path.insert(0, str(WORKSPACE / &#x27;axiom-engine&#x27; / &#x27;src&#x27;))
 sys.path.insert(0, str(WORKSPACE / &#x27;axiom-ui&#x27; / &#x27;src&#x27;))
@@ -6334,7 +6334,7 @@ print(&#x27;这是两证券三个月及财务 warmup 的现场字节，不外推
 <tr>
   <td>成员、Research/Core/Runtime/UI 薄接口</td>
   <td>Tushare 成员观测和价格进入真实薄接口，来源频率与延续规则在章节内明确</td>
-  <td>十二年逐日来源完整性、严格历史成员 PIT、持仓全回测、完整 UI 产品</td>
+  <td>十二年逐日来源完整性、严格历史成员 PIT、完整模型/账户/Broker 与 UI 产品；本轮有界 ETF 链见<a href="../docs/current-delivery.md">当前交付</a></td>
 </tr>
 <tr>
   <td>财务 / 通用事件、TTM、撤销修订</td>
@@ -6344,7 +6344,7 @@ print(&#x27;这是两证券三个月及财务 warmup 的现场字节，不外推
 <tr>
   <td>七只 ETF 的日线数据</td>
   <td>独立 Tushare Snapshot 的身份、114 交易日 OHLCV/因子/涨跌停、分红、日历和基准，真实 API 读取及8域搬移重建</td>
-  <td>十二年 ETF 范围、归消费者所有的研究信号、开盘撮合或策略回测</td>
+  <td>十二年 ETF 范围、真实开盘流动性/撮合、完整策略平台；消费者短样本信号/账户另见<a href="../docs/current-delivery.md">当前交付</a></td>
 </tr>
 <tr>
   <td>Qlib</td>
@@ -6363,7 +6363,7 @@ print(&#x27;正式数据根的 current 未变化；教程无供应商调用。�
 TEMPDIR.cleanup()
 </pre></details></section><section id="section-17" class="markdown"><h2>17. 真实联合研究输入：多字段、多报告期与持久复用</h2>
 <p>Research 0.1.1 接受具名行情/财务查询集合，每条查询可选多个数值字段。这里用两个证券、六个交易日、两条行情查询、三条财务查询，报告范围跨多年。Data 在每个 cutoff 先选各报告期修订，配方再为各财务流选不晚于 session 的最新可见报告期；Core 执行 identity、pct_change 和 asof。新报告缺失或撤回不会回退到旧报告。财务 cutoff 参数在执行时按 session 替换，不能用最后一天的历史修订投影整个区间。</p>
-<p>输入/输出按 <code>(security_id, session)</code> 合并，字段名为 <code>alias__field</code>；行情还返回 <code>alias__field__return</code>。收入保持原累计值、单位与 basis，不冒称单季或 TTM。原始 close 的收益含未复权价格跳变，只示范算子。成员沿用供应商快照和 best-effort 时间假设，本例不证明严格历史 PIT。任意 FeaturePlan、拟合、模型、标签、策略回测，以及多年规模/一天内性能目标仍未验收。</p>
+<p>输入/输出按 <code>(security_id, session)</code> 合并，字段名为 <code>alias__field</code>；行情还返回 <code>alias__field__return</code>。收入保持原累计值、单位与 basis，不冒称单季或 TTM。原始 close 的收益含未复权价格跳变，只示范算子。成员沿用供应商快照和 best-effort 时间假设，本例不证明严格历史 PIT。任意 FeaturePlan、拟合、模型、标签、该联合输入单元的策略回测，以及多年规模/一天内性能目标仍未验收；本轮 ETF 另见<a href="../docs/current-delivery.md">当前交付</a>。</p>
 <p>产物保存到 Research 的独立临时目录，含面板、合同、每格 Core 缺失原因与 Data 原始来源。用新的 Data 实例复用，另开 Python 进程直接读取；不重新调用供应商或改写正式数据。实际版本以版本表和固定包为准；代码变更只重做受影响产物。
 范围参数为 2020–2026，实际报告来自留存小样本，不表示整个窗口完整。最新可见是固定 Snapshot 和显式查询范围内的可见记录；来源覆盖与局限保存在产物查询上下文中。</p>
 </section><section class="example"><div class="example-label">真实执行 · 既存真实 Data：多查询联合输入与复用</div><div class="table-scroll"><div>
