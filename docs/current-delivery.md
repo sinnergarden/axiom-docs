@@ -4,14 +4,14 @@
 
 ## 本轮保存结果消费闭环
 
-固定 Data → Research Feature/Signal → Engine Core/Runtime 账户 → UI 保存结果展示，已完成此前短 ETF 样本、固定长 ETF 范围及有界股票短月的 owner 工程验收，范围各自保留。Research PR #1/#2/#3 已亲审后合并，当前 0.2.1 main 为 `3a7451e`、对应源码 `a8f30d4`；Engine PR #2—#6 已亲审后合并，当前 main 为 `9d0b52c`、对应源码 `cb94d7a`。UI PR #1/#2/#3 已亲审后合入 `publish/ui-readonly`，0.2.0 最终股票 v3 源码 `bcacc5f`、merge `05a1dd8` 包含合法缺 high/low 的降级修复。各次合并源码树与已审 head 一致，不因 merge 重跑。软件源码已经交付；owner 35 tests、默认安全 Chrome 与 wheel 资产独立核验通过，不代表已安装或发布新 wheel。Root 尚未亲看最终截图，用户未验收；本人私有 HTML/截图的 Library 交付进行中，尚无成功回执。原本地非 Git 目录只保留旧副本，不作为另一处编辑源。
+固定 Data → Research Feature/Signal → Engine Core/Runtime 账户 → UI 保存结果展示，已完成此前短 ETF 样本、固定长 ETF 范围及有界股票短月的 owner 工程验收，范围各自保留。Research PR #1/#2/#3 已亲审后合并，当前 0.2.1 main 为 `3a7451e`、对应源码 `a8f30d4`；Engine PR #2—#6 已亲审后合并，当前 main 为 `9d0b52c`、对应源码 `cb94d7a`。UI PR #1/#2/#3 已亲审后合入 `publish/ui-readonly`，0.2.0 最终股票 v3 源码 `bcacc5f`、merge `05a1dd8` 包含合法缺 high/low 的降级修复。各次合并源码树与已审 head 一致，不因 merge 重跑。软件源码已经交付；owner 35 tests、默认安全 Chrome 与 wheel 资产独立核验通过，不代表已安装或发布新 wheel。Root 尚未亲看最终截图，用户未验收；本人私有 HTML/截图在 Mac 本地可打开，资料库交付受阻：实际工具返回 Library prepare_uploads is not available，0 文件写入、无文件 IDs；不重试或换通道。原本地非 Git 目录只保留旧副本，不作为另一处编辑源。
 
 | owner | 实际交付 | 固定源码与证据 | 验收边界 |
 |---|---|---|---|
 | Data | 固定 ETF/股票 Snapshot 的 native daily、因子、限价、成员、身份、日历与行动证据；消费者只读 | 原已验 0.3.5 `f6b8fad` 安装身份保留；最新 0.3.8 源码 [`aae9b23`](https://github.com/sinnergarden/axiom-data/tree/aae9b23d0e223b0221fb946b2e9daa9332cd622c) 经 [PR #37](https://github.com/sinnergarden/axiom-data/pull/37) 合并为 `44bad96`，含已审官方 fund_share_conversions 与新 Snapshot；[来源与事件边界](design/event-ambiguity-continuation.md) | 原 0.3.3 bulk builder/operation 绑定不改；PR #36 日历审计作为历史来源保留；best-effort/终态修订/成员来源限制保留，不声称十二年所有用途完整 |
 | Research | 确定性 ETF 信号；固定六特征/五 session 归一化 target/单 fold 股票模型；成熟训练键、信号汇总与计时 sidecar；不可变登记及只读投影 | 股票模型 [PR #2](https://github.com/sinnergarden/axiom-research/pull/2)：`091189e` → `fec9270`；阶段报告 [PR #3](https://github.com/sinnergarden/axiom-research/pull/3)：`a8f30d4` → `3a7451e`；[读取合同](design/05_axiom_research.md#stock-saved-stage-report-proposal) | 原 ETF/登记验收保留；股票模型 75 tests、阶段报告 25 项定向 tests 与独立复审。固定模型证据不扩为通用模型选择或预测收益承诺 |
 | Engine | 冻结信号/market replay 离线账本；ETF 份额拆分；有界 SZSE Top5 与股票费用/现金行动；保存 run/evaluation 公共 loader | ETF 拆分 [PR #5](https://github.com/sinnergarden/axiom-engine/pull/5)：`59a4e1c` → `1df81dc`；股票 [PR #6](https://github.com/sinnergarden/axiom-engine/pull/6)：`cb94d7a` → `9d0b52c`；[Trade §6.1](design/04_axiom_trade.md#stock-daily-observed-minimal) | 原账户/P10/v2 验收保留；股票 owner 114 source tests、独立复审及真实短月 observed/strict 保存件通过。日级事后近似，无 live/SQLite 恢复或完整股票数量行动/退市支持 |
-| UI | 公共 Reader 的保存运行导航、显式 diff、阶段报告与 ETF/股票 v3 静态只读展示 | 0.2.0 最终源码 [`bcacc5f`](https://github.com/sinnergarden/axiom-ui/tree/bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4) 经 [PR #3](https://github.com/sinnergarden/axiom-ui/pull/3) 合并为 `05a1dd8`；[owner 展示验收](https://github.com/sinnergarden/axiom-ui/blob/bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4/reports/stock-account-v3-display-acceptance.json)、[只读接入](ui-workbench-read-contract.md) | 35 tests、默认安全 Chrome 桌面/手机及 wheel 资产独立核验通过；root 源码亲审，最终像素未亲看、用户未验收。Library 本人交付进行中；不重算或写 owner，无完整 BFF/live 产品验收 |
+| UI | 公共 Reader 的保存运行导航、显式 diff、阶段报告与 ETF/股票 v3 静态只读展示 | 0.2.0 最终源码 [`bcacc5f`](https://github.com/sinnergarden/axiom-ui/tree/bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4) 经 [PR #3](https://github.com/sinnergarden/axiom-ui/pull/3) 合并为 `05a1dd8`；[owner 展示验收](https://github.com/sinnergarden/axiom-ui/blob/bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4/reports/stock-account-v3-display-acceptance.json)、[只读接入](ui-workbench-read-contract.md) | 35 tests、默认安全 Chrome 桌面/手机及 wheel 资产独立核验通过；root 源码亲审，最终像素未亲看、用户未验收。本人资料库交付受阻，Mac 本地可打开；不重算或写 owner，无完整 BFF/live 产品验收 |
 
 ### 同一输入与两种执行政策
 
@@ -33,7 +33,7 @@ Engine [PR #4](https://github.com/sinnergarden/axiom-engine/pull/4) 将 [有界�
 
 日线近似的 content digest 为 `sha256:21ca7a5e9a7b3aea5435d85d58955dcbe5f3c6cfcb83c788b3372cf3bed4247c`。保存结果固定 signal/market/profile/implementation refs、最终账户及水位；相同输入重复执行一致，当时 UI 表格与 owner 保存值相等。历史 `4a72394` 的零成交报告保留为旧严格对照，原账户验收基线为 `381fe6c`；该短样本加入 P10 时的源码为 `e74cefb`，合并提交 `ef2f693` 的源码树与其完全相同。后续已合源码见上表，原短样本身份不倒改。上述结果不证明 alpha、OOS、长期收益、容量或实盘适用性。
 
-此前 daily HTML 已存入 Library 并发送用户，此交付由父任务确认，晚于 UI 仓报告中当时的外部上传阻断记录。该附件可以独立打开；合集兄弟文件链接不能保证跨附件导航可用。这是历史附件交付，不代表当前工作台已通过最终验收。工作台功能与三视图已确认，稳定保存运行分组、阶段报告和股票/价量视图分别随 PR #1/#2/#3 合并。Owner 浏览器 QA 与 root 亲看像素、用户验收分别登记；后两者尚未完成，当前本人私有 Library 交付进行中。新增视觉与只读接入需求见 [PRD](design/08_axiom_ui_research_prd_draft.md)及[应用说明](ui-workbench-read-contract.md)。
+此前 daily HTML 已存入 Library 并发送用户，此交付由父任务确认，晚于 UI 仓报告中当时的外部上传阻断记录。该附件可以独立打开；合集兄弟文件链接不能保证跨附件导航可用。这是历史附件交付，不代表当前工作台已通过最终验收。工作台功能与三视图已确认，稳定保存运行分组、阶段报告和股票/价量视图分别随 PR #1/#2/#3 合并。Owner 浏览器 QA 与 root 亲看像素、用户验收分别登记；后两者尚未完成，当前本人资料库交付受阻，Mac 本地文件可打开。新增视觉与只读接入需求见 [PRD](design/08_axiom_ui_research_prd_draft.md)及[应用说明](ui-workbench-read-contract.md)。
 
 ### 后续固定长 ETF 与有界股票交付
 
@@ -78,7 +78,7 @@ Data 已完成第一阶段股票/ETF 来源采集与显式续接，0.3.8 固定�
 
 长历史先依据 Data 的有界 `etf_limit` / `stk_limit` 探测选择上述共同范围，再固定 final Snapshot 并完成 owner 消费；精确代码窗口、正控、来源推断边界及起点门槛见 [Research 数据准备](design/05_axiom_research.md#41-数据准备顺序)。保持执行限价/profile、原日期和固定 7 ETF。旧 Snapshot 的首周小预算预检仍只是历史起点证据，不冒充 final 范围；两处范围内行情缺失按原 invalid/执行规则保留。私人输入与产物继续只保存在本地，不为状态收尾重复多年 Feature、训练、账户或教程。
 
-任意 FeaturePlan、TTM 联合投影、通用模型选择/跨 fold OOS、股票多年策略或规模性能、跨 OS、完整浏览器/BFF、SQLite/Broker 恢复与实盘均未因此获得验收。固定股票六特征/五 session label/单 fold 训练与保存件验收是已交付的有界能力，不再统称为未实现。股票 UI 修复源码已合并交付，owner 图表 QA、root 亲看最终像素和用户验收分别登记，后两者尚未完成；本人私有 Library 交付等待实际回执。普通说明、注释和链接变更只做文档检查；可执行教学变更只执行受影响单元及前置条件。
+任意 FeaturePlan、TTM 联合投影、通用模型选择/跨 fold OOS、股票多年策略或规模性能、跨 OS、完整浏览器/BFF、SQLite/Broker 恢复与实盘均未因此获得验收。固定股票六特征/五 session label/单 fold 训练与保存件验收是已交付的有界能力，不再统称为未实现。股票 UI 修复源码已合并交付，owner 图表 QA、root 亲看最终像素和用户验收分别登记，后两者尚未完成；本人资料库交付最终回执为 BLOCKED/0 文件写入，Mac 本地文件可打开。普通说明、注释和链接变更只做文档检查；可执行教学变更只执行受影响单元及前置条件。
 
 统一交付收尾的检查记录见 [docs closeout check](../reports/docs-etf-closeout-check.json)：该轮 Notebook 代码、输出与元数据逐单元不变，保存输出重新渲染；新增本地链接、固定 owner 提交/文件与版本引用核对通过。
 

@@ -26,7 +26,7 @@ Data 沿用 [Data 公共 Reader](design/02_axiom_data.md) 与 [P12](design/06_ax
 
 ## 组合、验收与交付
 
-2026-10-04 软件状态：UI 0.2.0 最终源码 `bcacc5f` 经主协调亲审后随 [PR #3](https://github.com/sinnergarden/axiom-ui/pull/3) 合并为 `05a1dd8`，源码树相同；包含合法缺 high/low 时保存 close/volume 的明确降级。35 tests、默认安全 Chrome 桌面/手机和 wheel 资产独立核验通过。Root 尚未亲看最终截图，用户未验收，本人私有 HTML/截图的 Library 交付进行中；这些状态与软件已交付分别记录，不预写上传成功或新 wheel 已安装/发布。
+2026-10-04 软件状态：UI 0.2.0 最终源码 `bcacc5f` 经主协调亲审后随 [PR #3](https://github.com/sinnergarden/axiom-ui/pull/3) 合并为 `05a1dd8`，源码树相同；包含合法缺 high/low 时保存 close/volume 的明确降级。35 tests、默认安全 Chrome 桌面/手机和 wheel 资产独立核验通过。Root 尚未亲看最终截图，用户未验收，本人资料库交付受阻：Library prepare_uploads is not available，0 文件写入、无文件 IDs；Mac 本地 HTML/截图可打开。这一文件交付限制与软件已交付分别记录，原 wheel 安装/发布边界不变。
 
 展示上下文可由明确输入重建，不成为第二个实验 registry、账户事实表或业务输入。切 run 同时重置图、侧栏和选择；切页签、增加对照和图层开关保留当前上下文。对照差异明确提示，原曲线不静默裁剪或重新归一化。格式转换保留 owner 原金额/decimal；前端只计算图形坐标，不计算收益、回撤、完整持仓段或分箱。
 

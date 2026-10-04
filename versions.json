@@ -167,9 +167,13 @@
       "parent_source_review": "passed including legal missing-high-low downgrade repair",
       "previous_daily_library_delivery": "latest_daily_html_delivered_parent_confirmed_after_owner_report",
       "library_delivery": {
-        "status": "in_progress",
+        "status": "BLOCKED",
         "scope": "current private stock HTML/screenshots to user personally",
-        "success_receipt": "not_yet_received"
+        "failure_reason": "Library prepare_uploads is not available",
+        "files_written": 0,
+        "file_ids": [],
+        "local_Mac_files": "available_to_open",
+        "success_receipt": null
       }
     }
   },
@@ -348,10 +352,10 @@
       "owner_wheel_asset_check": "byte equal source; local only, no environment installation or public distribution",
       "root_pixel_review": "not_performed",
       "user_acceptance": "not_completed",
-      "library_delivery": "in_progress_no_success_receipt",
+      "library_delivery": "BLOCKED: Library prepare_uploads is not available; 0 files written, no file IDs; user Mac local files available",
       "data_account_train_query_save_calls": 0,
       "protected_owner_files": "hash/mtime unchanged in owner acceptance",
-      "private_outputs": "local; private Library delivery in progress without public upload",
+      "private_outputs": "local only; current private Library transfer blocked, no public upload",
       "merge_reruns": 0
     }
   },
@@ -421,13 +425,13 @@
       "source_commit": "bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4",
       "merge_commit": "05a1dd8acccf472b36ba6fba4a360c35824bc26d",
       "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/3",
-      "status": "software_merged_parent_source_review_passed; root_pixel_review_user_acceptance_and_private_delivery_receipt_pending",
+      "status": "software_merged_parent_source_review_passed; root_pixel_review_user_acceptance_pending; private_Library_delivery_BLOCKED",
       "final_product_acceptance": false,
       "parent_source_review": "passed",
       "parent_pixel_review": "not_performed",
       "user_acceptance": "not_completed",
       "owner_browser_QA": "reported PASS for final bounded v3 source; 35 tests and default Chrome/wheel independent review",
-      "library_delivery": "in_progress_no_success_receipt"
+      "library_delivery": "BLOCKED: Library prepare_uploads is not available; 0 files written, no file IDs; Mac local files available"
     }
   }
 }
