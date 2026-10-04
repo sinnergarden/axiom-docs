@@ -10,22 +10,36 @@
       "version": "0.3.5",
       "wheel_sha256": "1773c1e588b1802d976c7766e80854060875e767bbb869bd5eae93bdae9bb75f",
       "latest_verified_source": {
-        "commit": "e62774cbfeaaab3eae7522ce98d953a1d9dcf100",
+        "commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c",
         "version": "0.3.8",
-        "scope": "exchange-specific audit calendar grouping; corrected coverage report completed",
+        "scope": "reviewed official fund_share_conversions and new fixed Snapshot; previous calendar audit retained; bounded frozen consumers accepted with original limitations",
         "review_status": "parent_review_passed",
-        "package_status": "original installed and bulk builder identities retained"
+        "package_status": "original installed and bulk builder identities retained",
+        "merge_commit": "44bad96924e83bc0d34048a3a6aa2452ed40ce79",
+        "pull_request": "https://github.com/sinnergarden/axiom-data/pull/37",
+        "source_tree": "ca36b4f14b9058d912620e57eb6759c61f924d6e",
+        "source_tree_unchanged_after_merge": true
       },
       "previous_event_source": {
         "commit": "54e98c62cb594da2e4bd83d71b1167d4ba1877bf",
         "version": "0.3.8",
         "scope": "explicit continuation and cutoff-visible unavailable event scope",
         "package_status": "original installed and bulk builder identities retained"
+      },
+      "previous_calendar_audit_source": {
+        "commit": "e62774cbfeaaab3eae7522ce98d953a1d9dcf100",
+        "version": "0.3.8",
+        "scope": "source corrections and exchange-specific audit calendar grouping; frozen daily inputs consumed in bounded ETF and stock acceptance",
+        "review_status": "parent_review_passed",
+        "package_status": "original installed and bulk builder identities retained",
+        "merge_commit": "93872ac3f75889ed99b90daa6cc15e18dac1b32a",
+        "pull_request": "https://github.com/sinnergarden/axiom-data/pull/36",
+        "source_tree_unchanged_after_merge": true
       }
     },
     "axiom-research": {
-      "commit": "e612430b53fcb4c0beeaed9a1b5c6fd977a31d63",
-      "version": "0.1.4",
+      "commit": "3a7451ebea8a2109e58c0e5be4c551655a7ae023",
+      "version": "0.2.1",
       "branch": "main",
       "status": "merged_via_parent_reviewed_pr",
       "wheel_status": "no_new_wheel_evidence",
@@ -43,13 +57,32 @@
         "version": "0.1.3",
         "full_suite_passed": 32
       },
-      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/1",
-      "source_commit": "59c45a18ec5e1b4d69e7ccffd13b750d450463ea",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/3",
+      "source_commit": "a8f30d421c7fca3ca32ac22c0efe3d4d72935343",
       "source_tree_unchanged_after_merge": true,
-      "remote_ci": "no_check_runs"
+      "remote_ci": "no_check_runs",
+      "previous_saved_run_source": {
+        "commit": "e612430b53fcb4c0beeaed9a1b5c6fd977a31d63",
+        "version": "0.1.4",
+        "source_commit": "59c45a18ec5e1b4d69e7ccffd13b750d450463ea",
+        "pull_request": "https://github.com/sinnergarden/axiom-research/pull/1"
+      },
+      "source_tree": "e299c463809f399fa7c1c831cd32ada0bdd4c64e",
+      "pull_requests": [
+        "https://github.com/sinnergarden/axiom-research/pull/1",
+        "https://github.com/sinnergarden/axiom-research/pull/2",
+        "https://github.com/sinnergarden/axiom-research/pull/3"
+      ],
+      "scope": "fixed ETF signals, bounded six-feature normalized stock model and saved stage projections; readonly owner-account registration",
+      "previous_stock_model_source": {
+        "commit": "091189e9d2bf9e666d9083ea63568e2238264cfa",
+        "merge_commit": "fec92704dc334bd3c8e3ab2ba24a5060bb9f10cd",
+        "version": "0.2.0",
+        "pull_request": "https://github.com/sinnergarden/axiom-research/pull/2"
+      }
     },
     "axiom-engine": {
-      "commit": "f0fd9776bfaf4fbb2291a44b225fe9a5e4b13079",
+      "commit": "9d0b52ca05f62ca76546d285f75b20e73cafa1a0",
       "version": "0.2.1",
       "branch": "main",
       "status": "merged_via_parent_reviewed_prs",
@@ -59,29 +92,89 @@
         "commit": "381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6",
         "branch": "engine/etf-account-backtest"
       },
-      "source_commit": "88769468644c709197b3ee6ca7d751b47032013b",
+      "source_commit": "cb94d7aad0ef9b1a5e8f5e885c1aed6f28fa3310",
       "pull_requests": [
         "https://github.com/sinnergarden/axiom-engine/pull/2",
         "https://github.com/sinnergarden/axiom-engine/pull/3",
-        "https://github.com/sinnergarden/axiom-engine/pull/4"
+        "https://github.com/sinnergarden/axiom-engine/pull/4",
+        "https://github.com/sinnergarden/axiom-engine/pull/5",
+        "https://github.com/sinnergarden/axiom-engine/pull/6"
       ],
       "source_tree_unchanged_after_merge": true,
       "previous_evaluation_source": {
         "commit": "e74cefb65f175b07837cc7f1f8c7217e450a277b",
         "merge_commit": "ef2f693e4861482753893a99852de46232aea9c6",
         "contract_version": "evaluation_report_v1"
+      },
+      "source_tree": "601fd0c23c640d81096d8940346fc81613d00e7b",
+      "scope": "saved ETF account/evaluation with unit splits and bounded SZSE Top5 stock account/evaluation; explicit strict and observed policies",
+      "previous_long_evaluation_source": {
+        "source_commit": "88769468644c709197b3ee6ca7d751b47032013b",
+        "merge_commit": "f0fd9776bfaf4fbb2291a44b225fe9a5e4b13079",
+        "contract_version": "evaluation_report_v2"
+      },
+      "previous_etf_unit_split_source": {
+        "source_commit": "59a4e1c7827f241c407e4dce7cd490806560c4ce",
+        "merge_commit": "1df81dc484bcf5eebb0fc4a75357614ba12225ae",
+        "contract_version": "backtest_run_v2"
       }
     },
     "axiom-ui": {
       "repository": "sinnergarden/axiom-ui",
-      "git_commit": "d5f097e46580b2794d08ececddccb123d292d3ea",
-      "version": "0.1.0",
+      "git_commit": "05a1dd8acccf472b36ba6fba4a360c35824bc26d",
+      "version": "0.2.0",
       "branch": "publish/ui-readonly",
-      "status": "public_source_parent_reviewed_bounded_readonly_report",
-      "wheel_status": "no_new_wheel_evidence",
+      "status": "merged_parent_source_reviewed_bounded_stock_v3_consumer; owner_QA_passed; root_pixel_and_user_acceptance_pending",
+      "wheel_status": "owner final local wheel assets independently verified; no installed or distributed wheel claim",
       "legacy_local_directory": "old_non_git_copy_retained_pending_navigation_migration",
-      "library_delivery": "latest_daily_html_delivered_parent_confirmed_after_owner_report",
-      "screenshot_qa": "not_completed"
+      "screenshot_qa": "owner default Chrome desktop/mobile QA passed; root final screenshot review not performed; user acceptance pending",
+      "previous_daily_source": {
+        "git_commit": "d5f097e46580b2794d08ececddccb123d292d3ea",
+        "version": "0.1.0",
+        "status": "public_source_parent_reviewed_bounded_readonly_report"
+      },
+      "source_commit": "bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4",
+      "source_tree": "02fcab8842a03d2db0c61caa9d5f032c2e66492f",
+      "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/3",
+      "source_tree_unchanged_after_merge": true,
+      "final_product_acceptance": false,
+      "previous_workbench_source": {
+        "source_commit": "e819e604a708efa8c3149b289db97682ebb66165",
+        "merge_commit": "01e8e8478f1dda4382f44d633546eee9dda326ca",
+        "version": "0.2.0",
+        "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/1"
+      },
+      "pull_requests": [
+        "https://github.com/sinnergarden/axiom-ui/pull/1",
+        "https://github.com/sinnergarden/axiom-ui/pull/2",
+        "https://github.com/sinnergarden/axiom-ui/pull/3"
+      ],
+      "parent_pixel_review": "not_performed",
+      "user_acceptance": "not_completed",
+      "previous_local_stage_wheel": {
+        "wheel_sha256": "6a7e196369a61e886ca9f860075c7f8198b1e540af409085002475498f5f8007",
+        "scope": "owner-reported local stage consumer build; asset bytes equal source; no environment install",
+        "not_current_stock_fix_wheel": true
+      },
+      "owner_browser_QA": "35 owner tests, default security/sandbox Chrome desktop/mobile and wheel independent review passed; separate from root pixel review and user acceptance",
+      "previous_saved_stage_source": {
+        "source_commit": "c2886ded28d46f48cf043fbcde9d4e254710a38d",
+        "merge_commit": "c9716b60ac29c5390b965601a145b69bb457d9de",
+        "source_tree": "a49544c1e686e10ea67284ed6e45ad11db75cf0b",
+        "version": "0.2.0",
+        "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/2"
+      },
+      "parent_source_review": "passed including legal missing-high-low downgrade repair",
+      "previous_daily_library_delivery": "latest_daily_html_delivered_parent_confirmed_after_owner_report",
+      "library_delivery": {
+        "status": "BLOCKED",
+        "scope": "current private stock HTML/screenshots to user personally",
+        "failure_reason": "Library prepare_uploads is not available",
+        "files_written": 0,
+        "file_ids": [],
+        "local_Mac_files": "available_to_open",
+        "success_receipt": null
+      }
     }
   },
   "validation": {
@@ -182,10 +275,92 @@
       "private_outputs": "local only",
       "data_and_account_execution_calls": 0,
       "merge_reruns": 0
+    },
+    "stock_model_round": {
+      "source_commit": "091189e9d2bf9e666d9083ea63568e2238264cfa",
+      "merge_commit": "fec92704dc334bd3c8e3ab2ba24a5060bb9f10cd",
+      "owner_reported_tests": 75,
+      "independent_review": "passed_parent_reviewed_pr",
+      "scope": "six selected versioned features, forward five-session normalized label target and one fixed fold; saved inputs reused",
+      "original_model_manifest_admission_state": "retained; later account completion is a separate registration",
+      "private_outputs": "local only",
+      "merge_reruns": 0
+    },
+    "stock_saved_stage_round": {
+      "source_commit": "a8f30d421c7fca3ca32ac22c0efe3d4d72935343",
+      "merge_commit": "3a7451ebea8a2109e58c0e5be4c551655a7ae023",
+      "scoped_tests": 25,
+      "new_stage_tests": 20,
+      "existing_saved_ml_review_tests": 5,
+      "independent_review": "passed_after_receipt_and_cache_repairs; parent personally reviewed PR3",
+      "scope": "saved mature training keys, separate IC/RankIC valid-session summaries and explicitly bound timing receipts",
+      "source_hash_mtime_unchanged": true,
+      "feature_model_Data_account_calls": 0,
+      "private_outputs": "local only",
+      "merge_reruns": 0
+    },
+    "etf_long_saved_round": {
+      "source_commit": "59a4e1c7827f241c407e4dce7cd490806560c4ce",
+      "merge_commit": "1df81dc484bcf5eebb0fc4a75357614ba12225ae",
+      "fixed_evaluation_range": [
+        "2019-07-01",
+        "2026-09-30"
+      ],
+      "scope": "seven ETF frozen daily-input signal/account/evaluation engineering acceptance; unit-split accounting",
+      "Research_registration": "same frozen owner result and exact evaluation refs; no additional account",
+      "chart_binding": "original market-replay query and complete common-field native batch digest retained",
+      "limitations": "original missing facts and execution approximations retained; not alpha or general multi-year throughput proof",
+      "private_outputs": "local only",
+      "unit_split_validation": {
+        "real_saved_run": "two split applications NO_ENTITLEMENT with zero position; reference-price bridging only",
+        "positive_position_proportion_and_ceil": "synthetic golden checks; not real held-position split evidence"
+      }
+    },
+    "stock_account_round": {
+      "source_commit": "cb94d7aad0ef9b1a5e8f5e885c1aed6f28fa3310",
+      "merge_commit": "9d0b52ca05f62ca76546d285f75b20e73cafa1a0",
+      "owner_reported_source_tests": 114,
+      "independent_review": "passed; parent personally reviewed PR6",
+      "scope": "bounded 2024-01 SZSE main-board three-prefix execution union; observed and strict saved accounts/evaluations",
+      "saved_NAV_sessions": 22,
+      "CAGR": "null/INSUFFICIENT_SPAN",
+      "Research_registration": "two new saved accounts bound to original normalized model and stage report; historical blocked outcome retained",
+      "chart_binding": "existing full native OHLCV/amount DataBatch reused; volume_shares in shares; exact source reference and Query retained",
+      "Research_Data_feature_train_account_evaluation_calls": 0,
+      "private_outputs": "local only",
+      "merge_reruns": 0
+    },
+    "UI_saved_stage_consumer_round": {
+      "source_commit": "c2886ded28d46f48cf043fbcde9d4e254710a38d",
+      "merge_commit": "c9716b60ac29c5390b965601a145b69bb457d9de",
+      "owner_reported_tests": 33,
+      "scope": "readonly optional saved stage report exact six-input binding; existing ETF display retained",
+      "owner_reported_browser_QA": "installed Chrome default security and sandbox; desktop/mobile and context navigation",
+      "root_pixel_review": "not_performed",
+      "user_acceptance": "not_completed",
+      "private_outputs": "local only"
+    },
+    "UI_stock_v3_consumer_round": {
+      "source_commit": "bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4",
+      "merge_commit": "05a1dd8acccf472b36ba6fba4a360c35824bc26d",
+      "source_tree": "02fcab8842a03d2db0c61caa9d5f032c2e66492f",
+      "owner_reported_tests": 35,
+      "parent_source_review": "passed_after_legal_missing_high_low_downgrade_repair",
+      "independent_owner_review": "passed",
+      "scope": "explicit saved stock v3 account/evaluation v2, original Research registration/model/stage bindings, native thin OHLCV projection and units/tax/null restrictions",
+      "owner_browser_QA": "installed Chrome default security and sandbox; desktop 1440x1100 and mobile 390x844; no document overflow",
+      "owner_wheel_asset_check": "byte equal source; local only, no environment installation or public distribution",
+      "root_pixel_review": "not_performed",
+      "user_acceptance": "not_completed",
+      "library_delivery": "BLOCKED: Library prepare_uploads is not available; 0 files written, no file IDs; user Mac local files available",
+      "data_account_train_query_save_calls": 0,
+      "protected_owner_files": "hash/mtime unchanged in owner acceptance",
+      "private_outputs": "local only; current private Library transfer blocked, no public upload",
+      "merge_reruns": 0
     }
   },
   "bulk": {
-    "status": "initial_collection_and_corrected_audit_completed_with_limits_daily_pending",
+    "status": "initial_collection_and_corrected_audit_completed_fixed_daily_consumers_accepted_with_limits",
     "builder_version": "0.3.3",
     "builder_commit": "cb19c8e7661bf6bb86caa19aaf5be5c4b71ae6b0",
     "builder_wheel_sha256": "8bbdd1c5ea5497d5a40e5680a032d9d5c199fd2a10169084310bde020e01a011",
@@ -196,25 +371,25 @@
       "etf_started": false,
       "status": "paused_by_user"
     },
-    "acceptance": "initial_stock_and_etf_sources_limited_not_full_use_coverage",
-    "status_evidence": "Data owner completed source report plus parent correction of exchange calendar audit, 2026-10-04",
+    "acceptance": "source delivery and bounded ETF/stock use acceptance; not complete twelve-year use coverage",
+    "status_evidence": "Data merged source plus parent-confirmed frozen ETF and stock owner delivery, 2026-10-04",
     "builder_identity_policy": "original operation bindings retained; continuation explicitly bound by Data owner"
   },
   "limits": [
-    "no complete twelve-year use-coverage acceptance; 2019-07-01 through 2026-09-30 seven-ETF candidate accepted after bounded limit probes; final daily Snapshot and final-scope verification pending",
-    "no multi-year feature-build scale benchmark or one-day guarantee",
-    "bounded deterministic ETF features/signals and offline daily account simulation only; no arbitrary FeaturePlans, derived TTM projection, labels/training/OOS model platform",
-    "UNKNOWN facts retained; ETF observed daily execution is explicit approximation, default strict block retained; not live rules",
-    "no live Broker, SQLite crash recovery, split/delisting support or complete BFF/browser product; screenshot QA not completed"
+    "no complete twelve-year use-coverage acceptance; frozen seven-ETF 2019-07-01 through 2026-09-30 scope and bounded 2024-01 stock scope have owner engineering acceptance with original missing/PIT/execution limits",
+    "no multi-year stock feature/model/account scale benchmark or one-day guarantee; saved stock decoding retains measured time and memory cost",
+    "bounded deterministic ETF recipe and six-feature five-session normalized stock fixed fold only; no arbitrary FeaturePlans, derived TTM projection or general model selection/OOS platform",
+    "UNKNOWN retained; ETF/stock observed daily execution is explicit approximation and strict controls retained; not live rules",
+    "no live Broker, SQLite crash recovery, complete stock quantity-action/delisting support or complete BFF/browser product; final UI visual/user acceptance pending"
   ],
   "as_of": "2026-10-04",
   "pending_implementations": {
     "axiom-data": {
-      "source_commit": "e62774cbfeaaab3eae7522ce98d953a1d9dcf100",
-      "status": "daily_2026_09_30_final_snapshot_not_completed",
-      "evidence": "Data source read plus parent status report 2026-10-04",
+      "source_commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c",
+      "status": "frozen_daily_inputs_consumed_in_bounded_ETF_and_stock_scope; complete_twelve_year_use_coverage_not_claimed",
+      "evidence": "parent-confirmed final fixed owner account/evaluation handoffs; original builder bindings retained",
       "long_history_limit_probe": {
-        "status": "bounded_owner_probes_completed_candidate_range_accepted",
+        "status": "bounded_owner_probes_completed; fixed accepted range consumed in owner saved ETF results",
         "native_endpoint": "etf_limit",
         "early_window": [
           "2014-11-01",
@@ -238,16 +413,25 @@
         ],
         "source_conclusion_scope": "specified endpoints, seven code selectors and exact query windows only; no universal supplier absence claim or automatic fallback",
         "profile_relaxation": false,
-        "required_next_gate": "final fixed daily Snapshot verification and start readiness revalidation; preserve two in-range market gaps, dates and universe",
-        "bounded_research_preflight": "passed_on_previous_fixed_snapshot_only; no account or multi-year build; private artifacts retained locally"
+        "required_next_gate": "none for this saved bounded ETF engineering acceptance; broader coverage and performance remain separate",
+        "bounded_research_preflight": "previous fixed-Snapshot start-only preflight retained as historical; final fixed-Snapshot signal/account result is separate"
       },
-      "calendar_audit_status": "e62774c_parent_review_passed_corrected_report_completed"
+      "calendar_audit_status": "e62774c_parent_review_passed_corrected_report_completed",
+      "merge_commit": "44bad96924e83bc0d34048a3a6aa2452ed40ce79",
+      "pull_request": "https://github.com/sinnergarden/axiom-data/pull/37",
+      "official_fund_share_conversions": "reviewed source and new fixed Snapshot; PR37 parent reviewed and merged"
     },
     "axiom-ui": {
-      "source_commit": "bc220cf28c15b26ed39ac530c5a0059f7dd65411",
-      "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/1",
-      "status": "draft_pr_bounded_readonly_workbench; saved_run_group_patch_local_review_not_yet_pushed",
-      "final_product_acceptance": false
+      "source_commit": "bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4",
+      "merge_commit": "05a1dd8acccf472b36ba6fba4a360c35824bc26d",
+      "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/3",
+      "status": "software_merged_parent_source_review_passed; root_pixel_review_user_acceptance_pending; private_Library_delivery_BLOCKED",
+      "final_product_acceptance": false,
+      "parent_source_review": "passed",
+      "parent_pixel_review": "not_performed",
+      "user_acceptance": "not_completed",
+      "owner_browser_QA": "reported PASS for final bounded v3 source; 35 tests and default Chrome/wheel independent review",
+      "library_delivery": "BLOCKED: Library prepare_uploads is not available; 0 files written, no file IDs; Mac local files available"
     }
   }
 }

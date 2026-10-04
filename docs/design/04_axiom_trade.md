@@ -162,6 +162,12 @@ Decision Reader 与 Simulator Reader 隔离。Simulator 可以处理之后发生
 模型/Feature/信号身份和截面时钟，不重训、不改变已经保存的成员、分数、有效性或 IC。
 当前真实模型输入是独立验证 Snapshot；不能默默改用 production，也不能声称二者等价。
 
+实现状态：股票源码 `cb94d7a` 已经主协调亲审后经 [PR #6](https://github.com/sinnergarden/axiom-engine/pull/6)
+合并为 `9d0b52c`，源码树保持一致。114 项 owner source tests、独立复审和两份真实短月保存
+账户/评价通过有界工程验收；Research 只读登记与原模型/阶段报告关联。该短期窗口 CAGR
+保持 null/INSUFFICIENT_SPAN；UI 最终股票消费源码已亲审合并，owner 浏览器 QA 通过，
+root 亲看最终像素和用户验收仍分别未完成，实际交付回执见当前交付。
+
 **公开合同与版本。** Core 入口为
 `from axiom_engine.core import StockPredictionFrame, plan_stock_portfolio`，接收原 owner
 `stock_prediction_run_v1`、stage=prediction_raw、
@@ -280,6 +286,15 @@ receivable，不能花费未到账金额。现金事件不改变股份数量或�
 不声称已模拟个人持有期红利税或未知未来公告。保存 bounded dividend scope 和完整性
 限制；不以事后公司行动或成交条件回头替换 Top5。候选、拒单、未成交、应收与估值限制
 都作为保存结果，不让状态近似反向污染信号。
+
+**保存证据体积。** v3 可选 coverage_bundle 只对 bundle 内重复的大 native coverage
+去重/压缩；不投影或重新命名 source_refs。每条保存
+{reference,encoding,uncompressed_bytes,compressed_digest,payload}，encoding 固定
+gzip_base64_json_v1；source_evidence.batch.context 仅以 coverage_ref 替换 coverage，
+原 snapshot/query/PIT/purpose/字段来源其余值保留。公共 loader 只从保存 bundle 解码，验证
+压缩 digest、声明长度、coverage ref 及重建后完整原 native DataBatch digest；拒绝缺失、
+重复、未使用表项。不跟随外部 registry/path，也兼容旧 inline v3。该存储表示不增强原
+数据完整性或历史 PIT 证据，不改账户/评价身份语义。解码仍有时间与内存成本，见当前交付。
 
 **验收与来源。** 同一模型/预测、初始账户、资格/费用参数和固定 market replay 保存
 strict 与 stock_daily_observed 两份运行；状态政策必须显式不同，不混成同一收益结果。
