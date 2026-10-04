@@ -275,6 +275,119 @@ best-effort 假设下，只要任一候选按其原公告/实施通知规则可�
 
 本节已按 2026-10-04 裁决定稿；不能只修改反例期望来接受空结果。
 
+<a id="etf-unit-split-proposal"></a>
+### 6.2 ETF 份额拆分的最小事实合同
+
+状态：2026-10-04 有界语义裁决与 Data 准确合同已对齐，本节独立提交供亲审；
+Trade 保存 shape 另行对齐。实现与验收仍未完成，当前账户不据此解锁。首轮只接入、验收以下两条官方事件；实现按
+有明确比例、生效阶段和取整规则的 ETF 份额拆分合同处理，不写证券代码或日期特判。
+未来同语义事件可由 Data 追加；现金补偿、份额合并等未支持类型仍明确 unsupported。
+不建立通用公司行动平台。表内公告结论由协调方核对，正式输入仍需固定原件与修订证据。
+
+| 证券 | 登记与生效边界 | 官方比例与取整 | 后续价格尺度 |
+|---|---|---|---|
+| 513100.SH | 2022-01-12 登记；01-13 拆分并全天停牌；01-14 复牌 | 1 份变 5 份，精确比值 `5/1` | 01-14 首个拆分后交易 session；01-13 原行情缺行保留 |
+| 510500.SH | 2022-08-26 收市后折算 | 精确比值 `114539/100000`；按同一持有人合计份额向上取整 | 08-29 首个折算后交易 session |
+
+Data 唯一负责事实与来源，窄域名统一为 `fund_share_conversions`，走正常
+Raw → update → Snapshot → `Data.events`，复用修订机制与通用 Reader；不混装既有
+Tushare `corporate_actions` profile，不增加私有读取路径。合同 ID 为
+`local.fund_share_conversions.reviewed_disclosure.v1`，source profile 为
+`issuer_fund_disclosure_supplement_v1`；逻辑键为 `security_id + event_id`。
+
+| 准确字段名 | 初版值、类型与边界 |
+|---|---|
+| `security_id`、`event_id` | 非空 string；稳定证券与经济事件身份，不由可修正比例、日期、阶段或文档 hash 重新生成 |
+| `event_type`、`process_status` | `unit_split`；`planned / implemented`，同事件保留计划与结果修订 |
+| `announcement_date`、`announcement_precision` | 非空 date 与 string；精度枚举为 `day`，没有原始日内发布时间 |
+| `record_date`、`effective_date`、`effective_phase` | 非空日期；阶段为 `end_of_day / not_stated`。513100 为 `not_stated`，不能改作官方 pre-open 或可卖事实 |
+| `new_price_basis_session`、`new_price_basis_basis` | nullable date/string；513100 为公告折算/复牌关系，510500 为收市后折算加固定日历的 next-open 单位解释，非独立价格认证 |
+| `ratio_numerator`、`ratio_denominator` | 非空 int64、无量纲正整数的最简分数：一份旧单位对应的新份额数，不从因子倒推 |
+| `quantity_rounding`、`quantity_rounding_scope` | 513100 为 `not_stated / null`；510500 为 `ceiling_to_whole_fund_unit / registered_holder_units`；NAV 四位小数规则不是数量取整规则 |
+| `suspension_start`、`suspension_end`、`suspension_scope`、`resume_session` | nullable 日期/string；513100 为 01-13 全天 `full_session`、01-14 复牌。510500 全部 null 表示未提供，不表示正常交易；协议回购限制不等于二级市场停牌 |
+| `document_refs`、`extraction_version` | 非空 string；前者是 Raw 内文档 ID 的 canonical JSON 字符串，后者固定为 `reviewed_fund_share_conversions_v1` |
+| `revision_id`、`revision_sequence` | 非空 string/int64；序号 1/2 为审阅后的计划/结果文档顺序，不是供应商版本号、receipt 顺序或完整修订链证明 |
+| `first_observed_at`、`raw_batch_id` | 非空 timestamp/string；由实际完整 bundle 接收与正常归一化赋值，例子不伪造生产 ID |
+| `source_available_at`、`evidence_ref` | nullable timestamp/string；首版均为 null，不升级 strict 历史可见性 |
+
+两个稳定事件 ID 为 `gtfund:513100:unit-split:2022-01` 与
+`nffund:510500:unit-split:2022-08`；修正日期或比例不改身份。原件 bytes、发行人、URL、
+检索 host、hash、真实捕获时间与字段 locator 一次保存在 Raw bundle，`document_refs`
+在同一 bundle 内解析，不建文档 registry。公开证据 attachment 须与目标修订全部认证
+字段精确匹配；不能借结果认证计划，或把 Engine 模型可卖时点/不再次 T+1 一起认证。
+
+公开输入摘录如下，字段全集与约束以上表为准；示例不含生产 Raw/revision ID 或本机路径，
+`first_observed_at`、`raw_batch_id`、`revision_id` 由真实 ingest/归一化生成。原件 bytes 按
+Raw bundle 保存，不以内嵌示例替代原件。
+
+```json
+{
+  "record": {
+    "security_id": "cn.etf.SSE.510500.20130315",
+    "event_id": "nffund:510500:unit-split:2022-08",
+    "event_type": "unit_split",
+    "announcement_precision": "day",
+    "record_date": "2022-08-26",
+    "effective_date": "2022-08-26",
+    "effective_phase": "end_of_day",
+    "new_price_basis_session": "2022-08-29",
+    "new_price_basis_basis": "declared_next_open_price_unit_interpretation_after_issuer_end_of_day_conversion",
+    "ratio_numerator": 114539,
+    "ratio_denominator": 100000,
+    "quantity_rounding": "ceiling_to_whole_fund_unit",
+    "quantity_rounding_scope": "registered_holder_units",
+    "suspension_start": null,
+    "suspension_end": null,
+    "suspension_scope": null,
+    "resume_session": null,
+    "extraction_version": "reviewed_fund_share_conversions_v1",
+    "announcement_date": "2022-08-23",
+    "process_status": "planned",
+    "document_refs": "[\"510500-plan-20220823\"]",
+    "revision_sequence": 1
+  },
+  "source_document": {
+    "document_id": "510500-plan-20220823",
+    "issuer": "南方基金管理股份有限公司",
+    "source_url": "https://www.sse.com.cn/disclosure/fund/announcement/c/new/2022-08-23/510500_20220823_1_aMMa3ZNB.pdf",
+    "sha256": "2c933c4c0fddf34b5e90ab711990d34be0644d66275a7d8ea9a40467ebdb586c",
+    "locator": "PDF p1 §一1-3: Aug26, ratio1.14539, end-of-day registered holdings, holder-unit ceiling; p2 §一4: next business Aug29; p3 signature Aug23"
+  }
+}
+```
+
+四条记录分别保存计划与结果，不把结果知识前移。next-open 为明确 best-effort 假设，
+使用 Asia/Shanghai 09:30，按每条 revision 的公告日单独计算：
+
+| 事件 | 计划公告 → usable_from | 结果公告 → usable_from |
+|---|---|---|
+| 513100 | 2022-01-04 → 01-05 09:30 | 2022-01-14 → 01-17 09:30 |
+| 510500 | 2022-08-23 → 08-24 09:30 | 2022-08-29 → 08-30 09:30 |
+
+两份计划已各自披露精确比例；生效日前可见计划足以提供本轮安排，结果仍不可见时不应
+过滤成没有事件。`Data.events(EventQuery(...))` 使用 `time_field='effective_date'`，
+先按 policy/cutoff 选择可见 revision，再过滤经济日期；不能先筛 `implemented` 而丢掉
+可见计划。本轮有界读取包含两事件生效日期，随后检查其可见停牌范围；不新增通用范围
+重叠查询。结果后来可见时独立核对，不改变此前 cutoff 输出，见
+[Trade §9.2](04_axiom_trade.md#etf-unit-split-application-proposal)。
+
+真实接收仍在 2026；文档路径日期/签名日或本次抓取不证明历史发布瞬间。
+`operational_pit_v1` 与没有精确修订 public evidence 的 `market_pit_safe_v1` 在 2022
+均不可见；next-open 只属于 best-effort 探索。Raw-first 保存完整 bundle，验证 bytes hash、
+引用、比例、取整及审阅顺序，再归一化；重试/同 bundle rebuild 保留原 receipt，不重复抓取。
+新 Snapshot 的有界验证、旧域等价与独立审阅后才按既有发布流程处理，不重采日线。
+
+首版不改 `Data.states`。Engine 从同一固定 Snapshot 与明确 cutoff 读取公共事件，将
+有证据且当时可见的停牌安排作为额外禁止成交条件；原 `UNKNOWN` 保留，展示具体事件依据，
+不能将事件覆盖外的 UNKNOWN 改为正常交易或声称已恢复完整停牌历史。
+
+比例来自公告，不能从 `1→5.0019` 或 `.2803→.3211` 倒推。Data 固定事件与供应商新价格
+尺度的日期关系、精度及已知限制，Engine 审计只接受已支持且证据匹配的映射；其他跳变
+仍阻断。追加事实须发布新 Snapshot，旧 Snapshot/Raw/行情缺行/产物不变，不手改因子。
+读取范围覆盖登记、生效及新价格尺度；缺失或冲突字段不能投影为空事件或零行动，有限
+公告证据也不证明全历史完整。Research 复用现有共同锚点复权与 Core 配方；账户应用归
+Trade，UI 只读 owner 保存事实与流水。
+
 ## 7. 一个 Reader，薄的消费者映射
 
 默认同机 Python，不建微服务。以下是接口提案：
