@@ -165,7 +165,7 @@ Decision Reader 与 Simulator Reader 隔离。Simulator 可以处理之后发生
 **公开合同与版本。** Core 候选入口为
 `from axiom_engine.core import StockPredictionFrame, plan_stock_portfolio`，接收原 owner
 `stock_prediction_run_v1`、stage=prediction_raw、
-score_semantics=forward_5_session_cs_zscore_prediction、unit=dimensionless；完整 universe、
+score_semantics=forward_5_session_cs_zscore_prediction、score_unit=dimensionless；完整 universe、
 rows、feature_ref/model_ref 与 limitations 原样保留。owner 的 `sha256:<64hex>` 与
 bare 64hex source ref 按原 namespace 保存，不静默补前缀或重新认定来源身份。
 时间使用 aware instant 比较，保留原序列化字符串；+08:00 与 Z 可混用，不能用字符串大小
