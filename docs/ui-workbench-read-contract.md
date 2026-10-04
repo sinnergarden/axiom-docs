@@ -10,6 +10,10 @@ Engine 的 [P10 主合同](design/04_axiom_trade.md#daily-evaluation) 定义评�
 
 UI 同入口兼容 v1 与 [多年评价 v2](design/04_axiom_trade.md#long-history-evaluation)。v2 读取保存的年化区间与账户/沪深300 CAGR、累计收益、同区间最大回撤；保留累计收益展示，年化值及其不可用原因分别按 owner 原值格式化。v1 不补年化字段；短跨度或边界缺失的 null 不填零，也不因报告 COMPLETE、局部月或持仓段资格推断年化可用。窗口选择仍只控制保存点展示，年化区间保持原报告归属；基准仍为不含分红的价格指数。候选保存件只作接口测试并显式标候选，正式验收等待 Engine 最终身份与文件；UI 不按天数、NAV 或指数计算 CAGR、不年化回撤、不增加 Sharpe。具体字段、时钟与公式均只引用 Trade 主章，本页不另维护。
 
+账户公共 loader 同入口兼容 `backtest_run_v1/v2`；v2 消费差异只引用 [ETF 份额拆分主合同](design/04_axiom_trade.md#etf-unit-split-application-proposal)。UI 原样保留保存的 `unit_split_applications`、position `mark_basis_event_id` 及 order `announced_suspension_event_ids`，连同固定计划事件与来源在账户变化/持仓/委托详情展示；只将事件 source_refs 对应的已保存 fund_share_conversions 原生 source_evidence 原样带入折叠详情，保留 Snapshot、EventQuery cutoff/PIT 与逐键元数据，不扩展其他市场输入；应用日期可定位保存点，但拆分不是买卖成交，不新增 fill、B/S 标记、权益、复权价或指标。`APPLIED` 是 Runtime 模型应用状态，不改 issuer 的 planned/implemented、not_stated/null 或原始 Data 状态；停牌/缺价类型始终按最终 owner 状态与证据显示，不由缺行、因子或旧样本推断。v1 不补事件字段。明确 synthetic 的 1:5/持有人 ceil 保存件只用于 Reader 与显示验收，真实长期验收等待固定最终账户、评价、Research 登记和同 Snapshot OHLCV；不重跑、不算权益、不修正 owner 产物。
+
+股票 ML 尚无账户结果时，仍用同一 Research 实验索引列出已有登记；调用方显式提供目录，经 `load_stock_ml_experiment` 与 `load_stock_model` 公共 Reader 验证后，按登记中的 StockMLExperiment、模型、信号及证据原值引用绑定研究阶段面板，不跟随索引 URI。只展示 owner 保存的 fit cutoff、声明输入/预测 session 窗口、Feature ID/版本、标签成熟与标准化语义、逐日 IC/RankIC/有效及排除配对、模型配置与限制；相关均值、实际成熟训练窗口及耗时只有 owner 公共输出提供才显示，否则标未提供，不从逐日值或运行时间计算。股票账户原状态与原因保持未执行/阻断，研究登记 COMPLETE 不代表账户完成；无 BacktestRun 时没有净值、成交、账户收益或账户对照，不把预测分数当收益率，不训练、执行特征、采集或另做回测。该面板仅消费 [Research 主章](design/05_axiom_research.md) 的已保存产物，缺少公开读取形状由主协调向 owner 对齐，本页不另造业务合同。
+
 Data 沿用 [Data 公共 Reader](design/02_axiom_data.md) 与 [P12](design/06_axiom_ui.md) 薄投影。UI 接受调用方已从公共 Reader 取得的 `DataBatch(records, field_meta, context)`，不扫描业务根或隐式 Query。原执行 Query 加读 high/low 时，Snapshot、Query 其他语义、reader version、单位、价格口径和共同字段逐键 provenance 必须复现原 DataBatch digest；不能用 current 或新事实解释旧运行。ETF 原生量为 `volume_units`（fund units），原价单位 CNY/fund unit。没有 high/low 时显示明确命名的保存 close/volume 与 K 线不可用，不构造蜡烛或将委托画成成交。
 
 ## 组合、验收与交付
