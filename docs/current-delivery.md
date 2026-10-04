@@ -61,3 +61,5 @@ Engine 公共入口为 `axiom_engine.core.SignalFrame / plan_rotation` 和 `axio
 统一交付收尾的检查记录见 [docs closeout check](../reports/docs-etf-closeout-check.json)：该轮 Notebook 代码、输出与元数据逐单元不变，保存输出重新渲染；新增本地链接、固定 owner 提交/文件与版本引用核对通过。
 
 后续[教程叙述重编排](../reports/tutorial-narrative-check.json)保留全部 97 个代码单元、执行计数与保存输出，调整 Markdown、单元顺序和展示元数据。研究篇沿取表、财报时间、特征复用与交接展开；开发篇沿接入、发布、日更、修正和恢复展开。HTML 只渲染保存输出，默认折叠长来源与工程核对；本轮没有执行教学代码、采集或写正式数据根，没有新增截图结论。
+
+随后完成[教学页面 Chrome 抽查](../reports/tutorial-chrome-review.json)：实际查看 Researcher 第 2/5/7 节与 Developer 第 2/3/8 节的折叠前后展示，小表可读，宽表提示、横向滚动及方向键操作通过。三张关键截图内嵌在独立审阅 HTML 中。此结论仅覆盖教学页面，不追认 owner 业务测试、完整 notebook 执行或 UI 产品视觉验收。

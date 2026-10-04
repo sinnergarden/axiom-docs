@@ -1,0 +1,91 @@
+{
+  "schema_version": "axiom_tutorial_chrome_review_v1",
+  "as_of": "2026-10-04",
+  "status": "passed",
+  "narrative_parent_reviewed_commit": "6c1dd4d6d1648d785beaf6470f5e533fb796ebba",
+  "source_documents_commit": "42774c91775118f3cc12eb022c328af85b32cb4e",
+  "artifact": {
+    "name": "axiom-tutorials.html",
+    "sha256": "da4ca268043fb9b9de18dc5f89501bf852a1ad3deb9d221918bdeaf56d191d17",
+    "source_unchanged_during_browser_check": true
+  },
+  "browser": "Chrome/154.0.8037.97",
+  "browser_sandbox": "default_enabled",
+  "new_browser_or_framework_installed": false,
+  "viewport": {
+    "width": 1600,
+    "height": 1800
+  },
+  "sections_reviewed": [
+    {
+      "role": "researcher",
+      "chapters": [
+        2,
+        5,
+        7
+      ]
+    },
+    {
+      "role": "developer",
+      "chapters": [
+        2,
+        3,
+        8
+      ]
+    }
+  ],
+  "folded_and_expanded_views": "captured_and_visually_read_at_original_resolution",
+  "visual_findings": [
+    "Six-session query precedes the six-row price table; compact security labels and all numeric values are readable.",
+    "The dividend cutoff comparison and synthetic revision example are readable and remain separately labelled.",
+    "Source conversion displays the matching vol/amount/close values; Raw receipt remains folded by default.",
+    "Recovery prose precedes retained rebuild/bundle examples; expanded code and saved checks do not overlay adjacent tables.",
+    "Joint features require horizontal scrolling; a conditional hint and keyboard focus were added. Income, net income, total assets and ROE were visually checked on the right side."
+  ],
+  "horizontal_feature_table": {
+    "before": 0,
+    "after": 1104,
+    "max": 1104,
+    "hintVisible": true,
+    "visibleFinancialHeaders": [
+      "limits__down_limit",
+      "limits__down_limit__return",
+      "income__total_revenue",
+      "income__parent_net_income",
+      "balance__total_assets",
+      "indicator__roe"
+    ],
+    "keyboard_arrow_left_moves_table": true
+  },
+  "selected_screenshots": [
+    {
+      "name": "researcher-02-first-table.png",
+      "sha256": "7da7cbae6e963d8d2bc703185b4d38c7419fe9db03029d9798b64f8a5c7f6486",
+      "size_bytes": 274202
+    },
+    {
+      "name": "researcher-07-joint-panel-right.png",
+      "sha256": "8ebb18974029840fdfd4f2fb3f118ad3b08ccc5bca8b25a95ca9785125f891e7",
+      "size_bytes": 361547
+    },
+    {
+      "name": "developer-03-source-mapping.png",
+      "sha256": "09de4bf813d8297c24bf92d288cfc76ba7c6dae9e19bc6c1ff6ae4c66ce26c67",
+      "size_bytes": 283231
+    }
+  ],
+  "review_artifact": {
+    "name": "axiom-tutorials-chrome-review.html",
+    "size_bytes": 1227205,
+    "sha256": "132b1d5273e19f08b2abcff9a2e7cf34aca633e3343504c7499eeaec265daecd",
+    "embedded_images": 3
+  },
+  "scope": {
+    "fresh_teaching_code_cells": 0,
+    "supplier_requests": 0,
+    "formal_data_root_writes": false,
+    "owner_business_tests_rerun": false,
+    "full_notebook_execution": false,
+    "ui_product_screenshot_qa": "unchanged_by_this_tutorial_check"
+  }
+}

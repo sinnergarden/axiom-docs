@@ -87,6 +87,19 @@
       "formal_data_root_writes": false,
       "evidence": "reports/tutorial-narrative-check.json",
       "execution_counts_and_execution_metadata": "retained"
+    },
+    "tutorial_chrome_round": {
+      "source_documents_commit": "42774c91775118f3cc12eb022c328af85b32cb4e",
+      "browser": "Chrome/154.0.8037.97",
+      "browser_sandbox": "default_enabled",
+      "sections_checked": 6,
+      "folded_and_expanded_views": "visually_reviewed",
+      "key_screenshots": 3,
+      "horizontal_scroll_and_keyboard": "passed",
+      "fresh_teaching_code_cells": 0,
+      "supplier_requests": 0,
+      "formal_data_root_writes": false,
+      "evidence": "reports/tutorial-chrome-review.json"
     }
   },
   "bulk": {

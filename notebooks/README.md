@@ -6,6 +6,11 @@ Researcher 沿一次研究准备工作展开：先看一只证券六天的价格
 
 第一次查询先显示代码和小表；完整初始化、长来源引用和工程核对按需展开。Qlib 是可选的显式导出路线。Researcher 的联合特征复用和 Developer 的合成离线扩标都在第 7 节。
 
+| 阅读定位 | 章节 |
+|---|---|
+| Researcher | [2：取表](researcher_tutorial.html#section-2) → [5：历史财报可见性](researcher_tutorial.html#section-5) → [7：特征复用](researcher_tutorial.html#section-7) |
+| Developer | [2：Raw 响应](developer_tutorial.html#section-2) → [3：字段映射](developer_tutorial.html#section-3) → [8：恢复](developer_tutorial.html#section-8) |
+
 ## 离线重新运行
 
 基础 Data 运行不需要教学工具或 Qlib。复跑完整两教程需要本地真实样本和已保存的验收报告，并安装教学及 Qlib 消费依赖。另提供同级 Engine、Research、UI 的薄 adapter 源码；Data 包本身不依赖它们。已测锁定环境为 Python 3.12/macOS，其他平台需解析适用环境。
@@ -58,3 +63,5 @@ python examples/build_library_tutorials.py --source-ref <已提交的教程版�
 ```
 
 合并器核对本地 HTML 与声明的 commit 一致，保留全部代码和输出文本，将文档链接固定到该版本。它不执行 notebook，也不访问数据源。
+
+上述关键章节已用现有 Mac Chrome 实际查看折叠前后展示，记录见 [Chrome 抽查](../reports/tutorial-chrome-review.json)。宽表会提示横向滚动，也可聚焦后用方向键浏览完整列。
