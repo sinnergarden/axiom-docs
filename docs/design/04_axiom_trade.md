@@ -153,6 +153,145 @@ Decision Reader 与 Simulator Reader 隔离。Simulator 可以处理之后发生
 
 初版规则字段随市场、证券类别和日期版本化；实际费率、涨跌幅、最小交易单位和结算细节在上线前用当前权威规则与 Broker 样本确认，不在总纲硬编码。
 
+<a id="stock-daily-observed-minimal"></a>
+### 6.1 有界股票日线 Top5 候选
+
+状态：`proposed`（2026-10-04，待主协调审阅冻结）；只补现有 Core/Runtime 与同一账户账本，
+不迁移 Qlib 回测器。本轮账户窗口固定 2024-01-02—01-31，交易日历含 2023-12-29 边界。
+复用 [Research 保存预测](05_axiom_research.md#stock-qlib-lightgbm-minimal) 的原始完整历史 union、
+模型/Feature/信号身份和截面时钟，不重训、不改变已经保存的成员、分数、有效性或 IC。
+当前真实模型输入是独立验证 Snapshot；不能默默改用 production，也不能声称二者等价。
+
+**公开合同与版本。** Core 候选入口为
+`from axiom_engine.core import StockPredictionFrame, plan_stock_portfolio`，接收原 owner
+`stock_prediction_run_v1`、stage=prediction_raw、
+score_semantics=forward_5_session_cs_zscore_prediction、unit=dimensionless；完整 universe、
+rows、feature_ref/model_ref 与 limitations 原样保留。owner 的 `sha256:<64hex>` 与
+bare 64hex source ref 按原 namespace 保存，不静默补前缀或重新认定来源身份。
+时间使用 aware instant 比较，保留原序列化字符串；+08:00 与 Z 可混用，不能用字符串大小
+比较可见性。context 复用 trade_session/feature_session/decision_time/knowledge_cutoff、
+reference_prices、lot_size、commission_rate、minimum_commission_minor、slippage_bps、
+account_state_version，增加 supported_security_ids/supported_universe_ref。
+结果 contract_version=axiom.stock_portfolio/1，保存 feature_session、trade_session、
+signal_ref、supported_universe_ref、expected_account_version、status
+（DECISION_COMPLETE/NO_DECISION）、selected_security_ids、targets、intents、trace；
+意图身份绑定账户版本、frame identity、context 与合同。
+
+Runtime 候选为 backtest_request_v3 / backtest_run_v3 / axiom.backtest/3，现有
+run_backtest、SimBroker、AccountLedger 按显式股票 planner/profile/adapter 分派；
+公开 load_backtest_run 继续只读取保存件。新输入闭包绑定原预测身份和 payload、组合政策/
+supported_universe_ref、股票 profile/ref、固定市场 Snapshot/QuerySpec/Reader 证据、
+admission_ref 与股票现金事件证据/ref。模型 Snapshot 与执行市场 Snapshot 分别保存；
+admission_ref 须绑定整个有界日期/证券范围的历史 member 与前日 native price basis
+配对证据，三个日期的 probe 不能替代整段证明。saved v2 evaluator 仅补 run-v3 的明确
+输入准入，沿用 input_run_ref={run_id,content_digest,committed_sequence} 和已有指标；
+Research/UI 不计算账户或评价。旧 ETF 工厂、request/run_v1/v2、版本元组及保存件不变。
+
+**资格与策略。** 固定 `eligibility_id=sz_main_a_000_002_003_v1`：Data canonical 股票身份中
+交易所为深圳、六位证券代码以前缀 000/002/003 开始，再交集 feature session 历史可见
+CSI300 member。它是本轮执行资格子集，不代表所有深市股票、全 CSI300 或全市场。
+过滤结果另存 strategy/plan；原预测的 314 security union 和所有行不裁剪、不改写。
+新账户 plan 分别冻结 prediction_universe 与 execution_universe：前者是原预测全 union，
+后者是满足证券身份资格的固定 union，并覆盖所有实际候选和持仓。market replay 完整覆盖
+后者和实际日历（含前边界），每 session 都有独立状态/价格/限价来源；不能沿用旧 ETF
+“Signal universe 等于 Market universe”假设，也不能只查最终有成交的证券再声称全范围准入。
+每周首个真实交易 session 仅使用严格前一 session、当时 cutoff 可见的预测；完整 union
+行键和时钟须验证。资格内 valid+finite 分数按降序、security_id 升序解同分，负分同样
+参与，Top5 各 20% 目标预算；不足五只或任一资格内 member 行显式 invalid 为 NO_DECISION，
+保留仓位且保存原因。结构缺行/重复、未来时钟或账户版本冲突在变更前拒绝。
+仓位出池或退出 Top5 的减仓仍由同一策略生成，不能删除持仓或借资格过滤跳过估值。
+规划只用前一 session 可见 native close 与显式账户状态；候选预算固定
+budget_basis=available_cash_plus_previous_close_positions_excluding_receivables，即决策输入
+账户的可用现金加其持仓按前日 native close 标记价值，每只分配 1/5，以 100 股整数倍
+向下取整。这是可部署预算而非完整 NAV；应收计入 NAV、不得加入预算或可用现金。
+保存账户版本与 decision stage，不在 Core 推断分红到账，也不把当日 EX 应收与前日
+含息价格重复加入预算。先卖后买，
+卖单和买单分别按 security_id 升序执行，现金不足不依同日价格或收益改换次序。
+实际现金、费用、容量及 T+1 可能使成交权重偏离目标，不用当日 open 反算前日目标。
+
+**两个时钟。** 决策为交易日 08:55 Asia/Shanghai，知识 cutoff 保持前一 session 的
+20:30。`stock_daily_observed` 仅是离线日级成交近似：execution Reader 在当日 20:30
+读取同日 native unadjusted CNY/share 的 open/close、volume_units（股）、上下限和状态；
+同日 open 是成交价格代理，全天 volume 是容量代理。保存原始字段 available_at 和独立
+execution_evidence_cutoff；09:30 时不可见的事实不能进入前日决策，也不能据 open
+价格标签把事后回放写成 09:30 已知。当前限价源 usable_from=同日 10:00，不能重标为
+09:30；日行情/因子源 20:00 和 best-effort 供源限制同样保留。这是事后有界模拟，
+不能证明开盘可成交量、真实开盘成交或严格历史状态可见。
+
+**状态准入。** 股票专用 profile 候选 `stock_daily_open_profile_v1`，支持对照
+unknown_status_policy=block 与显式实验 stock_daily_observed；不改 ETF profile 的适用范围。
+strict 对照遇 UNKNOWN 不成交；实验只在上述执行资格内、state_reason 精确属于
+{status_source_missing, status_not_visible_at_cutoff, status_unknown}、
+有效 observed open、正日成交量与合法双侧限价下允许近似。事实和订单/成交保留
+UNKNOWN、原 state_reason 及 STOCK_OBSERVED_DAILY_ASSUMPTION；不改写为 normal_trading。
+已知停牌（含日内已知停牌）、非预期 source_gap、缺理由/identity/calendar/listing 类未知、
+缺价/缺量/缺限价、越界价、上限买入/
+下限卖出、可卖不足与现金不足继续阻断。使用日线不能证明未发生停牌或限价队列可成交。
+
+**冻结参数候选。** 初始现金 10,000,000 CNY 分（100,000 元），无初始持仓或外部现金流；
+execution='open'、approximation='retrospective_daily_volume_proxy'、
+decision_time_utc='00:55:00Z'、unknown_status_policy='stock_daily_observed'（严格对照为 block）、
+lot_size=100、settlement_sessions=1（新买股份到下一实际 session 才可卖）、
+commission_rate='0.0003'、minimum_commission_minor=500（按单最低 5 元）、
+sell_stamp_tax_rate='0.0005'、transfer_fee_rate='0.00001'（买卖双边研究假设）、
+slippage_bps='0'、participation_rate='0.1'、maximum_order_quantity=1000000、price_tick='0.01'。
+佣金、最低费、过户费、零滑点和容量比例是明确
+模型假设，不冒称完整券商费表或经核实的深圳历史全部收费；不依据本轮结果优化。
+按 CNY 分、Decimal 和既有 HALF_UP 入账；印花税仅卖方，过户费另列双边，滑点只进入
+成交价，不再现金扣一次；单笔订单最低佣金不因 partial fill 重复收。gross 与佣金/
+印花税/过户费分别 HALF_UP 到整数分，fee_minor 是三项之和，保存各 fee component。
+成交价须满足 0.01 元刻度，不能静默改价；买上限/卖下限仍保守不成交。单笔超 100 万股
+保守截断并保存剩余未成交。卖出完整已结算仓位若含不足 100 股余额，仅当容量足以一次
+完整退出才允许；本轮空仓/无数量行动首个路径不产生碎股。
+
+**事件与输入边界。** 执行市场使用同一固定 Snapshot、明确 exchange calendar/
+QuerySpec/源元数据，检查完整 execution_universe（本轮身份资格 union 为 83 只）与
+实际持仓，不只检查最终 Top5 union。公司行动分别以 ex_date 和 record_date 查询
+2023-12-29—2024-01-31，固定 end cutoff=2024-01-31T20:30:00+08:00；保留 query、
+全部来源上下文及不可用标记。EX 在窗口内的事件与 record 在窗口内而 EX 在结束后、
+当时已可见的 pending 分别覆盖，不把已知 pending 填成 0。前边界无初始持仓不产生
+更早 record 的权益，但窗口内 EX 的来源准入仍要检查。未来公告不能补进当时已知范围。
+因子 transition 与证券生命周期按完整资格范围和同一 calendar 检查；无 transition
+不能单独证明无行动。source_issue=ambiguous_action_identity_or_revision 或经济日期
+未知的标记不能过滤掉，也不能据旧 report_period/预案状态推定窗口外；无法证明与
+候选/持仓窗口无关时保持准入阻断，不称“当月无事件”。送转、配股、合并、退市或无法
+解释的因子变化在相关范围阻断；不把 ETF 份额转换支持套到股票。空 observed 响应且
+无相关歧义，只能说明固定源查询观察范围，无 source-completeness 保证。
+
+现金分红规范候选 stock_cash_action_v1，字段为 event_id、security_id、record_session、
+ex_session、pay_session、cash_before_tax_per_share、tax_convention、available_at、
+source_refs。仅准入无歧义 native 实施事件、明确为零的 bonus_shares_per_share 与
+capital_transfer_shares_per_share、正 cash_dividend_before_tax_per_share、有效 record/EX
+日期和 revision-bound 来源；数量率 null 不当作零。股票 source 当前无 pay_date，
+pay_session 仅为已核实 native 日期或 null，不沿用 ETF 单位/日期、不把 EX 猜成 PAY。
+record EOD 锁实际持仓权益，EX 按 gross_before_tax_no_personal_tax_model 确认税前
+应收，PAY 仅在核实日期从应收转现金；null PAY 持续保存 payment unknown/pending/
+receivable，不能花费未到账金额。现金事件不改变股份数量或成本基准；事件阶段 payload
+幂等，冲突修订拒绝。沿用 P10 observed scope、eligible/open/excluded episode 口径，
+不声称已模拟个人持有期红利税或未知未来公告。保存 bounded dividend scope 和完整性
+限制；不以事后公司行动或成交条件回头替换 Top5。候选、拒单、未成交、应收与估值限制
+都作为保存结果，不让状态近似反向污染信号。
+
+**验收与来源。** 同一模型/预测、初始账户、资格/费用参数和固定 market replay 保存
+strict 与 stock_daily_observed 两份运行；状态政策必须显式不同，不混成同一收益结果。
+先小合成核 Top5 同分/负分/不足五/invalid、混合时区、前日决策隔离、100 股/T+1、
+单佣金/卖税/双边过户费、停牌和 UNKNOWN、日成交量 partial fill、现金 record/EX/
+verified PAY 或 null PAY、相关未知行动阻断及 ledger/NAV 共享水位；合同与有界 Data
+input-pair 准入冻结后再跑一次真实短窗口，保留严格状态对照。
+保存 loader 不计算；真实账户完成前仍不把模型/IC 通过当作账户通过。
+SZSE [2023 主板交易问答](https://www.szse.cn/www/investor/institute/rules/t20230706_601604.html)
+核到买入 100 股或整数倍、不足 100 股余额一笔卖出及 0.01 元价格刻度；本轮无初始碎股/
+送转，首次路径不产生碎股。SZSE [2021 代码安排](https://www.szse.cn/www/marketServices/technicalservice/notice/t20210205_584702.html)
+核到主板 A 股 000001—004999、001001—001199 留作存托凭证；本轮更窄的三前缀是显式
+资格选择。财政部/税务总局 [2023 年第 39 号](https://szs.mof.gov.cn/zhengcefabu/202308/t20230827_3904226.htm)
+核到自 2023-08-28 减半征收；[财政部 2008 年税制回顾](https://szs.mof.gov.cn/gongzuodongtai/200903/t20090304_118900.htm)
+核到原 1‰ 和改为单边征收，结合减半可推导 0.0005；此次未独立取得卖方方向的原始
+公告，卖方参数按本轮明确规则冻结。
+SZSE [2023 交易规则](https://www.szse.cn/lawrules/rule/repeal/rules/t20230217_598773.html)
+§3.1.4/§3.1.5 核到清算交收前不得卖出及当日回转例外列表中不含普通 A 股；它不单独
+证明清算周期恰为 T+1。settlement_sessions=1 作为本轮声明模型参数保留此核验边界。
+过户费双边 0.00001 的完整深圳原文未取得，始终标研究费用假设。
+
 ## 7. 账户与 Ledger 数据模型
 
 账户权威分两层：Trade ledger 是系统内部流水与状态；RealBroker 是外部订单/成交/账户的对账依据。差异产生显式记录和调整事件，不用券商快照直接覆盖旧账。
