@@ -211,7 +211,7 @@ budget_basis=available_cash_plus_previous_close_positions_excluding_receivables�
 
 **两个时钟。** 决策为交易日 08:55 Asia/Shanghai，知识 cutoff 保持前一 session 的
 20:30。`stock_daily_observed` 仅是离线日级成交近似：execution Reader 在当日 20:30
-读取同日 native unadjusted CNY/share 的 open/close、volume_units（股）、上下限和状态；
+读取同日 native unadjusted CNY/share 的 open/close、volume_shares（股）、上下限和状态；
 同日 open 是成交价格代理，全天 volume 是容量代理。保存原始字段 available_at 和独立
 execution_evidence_cutoff；09:30 时不可见的事实不能进入前日决策，也不能据 open
 价格标签把事后回放写成 09:30 已知。当前限价源 usable_from=同日 10:00，不能重标为
