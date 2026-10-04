@@ -303,6 +303,45 @@ Lookback counts the current feature session. Inputs use a visible common anchor;
 | LIQ | LIQ010 | amount_relative_5 | 1.0.0 | amount_cny[t] / rolling_mean(amount_cny, window=5, inclusive_current=true) | ["market_daily.amount_cny"] | 5 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; complete five-session window; zero denominator missing; never fill zero |
 <!-- /stock-feature-catalog -->
 
+<a id="stock-saved-stage-report-proposal"></a>
+### 4.6 保存股票研究阶段信息的最小投影
+
+状态：`proposed`（2026-10-04）；只补 UI 缺少的实际成熟训练窗口、阶段测量与信号汇总。
+现有 StockMLExperiment 公共输出已有配置/预测/逐日 evidence，ModelRelease 已有 fit cutoff、
+参数和 Feature schema；实际训练键在已验证 dataset.json，测量在 owner 单独保存的验收
+receipt。这些内容尚未全部由公共 Reader 输出，不让 UI 越过 owner 读取内部文件或自行统计。
+
+候选公共入口 `axiom_research.export_stock_stage_report(experiment_path, *,
+timing_receipts=(), destination)` 只从公共 loader 已验证的保存件生成独立
+stock_stage_report_v1；`load_stock_stage_report(path)` 只验 hash/ref 并返回保存值。
+不初始化 Data/供应商/Qlib/Core/LightGBM，不训练、推理或回放；sidecar 在调用方明确的新路径
+保存，不改旧 experiment manifest、模型、预测或身份，也不新增实验 registry 或账户运行。
+UI 显式提供 report 路径并逐值绑定当前登记，缺报告维持“未提供”，不跟随索引 URI。
+
+报告最小包含 stage_report_ref、content_digest、report_version、implementation_ref，
+input_refs={experiment_ref,feature_ref,dataset_ref,model_ref,signal_run_ref,evidence_ref}，
+training、signal_summary、measurements、limitations。身份绑定全部 input_refs、测量 receipt
+文件 digest、report_version 与 implementation_ref；content_digest 绑定全部保存输出。
+训练部分分别保存声明训练 feature-session 范围及 fit_cutoff，和 dataset.training_keys 的
+实际首末 feature session/去重 session_count、training_row_count、原 excluded 原因计数。
+实际窗口来自已入模键，不以 fit cutoff、配置结束日或首尾自然日推断；原标签成熟规则不改。
+
+signal_summary 从保存 evidence.series 汇总 IC/RankIC 各自非 null 的 session_count 和 mean，
+weighting=equal_valid_session、missing_policy=exclude_null_no_fill；空有效集合 mean=null。
+保留 evaluation_cutoff、score/label semantics、minimum_pairs 与 rank_ties；预测总行/有效行、
+有效/排除配对各自计数，不能混用。不新增 ICIR、显著性或账户收益；UI 只格式化保存汇总。
+
+measurements 只接受调用方明确提供、可绑定当前实验或其已声明 input_reuse 的 owner receipt。
+每条保留 receipt 文件 digest、来源 experiment/feature ref、原 metric 字段、阶段、执行模式
+（cold_build/saved_input_build/cache_reuse/readonly_load）、实测 seconds 及对应规模/内存/bytes。
+复用未执行的阶段标 REUSED_NOT_EXECUTED、展示耗时 null，缺测量标 NOT_PROVIDED；不能把
+receipt 中跳过阶段的 0 当作冷构建耗时。原生 total/build seconds 分别保留，不用分阶段之和
+补总耗时；当前训练/预测、旧来源同 feature_ref 的冷 Feature、缓存加载分别显示来源和模式。
+输入相同的 Feature 历史测量不能冒充当前模型冷训练，也不能拼接成一次实测总耗时。
+真实测量可辅助同配方/环境的更长范围估算，但必须说明规模、缓存、I/O 与观察点不足，
+不提供未经执行的吞吐保证。首版验收只读/hash、输入引用、训练键范围、null/非 null 汇总、
+测量归属及缺测量；原保存件 hash/mtime 保持不变，不为展示重跑。
+
 ## 5. SignalRun、表达式与评估（P06/P10）
 
 本轮 ETF 导出 Core 中立 `signal_frame_v1`：顶层固定 `signal_run_ref`、`signal_stage=final`、`score_semantics=momentum_20d` 与完整 `universe`；行包含 `security_id/session/knowledge_cutoff/available_at/score/valid/invalid_reason/source_refs`，score 为有限 float 或 null，键唯一。warmup/缺数保留 invalid，不把缺信号变成零。source refs 固定 FeatureBuild 和逻辑 Data Views；账户消费采用严格前一交易日信号。该确定性配方尚无 IC/标签/OOS 评估结论。
