@@ -256,6 +256,23 @@ SysQ 固定 [852bcb7 的使用/架构](https://github.com/sinnergarden/SysQ/blob
 借合同与经验，不迁移另一平台；参数可复现范围依
 [LightGBM 官方说明](https://lightgbm.readthedocs.io/en/stable/Parameters.html)。
 
+<!-- stock-feature-catalog: generated; source axiom-research/src/axiom_research/catalogs/stock_ml_v1.json -->
+# stock_ml_v1
+
+Catalog identity: sha256:41bcf9f3640eabdc375bc9f481d11e163ac10e7eb486bc70b89290df171ca862
+
+Lookback counts the current feature session. Inputs use a visible common anchor; amount remains CNY.
+
+| Group | ID | Name | Version | Formula | Dependencies | Lookback | Normalization | Missing policy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| MOM | MOM010 | ret1 | 1.0.0 | adjusted_close[t] / adjusted_close[t-1] - 1; common anchor = feature session | ["market_daily.close","adjustment_factors.factor"] | 2 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; require complete finite positive close window; never fill zero |
+| MOM | MOM020 | ret5 | 1.0.0 | adjusted_close[t] / adjusted_close[t-5] - 1; common anchor = feature session | ["market_daily.close","adjustment_factors.factor"] | 6 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; require complete finite positive close window; never fill zero |
+| MOM | MOM030 | ret20 | 1.0.0 | adjusted_close[t] / adjusted_close[t-20] - 1; common anchor = feature session | ["market_daily.close","adjustment_factors.factor"] | 21 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; require complete finite positive close window; never fill zero |
+| VOL | VOL010 | intraday_range | 1.0.0 | (high[t] - low[t]) / close[t] | ["market_daily.high","market_daily.low","market_daily.close","adjustment_factors.factor"] | 1 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; zero denominator missing; never fill zero |
+| PRC | PRC010 | close_to_open | 1.0.0 | close[t] / open[t] - 1 | ["market_daily.close","market_daily.open","adjustment_factors.factor"] | 1 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; zero denominator missing; never fill zero |
+| LIQ | LIQ010 | amount_relative_5 | 1.0.0 | amount_cny[t] / rolling_mean(amount_cny, window=5, inclusive_current=true) | ["market_daily.amount_cny"] | 5 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; complete five-session window; zero denominator missing; never fill zero |
+<!-- /stock-feature-catalog -->
+
 ## 5. SignalRun、表达式与评估（P06/P10）
 
 本轮 ETF 导出 Core 中立 `signal_frame_v1`：顶层固定 `signal_run_ref`、`signal_stage=final`、`score_semantics=momentum_20d` 与完整 `universe`；行包含 `security_id/session/knowledge_cutoff/available_at/score/valid/invalid_reason/source_refs`，score 为有限 float 或 null，键唯一。warmup/缺数保留 invalid，不把缺信号变成零。source refs 固定 FeatureBuild 和逻辑 Data Views；账户消费采用严格前一交易日信号。该确定性配方尚无 IC/标签/OOS 评估结论。
