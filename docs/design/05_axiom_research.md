@@ -254,11 +254,21 @@ feature 原 refs、完整 union/member/validity 和原截面时钟；不冒用 E
 在 Research 重建排名或 target_weight。
 
 每周首个真实交易 session 使用严格前一 session 预测，降序稳定 security_id tie-break、
-Top5 等权，不加正值门槛；不足五个有效成员为 NO_DECISION。Core/Runtime owner 需冻结
-中立 ML 信号与动态候选合同；旧 momentum `signal_frame_v1`/Top1 不改名冒用。Research
+Top5 等权，不加正值门槛；不足五个有效成员为 NO_DECISION。Core/Runtime owner 按下述
+冻结合同实施中立 ML 信号与动态候选；旧 momentum `signal_frame_v1`/Top1 不改名冒用。Research
 不实现撮合。股票事件、T+1、价限、状态、税费、持仓出池与估值准入未齐时，真实模型/
 信号/IC 先验收，Engine 保存明确 BLOCKED 原因，UI 只读这些 owner 产物；不能用 ETF
 profile 宣称完整股票账户闭环。账户准入通过后才交既有 Engine 运行。
+
+本轮有界账户合同只对上述保存预测施加 `sz_main_a_000_002_003_v1` 执行资格：feature
+session 历史 CSI300 成员内、canonical 深市股票代码 000/002/003 子集。过滤结果绑定新
+账户 strategy/plan，不重训或改写原 314 union 预测，不把子集收益冒称全市场结果。
+先核各周严格前一 session 是否至少五只有效候选，任一资格内 member invalid 为
+NO_DECISION；事件/因子核查覆盖完整资格 union，不只最终 Top5，再由同一 Engine
+实施冻结股票专用规则；见 [Trade §6.1](04_axiom_trade.md#stock-daily-observed-minimal)。
+stock_daily_observed 保留 UNKNOWN 与同日撮合事后证据；严格状态对照同时保留。
+stock_action_policy=observed_implemented_only 的行动诊断/阻断边界只由 Trade 主章定义；
+六组全非实施歧义保留原 NULL 与证据，不改 Data/预测，不凭诊断换股或补第六名。
 
 验收固定输入再现、冷构建/缓存复用、独立进程模型预测/只读加载、标签晚到与不规则日历
 边界、缺失/常量截面，以及 Engine 合同消费。分别记录 Qlib 导出、Feature、Label/Dataset、
@@ -292,6 +302,45 @@ Lookback counts the current feature session. Inputs use a visible common anchor;
 | PRC | PRC010 | close_to_open | 1.0.0 | close[t] / open[t] - 1 | ["market_daily.close","market_daily.open","adjustment_factors.factor"] | 1 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; zero denominator missing; never fill zero |
 | LIQ | LIQ010 | amount_relative_5 | 1.0.0 | amount_cny[t] / rolling_mean(amount_cny, window=5, inclusive_current=true) | ["market_daily.amount_cny"] | 5 | {"clip":null,"constant":"missing","ddof":0,"epsilon":1e-12,"excluded":"missing","group":"session","missing":"skip","op":"cs_zscore","reference":"reference_members","unknown_group":"reject"} | preserve; complete five-session window; zero denominator missing; never fill zero |
 <!-- /stock-feature-catalog -->
+
+<a id="stock-saved-stage-report-proposal"></a>
+### 4.6 保存股票研究阶段信息的最小投影
+
+状态：`frozen_for_bounded_implementation`（2026-10-04）；只补 UI 缺少的实际成熟训练窗口、阶段测量与信号汇总。
+现有 StockMLExperiment 公共输出已有配置/预测/逐日 evidence，ModelRelease 已有 fit cutoff、
+参数和 Feature schema；实际训练键在已验证 dataset.json，测量在 owner 单独保存的验收
+receipt。这些内容尚未全部由公共 Reader 输出，不让 UI 越过 owner 读取内部文件或自行统计。
+
+公共入口 `axiom_research.export_stock_stage_report(experiment_path, *,
+timing_receipts=(), destination)` 只从公共 loader 已验证的保存件生成独立
+stock_stage_report_v1；`load_stock_stage_report(path)` 只验 hash/ref 并返回保存值。
+不初始化 Data/供应商/Qlib/Core/LightGBM，不训练、推理或回放；sidecar 在调用方明确的新路径
+保存，不改旧 experiment manifest、模型、预测或身份，也不新增实验 registry 或账户运行。
+UI 显式提供 report 路径并逐值绑定当前登记，缺报告维持“未提供”，不跟随索引 URI。
+
+报告最小包含 stage_report_ref、content_digest、report_version、implementation_ref，
+input_refs={experiment_ref,feature_ref,dataset_ref,model_ref,signal_run_ref,evidence_ref}，
+training、signal_summary、measurements、limitations。身份绑定全部 input_refs、测量 receipt
+文件 digest、report_version 与 implementation_ref；content_digest 绑定全部保存输出。
+训练部分分别保存声明训练 feature-session 范围及 fit_cutoff，和 dataset.training_keys 的
+实际首末 feature session/去重 session_count、training_row_count、原 excluded 原因计数。
+实际窗口来自已入模键，不以 fit cutoff、配置结束日或首尾自然日推断；原标签成熟规则不改。
+
+signal_summary 从保存 evidence.series 汇总 IC/RankIC 各自非 null 的 session_count 和 mean，
+weighting=equal_valid_session、missing_policy=exclude_null_no_fill；空有效集合 mean=null。
+保留 evaluation_cutoff、score/label semantics、minimum_pairs 与 rank_ties；预测总行/有效行、
+有效/排除配对各自计数，不能混用。不新增 ICIR、显著性或账户收益；UI 只格式化保存汇总。
+
+measurements 只接受调用方明确提供、可绑定当前实验或其已声明 input_reuse 的 owner receipt。
+每条保留 receipt 文件 digest、来源 experiment/feature ref、原 metric 字段、阶段、执行模式
+（cold_build/saved_input_build/cache_reuse/readonly_load）、实测 seconds 及对应规模/内存/bytes。
+复用未执行的阶段标 REUSED_NOT_EXECUTED、展示耗时 null，缺测量标 NOT_PROVIDED；不能把
+receipt 中跳过阶段的 0 当作冷构建耗时。原生 total/build seconds 分别保留，不用分阶段之和
+补总耗时；当前训练/预测、旧来源同 feature_ref 的冷 Feature、缓存加载分别显示来源和模式。
+输入相同的 Feature 历史测量不能冒充当前模型冷训练，也不能拼接成一次实测总耗时。
+真实测量可辅助同配方/环境的更长范围估算，但必须说明规模、缓存、I/O 与观察点不足，
+不提供未经执行的吞吐保证。首版验收只读/hash、输入引用、训练键范围、null/非 null 汇总、
+测量归属及缺测量；原保存件 hash/mtime 保持不变，不为展示重跑。
 
 ## 5. SignalRun、表达式与评估（P06/P10）
 
