@@ -306,12 +306,12 @@ Lookback counts the current feature session. Inputs use a visible common anchor;
 <a id="stock-saved-stage-report-proposal"></a>
 ### 4.6 保存股票研究阶段信息的最小投影
 
-状态：`proposed`（2026-10-04）；只补 UI 缺少的实际成熟训练窗口、阶段测量与信号汇总。
+状态：`frozen_for_bounded_implementation`（2026-10-04）；只补 UI 缺少的实际成熟训练窗口、阶段测量与信号汇总。
 现有 StockMLExperiment 公共输出已有配置/预测/逐日 evidence，ModelRelease 已有 fit cutoff、
 参数和 Feature schema；实际训练键在已验证 dataset.json，测量在 owner 单独保存的验收
 receipt。这些内容尚未全部由公共 Reader 输出，不让 UI 越过 owner 读取内部文件或自行统计。
 
-候选公共入口 `axiom_research.export_stock_stage_report(experiment_path, *,
+公共入口 `axiom_research.export_stock_stage_report(experiment_path, *,
 timing_receipts=(), destination)` 只从公共 loader 已验证的保存件生成独立
 stock_stage_report_v1；`load_stock_stage_report(path)` 只验 hash/ref 并返回保存值。
 不初始化 Data/供应商/Qlib/Core/LightGBM，不训练、推理或回放；sidecar 在调用方明确的新路径
