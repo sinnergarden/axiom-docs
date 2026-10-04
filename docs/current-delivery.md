@@ -60,7 +60,7 @@ UI 价量输入只读同一冻结 Snapshot，精确复用保存账户的 market_
 
 ## 尚未完成的范围
 
-Data 已完成第一阶段股票/ETF 来源采集与显式续接，0.3.8 固定源码 `54e98c6` 保留不可裁决事件的 cutoff 可见缺失范围；这属于有明确限制的来源交付，不能当作所有研究/交易用途均完整。事件裁决见 [Data 补充](design/event-ambiguity-continuation.md)。此前财务冲突修复待验和暂停 checkpoint 数量仅是历史状态。日历审计按交易所分组的修正 `e62774c` 及更新至 09-30 的最终 daily Snapshot 仍待 owner 最终验收，不沿用已失效的缺口数字。既有安装包、原 0.3.3 builder 和续接 operation 的具体绑定各自保留，不因新源码而改写旧身份。本轮 docs/消费者没有改写原计划、进程、Raw、checkpoint、数据根或 current。
+Data 已完成第一阶段股票/ETF 来源采集与显式续接，0.3.8 固定源码 `54e98c6` 保留不可裁决事件的 cutoff 可见缺失范围；这属于有明确限制的来源交付，不能当作所有研究/交易用途均完整。事件裁决见 [Data 补充](design/event-ambiguity-continuation.md)。此前财务冲突修复待验和暂停 checkpoint 数量仅是历史状态。日历审计按交易所分组的修正 `e62774c` 已经主协调亲审通过，更正后的覆盖报告已完成，不沿用已失效的缺口数字；更新至 09-30 的最终 daily Snapshot 尚未完成。既有安装包、原 0.3.3 builder 和续接 operation 的具体绑定各自保留，不因新源码而改写旧身份。本轮 docs/消费者没有改写原计划、进程、Raw、checkpoint、数据根或 current。
 
 长历史遵守用户已明确的限价裁决：供应商真无早期数据则取 7 ETF 共同可用起点，漏采则由 Data 补齐；不放宽执行限价/profile。2019-07-01 是待共同覆盖证据确认的周首候选，Research 仍需前 20D 预热和严格前一 session 信号；终点待最终 09-30 Snapshot 固定。仅做小探测与现有小样本，不先启动多年特征或账户重跑。
 

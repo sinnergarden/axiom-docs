@@ -10,6 +10,13 @@
       "version": "0.3.5",
       "wheel_sha256": "1773c1e588b1802d976c7766e80854060875e767bbb869bd5eae93bdae9bb75f",
       "latest_verified_source": {
+        "commit": "e62774cbfeaaab3eae7522ce98d953a1d9dcf100",
+        "version": "0.3.8",
+        "scope": "exchange-specific audit calendar grouping; corrected coverage report completed",
+        "review_status": "parent_review_passed",
+        "package_status": "original installed and bulk builder identities retained"
+      },
+      "previous_event_source": {
         "commit": "54e98c62cb594da2e4bd83d71b1167d4ba1877bf",
         "version": "0.3.8",
         "scope": "explicit continuation and cutoff-visible unavailable event scope",
@@ -157,7 +164,7 @@
     }
   },
   "bulk": {
-    "status": "initial_collection_completed_with_limits_current_audit_and_daily_pending",
+    "status": "initial_collection_and_corrected_audit_completed_with_limits_daily_pending",
     "builder_version": "0.3.3",
     "builder_commit": "cb19c8e7661bf6bb86caa19aaf5be5c4b71ae6b0",
     "builder_wheel_sha256": "8bbdd1c5ea5497d5a40e5680a032d9d5c199fd2a10169084310bde020e01a011",
@@ -183,9 +190,10 @@
   "pending_implementations": {
     "axiom-data": {
       "source_commit": "e62774cbfeaaab3eae7522ce98d953a1d9dcf100",
-      "status": "corrected_exchange_calendar_audit_and_daily_final_snapshot_pending_owner_acceptance",
+      "status": "daily_2026_09_30_final_snapshot_not_completed",
       "evidence": "Data source read plus parent status report 2026-10-04",
-      "long_history_limit_probe": "all seven ETF common limit coverage under bounded owner probe; no profile relaxation"
+      "long_history_limit_probe": "all seven ETF common limit coverage under bounded owner probe; no profile relaxation",
+      "calendar_audit_status": "e62774c_parent_review_passed_corrected_report_completed"
     },
     "axiom-ui": {
       "source_commit": "bc220cf28c15b26ed39ac530c5a0059f7dd65411",
