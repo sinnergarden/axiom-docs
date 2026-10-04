@@ -16,7 +16,7 @@
 | 历史供应商成员 | 所有dated index_weight快照候选并集；最近可见快照延续，保留source_snapshot_date | 不月底倒填、不称精确官方daily；月内短暂成员遗漏是来源限制，不gate初始化 |
 | 按需 Reader / ViewRef | 固定 Snapshot 与 QuerySpec；按月/列读取，事件保留原生键；可保存逻辑查询，不强制磁盘 View | 完整 provenance 有成本；大结果超过缓存预算时不强留缓存；研究任务可自行复用批量结果 |
 | 离线重建与 portable | 同 Raw 重建；选定 Snapshot 的事实依赖闭包、可恢复源码与环境记录；搬移后离线读取 | 同 OS 换目录已验证；跨 OS 尚未实际运行；无变化观察和作业恢复检查点不自动属于 Snapshot 导出闭包 |
-| Research / Core / Runtime / UI | 实际 DataBatch → Research adapter → Core；Runtime 决策/回放时钟与固定引用；UI P12 事实图层 | 是 Data 消费薄接口；完整模型、账户撮合和浏览器产品归各自 owner |
+| Research / Core / Runtime / UI | 先前 Data 薄接口证据保留；本轮 owner 另验固定 ETF Feature/Signal、离线账户和静态报告，见 [当前交付](current-delivery.md) | 短样本工程闭环；通用模型、完整账户/Broker 系统和交互浏览器产品仍待验 |
 | Qlib | 不可变P04目录、实际Research QlibView读取、原始单位/NaN/PIT cutoff与成员区间，股票/ETF共8352个数字单元等价，搬移读取一致 | 显式数字日频字段导出；事件保持原生接口；训练归一化、feature/model归Research；不自动成为日更前置 |
 
 两股完整来源窗口的固定 Snapshot 为 `s_52fd63f4d0b07a5d2658ee589402ec7c27062f944cb07fa1974df2e2a7f5dde6`。它包含 2026-06—08 月行情、五季度财务 warmup 与全部七个事件端点；核对状态 passed，未解释缺价 0。此前窗口保留作来源映射证据。当前统一原型位于 `../data/csi1800_tushare_only_v4_202606_202608`，固定 Snapshot `s_a0db6028118997d93b9f70dff852b701b030b152a30b2e8d325c08ad64931049`：14 域均完成 verify/audit、重复运行和离线重建。7ETF日线原型另有8域、7×114行情/因子/限价观察，按相同存储及Reader接口验收，不包含策略计算。

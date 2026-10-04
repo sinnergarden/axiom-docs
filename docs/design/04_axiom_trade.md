@@ -8,7 +8,7 @@
 本专项描述 axiom-engine 内的逻辑模块，物理仓库按[补丁 A](07_重要补丁_A.md)执行；Data 输入与首版范围已同步 2026-09-27 个人版，不改变本模块的计算或交易职责。
 
 2026-09-28 Data 接口实证：DecisionBatchGate 已用真实输入验证批次 Snapshot 固定及 decision/market_replay 分离；本次没有实现或验收委托、成交、账户与完整 BacktestRun。
-见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-14) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
+见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
 
 ## 1. 定位：策略运行与执行系统，不只是实盘下单
 
@@ -71,6 +71,8 @@ model source 只执行保存模型，不在回测里重训。滚动历史有明�
 
 ## 4. Request、ResolvedRunPlan 与运行身份
 
+2026-10-04 本轮公共 `axiom_engine.runtime.BacktestRequest / MarketReplay / run_backtest` 显式接收冻结最终 SignalFrame 与固定回放，不 import Research，不解析 mutable workspace。`backtest_run_v1` 绑定 signal/market/profile refs、全部 Engine Python 实现文件的内容身份、`committed_sequence`、`final_account` 和 `content_digest`。`save_backtest_run / load_backtest_run` 保存/验证已有结果；加载不重新计算。实际源码、结果与审批范围见 [当前交付](../current-delivery.md)。下列通用 ResolvedRunPlan、model source、live 恢复仍是目标。
+
 ### 4.1 请求最低字段
 
 ```yaml
@@ -132,6 +134,8 @@ Plan 记录实际使用的代码来源/发布包、配置、依赖、data roots 
 Decision Reader 与 Simulator Reader 隔离。Simulator 可以处理之后发生的价格区间，但不能把全天 high/low/close/volume 提前交给开盘 Core。日线不足以证明精确开盘可成交量；使用日成交量约束的 profile 必须标明估计成交窗口、可用信息和日级近似，不能据此宣称精确开盘撮合，也不能用尚未确认的日终成交余额进行更早的日内再决策。
 
 ## 6. ExecutionProfile：最低回测真实性
+
+当前 `daily_open_profile()` 默认 `unknown_status_policy="block"`，严格 UNKNOWN 状态阻断保留。用户批准本轮显式 ETF 日线实验设置 `unknown_status_policy="etf_daily_observed"`：仅已识别的 canonical ETF 状态缺源原因可在有效 observed open、正日成交量与合法限价下准入；事实 UNKNOWN 和 order/fill 的 `ETF_OBSERVED_DAILY_ASSUMPTION` 保留。已知/日内停牌、其他未知原因、现金/限价/容量/可卖数量仍阻断。全天 volume 仅在执行侧作容量代理，不进入开盘 Core；它不能证明开盘流动性。T+1/100 基金份额是保守实验参数，未验证为真实 ETF 规则。详见 [ETF 合同](../etf-rotation-data.md#消费者交接) 与 [当前交付](../current-delivery.md#同一输入与两种执行政策)，此 profile 不可当成实盘规则。
 
 | 项目 | 初版要求 | 不允许 |
 |---|---|---|
@@ -226,6 +230,8 @@ Broker 同时提供累计数量和增量回报时，adapter 明确归一化，�
 
 ## 9. 公司行动、估值与权益
 
+本轮离线子集用 Decimal 计算、CNY 整数分持久化，保存 cash/position/cost/fees/NAV 与水位；现金分红按 record/ex/pay 处理应收和到账。合成三笔成交手算与真实短样本账本核对已通过。送转、拆分、退市范围没有能力证据，应由公共 adapter/preflight 拒绝；不得从因子审计推出全部公司行动已支持。下文送转等要求仍属目标。
+
 Data 提供事件事实及日期；Trade 按账户实际权益登记处理。至少区分登记基准、除权、到账、股份上市/可卖日期，不把所有权益在公告日立即加到账户。
 
 现金股息可先记 receivable，到账再转现金，避免除息日净值虚降又在到账日重复获利；送转增股同时处理成本基准和可用数量。税费或后续追缴按实际/模拟 profile 写明确事件。
@@ -290,7 +296,61 @@ Research 和 UI 消费本仓标准结果，不另实现 CAGR/DD。EvaluationSpec
 
 报告同时列 Data/PIT、样本/OOS、执行 profile、未支持事件和未检查范围。收益高不能覆盖正确性 blocker；费用或 benchmark 口径不同的回测不可直接混在排行榜上。
 
+<a id="daily-evaluation"></a>
+### 11.1 本轮日级 P10 冻结合同
+
+状态：`accepted`（2026-10-04）；这是已确认的首版合同，实现与测试结果在[当前交付](../current-delivery.md)单独记录。上述指标目录是长期目标；本 profile 只提供日净值/回撤、月收益、完整持仓段及独立沪深300价格基准，不计算年化、Sharpe 或 IRR。
+
+`daily_evaluation_spec()` 的唯一首版 EvaluationSpec 为：
+
+```json
+{"contract_version":"evaluation_spec_v1","frequency":"daily","benchmark_security_id":"000300.SH","benchmark_series_kind":"price_index_excluding_dividends","anchor":"previous_session","drawdown_peak":"initial_nav_included","monthly_partial_policy":"separate_observed_return","episode_definition":"position_0_nonzero_0","dividend_recognition":"ex_income_record_entitlement_pay_transfer","return_denominator":"cumulative_buy_cost_including_fees","weighting":"equal_closed_episode","external_cash_flows":"reject","annualization":"none","missing_policy":"null_no_fill","pnl_distribution":{"metric":"net_pnl_minor","unit":"CNY fen","edges_minor":[-100000,-50000,-10000,0,10000,50000,100000],"interval":"left_closed_right_open","minimum_episodes":10}}
+```
+
+EvaluationReport 独立保存，不改旧 BacktestRun。其 `contract_version=evaluation_report_v1`；`input_run_ref={run_id,content_digest,committed_sequence}` 精确绑定账户结果，`signal_ref/market_ref/profile_ref` 沿用账户值。`evaluation_ref` 绑定 input_run_ref、spec_ref、benchmark_ref、dividend_scope_ref（包括 null）、evaluation_version、implementation_ref；`content_digest` 校验除自身之外的全部输出。报告还保存 `status=COMPLETE/PARTIAL`、`spec_ref/spec`、`benchmark_ref/benchmark_input`、`dividend_scope_ref/dividend_scope`、实现版本、`series`、`monthly_returns`、`episodes`、`episode_metrics`、`benchmark` 和 `limitations`。输出身份与逻辑运行身份分别保留；不能把 Document.identity 当 run_id。
+
+日账户 `series` 每项保存 session、nav_minor、nav_index、peak_nav_minor、drawdown、committed_sequence；回撤前高包含 initial NAV。金额原值为整数分，比例为 decimal 字符串；UI 只格式化成元与百分比。
+
+`monthly_returns` 每项保存 month、status（COMPLETE/PARTIAL/MISSING）、first_session、last_session、boundary_session、start_nav_minor、end_nav_minor、return、observed_return、reason、committed_sequence。完整月必须由冻结交易日历证明自然月左右边界，并有当月首末交易日的账户观测：左边至少到上月 session 或当月自然首日，右边至少到月最后自然日或下月 session。月收益以此前月末 session NAV 为边界；首月只有 run 的前一 session 恰为该边界时才可使用 initial NAV。不能用工作日猜周末或休市。不能证明完整的首尾月标 PARTIAL，正式 return 为 null，局部 observed_return 另列；缺边界或价格不填 0。
+
+基准默认 `000300.SH`，独立于 ETF 策略池，采用 `price_index_excluding_dividends`，单位 index points。benchmark 保存严格前一 session 的 anchor_session/anchor_close、状态及逐日 close、nav_index、daily_return、drawdown、valid、missing_reason、source_refs，另列 total_return/max_drawdown。缺价或峰值历史不完整时相关值为 null。benchmark_input 保存固定 Data Snapshot、QuerySpec、批次和查询证据。价格指数不含分红，与含分红账户收益的差异必须展示，不能称全收益对照。
+
+持仓段为单证券 0→非0→0，段内加减仓合并。每段保存 episode_id/security_id、CLOSED/OPEN、entry/exit session 与 sequence、left_censored、income_status、statistics_eligible/exclusion_reasons、初末数量、累计买入成本、卖出收入、费用、分红收入、pending/receivable、净盈亏或期末标记盈亏、收益分母、net_return、fill_refs 及分红归属链。初始持仓无入场记录为 left_censored；开放、左截断及已知收入未确定的段不进完整统计。登记日收盘权益归所属段，EX 确认收入一次，PAY 只转现金；读取保存账本金额，不能另行舍入重算。完整可统计段净收益率为净盈亏除以累计买入成本（含费用）；按段等权平均，与 IRR 无关。
+
+episode_metrics 保存 closed_count、eligible_closed_count、open_count、left_censored_count、income_pending_count、win_count/loss_count/tie_count、win_rate、mean_net_pnl_minor、mean_episode_return、return_denominator、weighting、dividend_scope_status。胜率分母为 eligible_closed_count，平局保留；平均净盈亏为 decimal 分均值（可有小数），段内金额仍为整数分。无合格段返回 null。
+
+报告另保存 `pnl_distribution={status,metric,unit,included_episode_count,minimum_episodes,bins}`。仅纳入可统计闭合段净盈亏；不少于 10 段时 status=AVAILABLE，按上述 CNY 分固定边界保存八桶 `{lower_minor,upper_minor,count}`，左右无穷尾端为 null，普通区间左闭右开，0 属于 [0,10000)。桶计数之和等于纳入段数，平局计数仍单列。不足 10 段时 status=INSUFFICIENT_SAMPLE、bins=[]，UI 先显示 episodes 原净盈亏，不称完整分布。门槛是显示规则，不是统计置信度或策略资格判断；不新增框架、依赖或币种泛化。
+
+**分红观察范围。** 旧账户事件按 ex_date 窗口读取，不能证明所有登记日已发生、EX 尚未发生的已知分红均已覆盖。可选 `DividendScope` 经同固定 Snapshot 的公共 Reader，以 `time_field=record_date`、start_session/end_session 和期末 knowledge_cutoff（UTC）查询，保存 `contract_version=dividend_scope_v1`、universe、`coverage=observed_records_only`、actions、source_refs/source_evidence/limitations。actions 保存 event_id、security_id、record_session、ex_session、pay_session、cash_per_unit、available_at、source_refs；Record digest 必须与旧账户事件身份匹配，固定 QuerySpec、purpose 和 cutoff 一并留存。
+
+EX 不晚于期末的经济事件必须与原账户一致；补充只允许当时已知且 record≤end、EX>end 的 pending 检查，不倒改旧净值或重复确认收入。缺 scope 时 `dividend_scope_status=COVERAGE_UNKNOWN`，不能确定的 pending_dividend_minor 为 null；已知 pending 保留，income_pending_count 只表示已知 pending 段数，不能把未知总量当成已排除的 0。缺 scope 不阻止正常已观测闭合段的净盈亏及统计，但须显式限制范围。有 scope 时标 OBSERVED_RECORDS_ONLY，仍不保证供应源完整；结束后披露的公告不成为当时已知。
+
 ## 12. 公共入口与只读接口
+
+日级 P10 的有界公共入口如下；评估是显式离线写入步骤，UI/Research 只调用保存结果的 loader：
+
+```python
+from axiom_engine.runtime import (
+    BenchmarkSeries, EvaluationSpec, EvaluationReport, DividendScope,
+    daily_evaluation_spec, read_csi300_benchmark, read_dividend_scope,
+    evaluate_backtest, save_backtest_evaluation, load_backtest_evaluation,
+    load_backtest_run,
+)
+run = load_backtest_run(run_path)
+benchmark = read_csi300_benchmark(data, snapshot=snapshot,
+    sessions=calendar_anchor_through_end)
+scope = read_dividend_scope(data, snapshot=snapshot, universe=universe,
+    start_session=start_session, end_session=end_session)
+report = evaluate_backtest(run, benchmark=benchmark,
+    spec=daily_evaluation_spec(), dividend_scope=scope)  # scope 可为 None
+save_backtest_evaluation(report, report_path)
+
+# 只读消费者：校验保存内容，不 run_backtest/evaluate_backtest。
+saved = load_backtest_evaluation(report_path)
+payload = saved.to_dict()
+```
+
+以下为其余通用目标接口，不因上面的有界 profile 而宣称全部实现：
 
 ```python
 run_backtest(request: BacktestRequest) -> BacktestRunRef
@@ -304,6 +364,8 @@ query_chart_layers(run_ref, security_id, interval) -> RuntimeChartLayers
 
 CLI 只做解析与调用，Notebook/Agent/systemd 使用相同 service。只读 inspect 不发送委托、不调用会写生产目录的初始化。UI 查询返回 committed watermark，避免同一屏拼接不同事务阶段的 cash/positions。
 
+运行调度按 Research 声明的模型依赖检查 [Data 就绪合同](02_axiom_data.md#source-readiness)，在冻结时点 C 固定输入后调用 Core，并保留意图有效截止 E 与实测预算。到 C 必需输入缺失则跳过/阻断，optional 只按既定合同处理；不因某域次晨才就绪而回填可知时间，不在 Runtime 复制供应商接口钟点表。本轮没有新增通用调度框架或实盘路径。
+
 ```text
 src/axiom_trade/
   runtime/ backtest/ adapters/{feed,signal,broker,state}/
@@ -313,6 +375,8 @@ src/axiom_trade/
 
 ## 13. 分阶段验收
 
+当前完成 T-M1 的有界 cached ETF 离线路径与保存报告；没有声称通用 model source/SimBroker 全部能力。T-M2 的 SQLite outbox/inbox、Broker crash recovery，以及 T-M3/T-M4 的 shadow/real 未实现或未验收。实际范围以 [owner 证据入口](../current-delivery.md)为准。
+
 | 阶段 | 最小交付 | 不能提前宣称 |
 |---|---|---|
 | T-M1 | 离线单回测、cached signal、Core 接入、SimBroker、核算/标准报告 | 真实 Broker 可用 |
@@ -321,6 +385,8 @@ src/axiom_trade/
 | T-M4 | 明确 Broker adapter/权限/规则/账户验证后受控 real | 通用支持所有券商和证券事件 |
 
 ## 14. 最小验收标准
+
+本轮已有固定输入复现、缺信号/时间边界拒绝、严格状态阻断、显式 ETF 近似准入、T+1/现金/限价/容量、现金分红、保存 digest 和 UI 只读一致性证据。以下 T01–T22 是目标验收目录，53 tests 与合成 handcalc 不等于全部目录通过；特别不能据此宣称数据库事务恢复、实盘对账或全部标准绩效指标已完成。
 
 | ID | 操作/失败点 | 必须结果 |
 |---|---|---|

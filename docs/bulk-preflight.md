@@ -1,6 +1,6 @@
 # 当前 Bulk Preflight 与验证摘要
 
-2026-10-03 使用 **0.3.1 安装包**，在新的隔离数据根通过现存 CLI 完成四组真实 Tushare 采集。股票没有使用旧 Raw 离线回放，完整计划包含行情、财务、事件、生命周期、成员与三个基准；ETF 使用独立基金合同和沪深300基准。这次 preflight 不包含十二年全量；后续已启动并暂停，当前状态见 [本轮交付](current-delivery.md)。
+2026-10-03 使用 **0.3.1 安装包**，在新的隔离数据根通过现存 CLI 完成四组真实 Tushare 采集。股票没有使用旧 Raw 离线回放，完整计划包含行情、财务、事件、生命周期、成员与三个基准；ETF 使用独立基金合同和沪深300基准。这次 preflight 不包含十二年全量；后续曾启动并暂停，最新状态见 [本轮交付](current-delivery.md)。
 
 | 原型 | 正式读取窗口 | Canonical 范围 | 保存的 Raw 接收记录 | 工作根大小 | run 用时 | verify / audit |
 |---|---|---|---:|---:|---:|---|
@@ -27,4 +27,4 @@
 
 原八份整体设计和A/B补丁已移至 [docs/design](design/README.md)，原工作区只保留导航。旧正文与旧教程安全归档在repo外；它们不作为另一套权威设计。新增字段、修复与实验影响见 [数据变化与恢复](data-change-and-recovery.md)。
 
-机器记录保留在本地 `delivery/bulk-preflight-20261003/`：report、四份config/scope/plan/audit、独立安装搬移报告；源码、配置和安装包摘要随本地验收保存。生产Raw、token、数据根、运行日志与本地验收JSON均不推送。当前代码和教程可以审阅，十二年全量仍需协调后启动；跨OS和完整回测/UI分别属于其部署或消费者验证范围。
+机器记录保留在本地 `delivery/bulk-preflight-20261003/`：report、四份config/scope/plan/audit、独立安装搬移报告；源码、配置和安装包摘要随本地验收保存。生产Raw、token、数据根、运行日志与本地验收JSON均不推送。原型代码和教程可审阅，十二年全量的当前进展见[本轮交付](current-delivery.md)；跨OS与消费者回测/UI验收分别记录，不用旧preflight替代。

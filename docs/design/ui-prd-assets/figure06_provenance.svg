@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="792pt" height="208.8pt" viewBox="0 0 792 208.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:description>Synthetic PRD discussion illustration; not owner backtest evidence.</dc:description>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.9.4, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 208.8
+L 792 208.8
+L 792 0
+L 0 0
+z
+" style="fill: #f5f7fb"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 45.3816 122.528016
+L 302.7024 122.528016
+Q 316.2456 122.528016 316.2456 120.160224
+L 316.2456 72.541296
+Q 316.2456 70.173504 302.7024 70.173504
+L 45.3816 70.173504
+Q 31.8384 70.173504 31.8384 72.541296
+L 31.8384 120.160224
+Q 31.8384 122.528016 45.3816 122.528016
+z
+" clip-path="url(#pa793457d16)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 421.5816 131.736096
+L 739.0944 131.736096
+Q 752.6376 131.736096 752.6376 129.368304
+L 752.6376 67.279536
+Q 752.6376 64.911744 739.0944 64.911744
+L 421.5816 64.911744
+Q 408.0384 64.911744 408.0384 67.279536
+L 408.0384 129.368304
+Q 408.0384 131.736096 421.5816 131.736096
+z
+" clip-path="url(#pa793457d16)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(57.42 93.544198)">▸ 数据与运行信息</text>
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(57.42 104.776073)">同一 run · 默认折叠</text>
+   </g>
+   <g id="patch_4">
+    <path d="M 350.28218 93.806599
+Q 368.37902 94.700425 385.359187 95.539097
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+    <path d="M 381.852366 93.563696
+L 385.359187 95.539097
+L 381.674774 97.159313
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+   </g>
+   <g id="text_2">
+    <text style="fill: #63738a; font: 9px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="328.284" y="95.69304" transform="rotate(-0 328.284 95.69304)">展开</text>
+   </g>
+   <g id="text_3">
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(433.62 90.082982)">Data 版本 / Feature / Signal 引用</text>
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(433.62 101.642357)">Core 与 Runtime 版本 / 账户水位</text>
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(433.62 112.874232)">质量与缺失说明</text>
+   </g>
+   <g id="text_4">
+    <text style="fill: #63738a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="31.086" y="165.41136" transform="rotate(-0 31.086 165.41136)">主要限制保留短句；完整来源按需展开，不占满结果页面。</text>
+   </g>
+  </g>
+  <g id="text_5">
+   <text style="fill: #25354a; font: 700 12px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F06  数据与运行信息 · 默认折叠</text>
+  </g>
+  <g id="text_6">
+   <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能已确认 / 视觉待确认</text>
+  </g>
+  <g id="text_7">
+   <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pa793457d16">
+   <rect x="19.8" y="41.76" width="752.4" height="131.544"/>
+  </clipPath>
+ </defs>
+</svg>

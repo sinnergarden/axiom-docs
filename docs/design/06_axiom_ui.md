@@ -6,7 +6,7 @@
 > 延续 Evidence Console、Operation First、下钻而不堆信息；新增明确的跨模块 ChartContext/ChartLayer 合同。
 
 2026-09-28 Data 接口实证：真实 DataBatch 已投影为 P12 ChartContext/ChartLayer，保留来源、单位和查询 refs；本次没有部署 BFF/浏览器 UI，也没有虚构成交、账户图层。
-见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-14) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
+见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
 
 ## 1. 定位与三个用户问题
 
@@ -21,6 +21,8 @@ UI 是个人研究与运营的只读观察窗口，帮助回答：
 UI 的只读不是“不能记住页面偏好”：主题、筛选条件、图层布局和可重建展示缓存可以写 UI 自己目录，但不能成为业务来源，也不能修改被查看的 artifact。
 
 ## 2. 结构与数据来源
+
+2026-10-04 本轮实现是 `axiom-ui` 新 Git 仓中的只读静态报告/CLI：经 `axiom_engine.runtime.load_backtest_run` 验证 owner 保存的 `backtest_run_v1`，显示固定 refs、implementation/profile、逐日 committed watermark、现金/持仓/NAV、decision/order/fill/ledger 及 owner 指标；缺值显示 unavailable。没有 Data 读取、Core/回测调用、owner save 或指标重算。显式日线近似与 UNKNOWN 原因继续展示，UI 不选择执行政策。代码、独立复核和 Library 交付状态见 [当前交付](../current-delivery.md)。下文 BFF/交互控制台仍是目标；原本地非 Git UI 目录保留旧副本，待导航迁移，不成为另一个可编辑事实源。
 
 ```text
 Browser

@@ -22,7 +22,7 @@
 | [05 Research](05_axiom_research.md) | 如何提升信号和策略、控制试验、复用产物和发布 | Feature/Label/Dataset/Model/Signal/研究证据 |
 | [06 UI](06_axiom_ui.md) | 怎样看懂事实、Feature、决策、账户和异常 | 只读组合查询、图表联动、交互与展示验收 |
 
-文档切分不按页面或每个类单拆。Runtime、统一回测、模拟成交和事务账本都留在 Trade；Feature 与模型专项思考留在 Research；跨仓设计统一存放于 `axiom-data/docs/design/`，不增加独立治理 repo；物理存放位置不改变各仓的逻辑职责。
+文档切分不按页面或每个类单拆。Runtime、统一回测、模拟成交和事务账本都留在 Trade；Feature 与模型专项思考留在 Research；跨仓设计统一存放于 `axiom-docs/docs/design/`，不增加独立治理框架；物理存放位置不改变各仓的逻辑职责。
 
 **冲突处理：**模块细节由 owner 文档决定；涉及边界和数据协议的变更，先形成小型变更提案，同步总纲、受影响专项与契约测试，再执行。总纲本身可以被反例推翻，不是让 agent 机械服从的不可修改宪法。
 
@@ -45,15 +45,23 @@ Axiom 同时承担研究平台、投资辅助和自动交易系统三个角色�
 5. **正式产物不可原地修改。** 修改事实、公式、模型或规则均产生新版本；一次执行固定实际依赖，不再自行寻找“最新”。
 6. **按独立版本轴拆仓，不按类的数量拆仓。** 优先单机、文件 artifact、Python 公共 API 和少量 CLI，不建设微服务、消息队列或通用工作流平台。
 
+<a id="module-boundaries"></a>
+
 ## 2. 四个物理仓库与五个逻辑领域
 
-| 仓库/逻辑模块 | 主要负责 | 主要交付 | 不负责 |
-|---|---|---|---|
-| `axiom-data` | 采集、标准事实、PIT、稳定派生、snapshot、事实视图、数据验证 | `DataSnapshotRef`、`FactViewRef`、`MarketReplayViewRef`、`QlibViewRef`、`UniverseRef` | 预测 Feature 选择、label 定义、训练、策略、成交、Feature 有效性裁决 |
-| `axiom-engine/core` | 通用 Feature 算子、推理协议、信号变换、组合/风险/订单规划协议、策略状态转换 | 版本化执行库、输入输出类型、确定性决策结果 | 采集、找最新版本、具体研究配方、训练编排、撮合、数据库、调度 |
-| `axiom-research` | Feature/label/模型/策略研究、训练、信号评估、实验比较、研究发布 | `FeatureRelease`、`FeatureBuild`、`TrainingDataset`、`ModelRelease`、`SignalRun`、`StrategyRelease` | 另写回测引擎、券商接口、真实账户账本、修改 Data 内部文件 |
-| `axiom-engine/runtime` | runtime、统一回测、shadow/real、Broker、账户核算、ledger、恢复和对账 | `RunManifest`、`BacktestRun`、订单/成交/持仓事件、账户快照、部署记录 | 另写 Feature/预测/选股规则、改变上游事实、自动证明 alpha |
-| `axiom-ui` | 研究、数据、运行、订单与账户的只读总看板 | 页面、查询接口、可重建展示索引 | 修数据、改持仓、下单、隐式发布策略、重新定义指标 |
+本表是统一模块边界入口。各 repo、专项设计和 PRD 引用[本表](#module-boundaries)确定职责；§3 的对象 owner、§9 的交换矩阵和专项合同细化这些边界，不另维护一份完整职责表。按[维护约定](../design-maintenance.md)，随讨论确认增量更新相应行及受影响引用，用户无需一次列全。下列输入与输出沿用既有设计语义，不新增接口，也不代表实现已完成。
+
+**2026-10-04 用户讨论确认的补充：**Data 执行事实 Query/View、事实导出及复用；Research 提出事实需求，管理派生 Feature、模型输入产物和实验版本，其 Feature 构建仍复用 Core；Engine 计算账户回测与标准账户指标，Research 关联其结果；UI 只读展示、选择、比较与联动。这一确认不将总纲其他“本版细化”自动变为已确认方案。
+
+| Owner（仓库/逻辑域） | 负责范围 | 输入 | 输出 | 消费者 | 不负责范围 |
+|---|---|---|---|---|---|
+| [Data](02_axiom_data.md) · `axiom-data` | 采集、标准事实、PIT、事实口径的稳定派生、snapshot、数据验证；执行事实 Query/View、事实导出及复用 | 来源事实及配置；Research 的事实需求；Research/Engine/UI 的固定版本、字段、范围和时间查询 | `DataSnapshotRef`、`FactViewRef`、`MarketReplayViewRef`、`QlibViewRef`、`UniverseRef`；事实查询结果、显式导出及来源/质量证据 | Research；Engine/Runtime；UI 的事实层 | 研究派生 Feature/模型输入产物管理、预测 Feature 选择、label 定义、训练、实验管理、策略与成交、Feature 有效性裁决 |
+| [Engine/Core](03_axiom_core.md) · `axiom-engine/core` | 共享 Feature 执行、推理、信号变换、组合/风险/订单规划、策略状态转换；产生结构化决策 trace | Research 发布的 Feature/模型/信号计划与执行包；Research/Runtime adapter 注入的固定事实、账户/策略状态及规则 | 版本化执行库、输入输出类型；`FeatureFrame`、`PredictionFrame`、`SignalFrame`、确定性决策结果；决策条件、候选排名、买卖原因的结构化 trace，实际运行方固定保存 | Research；Engine/Runtime；UI 随保存产物读取 trace | 采集、找最新版本、具体研究配方、实验管理、训练编排、撮合、数据库、调度；直接响应 UI 计算请求 |
+| [Research](05_axiom_research.md) · `axiom-research` | 提出事实需求；管理派生 Feature 与模型输入产物，其构建复用 Core；管理训练、信号评估与发布；管理实验分组、假设、参数、输入输出版本、运行关联及版本差异、实验标签/收藏/搁置记录，关联 Engine 标准结果 | 固定 Data Query/View 结果、事实导出及版本引用；研究假设、参数及实验记录；Core 执行结果；Engine 的回测和账户评估产物 | 事实需求；`FeatureRelease`、`FeatureBuild`、模型输入阶段产物、`TrainingDataset`、`ModelRelease`、`SignalRun`、`StrategyRelease`；保存的特征/模型分数及版本、IC/ICIR 等信号评价；实验分组与说明、版本关系、运行与结果引用、差异、标签/收藏/搁置记录 | Data 接收需求；Core 消费执行包；Engine/Runtime 消费信号与策略；UI 展示研究投影；研究者查看证据 | 另写 Feature 执行器、信号执行路径或账户回测引擎、重算 Engine 账户指标、券商接口、真实账户账本、修改 Data 内部文件 |
+| [Engine/Trade Runtime](04_axiom_trade.md) · `axiom-engine/runtime` | runtime、唯一账户回测、shadow/real、Broker、账户核算、ledger、恢复和对账；保存 Core 决策依据及成交/拒单依据；计算账户评估、完整持仓段和月收益统计 | 固定市场回放/事实视图；Research 的 `SignalRun` 或策略/模型包；账户初值、执行及评估配置；Core 决策结果及 trace | `RunManifest`、`BacktestRun`、订单/成交/持仓事件、账户快照、决策/成交/拒单依据、标准账户评估及完整持仓段/月收益统计、部署记录 | Research 关联并比较结果；UI 展示运行、账户及保存依据；运行/对账工具 | 管理 Research 实验假设与版本差异、另写 Feature/预测/选股规则、改变上游事实、自动证明 alpha |
+| [UI](06_axiom_ui.md) · `axiom-ui` | 只读展示研究、事实、运行、订单与账户；选择、比较和图表联动，展示 owner 保存的评价及决策/执行依据 | Data 事实投影；Research 实验记录、版本关联、特征/模型分数与信号评价；Engine 保存的决策/成交/拒单依据、账户评估、完整持仓段和月收益统计 | 页面、公共只读入口的查询组合、选择/比较联动、可重建展示索引与页面偏好 | 研究者和开发者浏览、比较、复盘；各 owner 接收只读查询需求 | 管理实验及标签/收藏/搁置等业务记录、从参数猜实验假设或用户意图、重算业务指标、触发 Feature/训练/回测、修数据、改持仓、下单、隐式发布策略 |
+
+实验标签是研究组织记录，不是预测目标 `LabelSpec`。新增产物职责是设计要求；**决策 debug 为低优先级后续需求，非已实现功能**。UI 仅读取保存依据，缺失时明确未提供，不重新执行策略补出解释。
 
 ```text
 供应商 → axiom-data → 固定的事实视图 ─────────────┐
@@ -86,7 +94,7 @@ Core 是库，不是必须独立启动的服务。Research 与 Trade 都可以�
 
 ### 3.1 主要对象
 
-下表是逻辑边界，不要求为每行建设独立服务或登记系统。属于同一发布包的对象可共享一个 manifest，通过子对象引用区分。
+下表细化[§2 模块边界](#module-boundaries)中的对象 owner，不要求为每行建设独立服务或登记系统。属于同一发布包的对象可共享一个 manifest，通过子对象引用区分。
 
 | 对象 | 表达什么 | 权威 owner |
 |---|---|---|
@@ -199,6 +207,8 @@ SignalFrame + AccountState + StrategyState + DecisionContext
 
 `DecisionContext` 显式提供决策时间、可用数据截止点、有效交易规则、约束和事件序号。Core 不从系统时钟自行读“现在”。
 
+Core 产生结构化决策 trace，包含条件、候选排名与买卖原因；实际运行方绑定该次输入与版本固定保存。Core 保持纯计算库，无 I/O；UI 读取已保存依据，低优先级 debug 的具体细节留待后续设计与验收。
+
 通用排序、归一化、目标权重转数量、限仓检查等可在 Core；“60/180 日如何混合”“何时换仓”“什么 Feature 有效”等属于研究配置或冻结插件，不能变成 Core 中不断增加的策略特例。
 
 ### 5.2 不包含什么
@@ -241,6 +251,8 @@ releases/       Feature/Model/Strategy 发布包与研究决策
 ```
 
 信号评估不是第二套回测。修改仓位、换仓、退出规则时，优先复用 SignalRun，不重复训练；更换数据或 Feature 时则构建对应新版本，不能偷换缓存。
+
+实验分组、版本、运行关联及标签/收藏/搁置记录由 Research 管理；向消费者提供保存的特征/模型分数及版本、信号评价和 Engine 结果引用，不因定义信号另建执行路径。
 
 ### 6.2 Feature、样本与训练合同
 
@@ -391,6 +403,8 @@ Trade ledger 是系统内部唯一账户记录；真实 Broker 是外部成交�
 ## 8. axiom-ui：只读证据总看板
 
 UI 首页先展示运行是否可信，再展示收益。主要页面包括：
+
+以下页面列表是长期目标。当前首版施工范围以[研究工作台 PRD](08_axiom_ui_research_prd_draft.md)为准：研究问题、版本和运行的只读浏览，共用收益风险与结果比较、交易下钻、月收益/持仓段及折叠的来源信息。目标列表不自动扩大首版，也不表示全部页面已实现。
 
 | 页面 | 内容 | 来源 |
 |---|---|---|
@@ -560,6 +574,8 @@ Research 的统一评估至少包括 IC/Rank IC、ICIR、分位组收益、覆�
 
 **本版细化：**信号评估实现归 Research；账户净值、回测与 shadow/real 共用的指标实现归 Trade 的 reporting。Research 引用标准 BacktestEvaluation，不另写一套 CAGR/DD；UI 只展示。共同结果 envelope 统一对象引用、metric spec、scope、数据表和警告。
 
+完整持仓段和月收益统计由 Runtime 按确认口径生成并保存；Research 关联结果，UI 只读联动。统计口径引用[当前 PRD 的已确认规则](https://github.com/sinnergarden/axiom-docs/blob/60373bdce705e2f8042bea0727d89e2207319b1a/docs/design/08_axiom_ui_research_prd_draft.md#confirmed-statistics)，边界表不另维护公式。
+
 ### 10.5 门禁分开，不设万能绿色勾
 
 正式结果分别报告数据资格、Feature 正确性、训练/标签时序、OOS 有效性、执行可信度、部署准备度。每项包括已检查范围、规则版本、结果、未检查事项和证据。
@@ -638,11 +654,15 @@ review 不是只问“代码符合文档吗”，还要问“当前合同是否�
 
 ### 12.2 轻量跨仓治理
 
-**本版细化：**总体边界及跨仓契约索引统一存放于 `axiom-data/docs/design/`，不增加治理 repo；domain 细节与测试由各 owner 仓库维护。其他仓引用这套文档的明确版本，不复制维护整份总纲。
+**本版细化：**总体边界及跨仓契约索引统一存放于 `axiom-docs/docs/design/`，不增加治理框架；domain 细节与测试由各 owner 仓库维护。其他仓引用[§2 模块边界表](#module-boundaries)及这套文档的明确版本，不复制维护整份总纲。
 
 每个仓库的 `AGENTS.md` 只做简短导航，指向模块合同、UC、公用命令和适用测试。skills 描述何时使用/不使用，不充当第二份业务真相。
 
 合同改变时更新受影响消费者与跨仓集成测试。重要默认变更或破坏性语义变化记 ADR；普通局部修复不要求制造大量文档。审计报告必须区分事实、推断、设计选择和未知项，不能把“范围内检查完成”写成“系统已无问题”。
+
+按[设计维护约定](../design-maintenance.md)每月做一次轻量复审，先看整体，再选近期变化或风险最高的模块；里程碑、职责/时间合同变化和正确性反例触发专项复审。从开发者与研究者两个视角重新检验方案，不以历史实现惯性代替设计理由。复用已有证据、由实现者之外的人员或审阅任务检查，记录问题、证据、影响、建议与未知，决策归入对应主章节；不因此建立新的治理平台或机械全量重测。
+
+每个里程碑使用约 30 分钟的真实运行讲解输入、结果、风险和恢复，帮助研究者理解当时何以可知、版本改了什么、为何交易或未成交，以及缺失、修订或异常重跑应如何定位。协作代理组织材料、协调依赖并提出取舍；用户确定研究目标、优先级和实质设计选择。
 
 ### 12.3 合法入口必须够用
 

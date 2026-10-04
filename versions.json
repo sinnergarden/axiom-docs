@@ -8,50 +8,198 @@
     "axiom-data": {
       "commit": "f6b8fad9684caad7e25abfb7fa695785258e0a5c",
       "version": "0.3.5",
-      "wheel_sha256": "1773c1e588b1802d976c7766e80854060875e767bbb869bd5eae93bdae9bb75f"
+      "wheel_sha256": "1773c1e588b1802d976c7766e80854060875e767bbb869bd5eae93bdae9bb75f",
+      "latest_verified_source": {
+        "commit": "e62774cbfeaaab3eae7522ce98d953a1d9dcf100",
+        "version": "0.3.8",
+        "scope": "exchange-specific audit calendar grouping; corrected coverage report completed",
+        "review_status": "parent_review_passed",
+        "package_status": "original installed and bulk builder identities retained"
+      },
+      "previous_event_source": {
+        "commit": "54e98c62cb594da2e4bd83d71b1167d4ba1877bf",
+        "version": "0.3.8",
+        "scope": "explicit continuation and cutoff-visible unavailable event scope",
+        "package_status": "original installed and bulk builder identities retained"
+      }
     },
     "axiom-research": {
-      "commit": "eb6ae3a596d46627c8d52470b595d015cf659711",
-      "version": "0.1.1",
-      "wheel_sha256": "47ab757918003e372cb89ee59e73ea261debdc697d6ae33d9e6ac075bdedf696"
+      "commit": "e612430b53fcb4c0beeaed9a1b5c6fd977a31d63",
+      "version": "0.1.4",
+      "branch": "main",
+      "status": "merged_via_parent_reviewed_pr",
+      "wheel_status": "no_new_wheel_evidence",
+      "previous_verified_package": {
+        "commit": "eb6ae3a596d46627c8d52470b595d015cf659711",
+        "version": "0.1.1",
+        "wheel_sha256": "47ab757918003e372cb89ee59e73ea261debdc697d6ae33d9e6ac075bdedf696"
+      },
+      "previous_rotation_source": {
+        "commit": "f88a24fdcc6b28f399444c854b1f37702c7a5389",
+        "version": "0.1.2"
+      },
+      "previous_records_source": {
+        "commit": "5de77e3db35c2806449927de1f5b2ddb3a466203",
+        "version": "0.1.3",
+        "full_suite_passed": 32
+      },
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/1",
+      "source_commit": "59c45a18ec5e1b4d69e7ccffd13b750d450463ea",
+      "source_tree_unchanged_after_merge": true,
+      "remote_ci": "no_check_runs"
     },
     "axiom-engine": {
-      "core_commit": "c8a506b2070a9c89b20cfe14a0a93155c238f204",
-      "core_tree_modified": false,
-      "runtime_status": "local_uncommitted_not_published"
+      "commit": "ef2f693e4861482753893a99852de46232aea9c6",
+      "version": "0.2.1",
+      "branch": "main",
+      "status": "merged_via_parent_reviewed_prs",
+      "wheel_status": "no_new_wheel_evidence",
+      "previous_core_commit": "c8a506b2070a9c89b20cfe14a0a93155c238f204",
+      "previous_account_source": {
+        "commit": "381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6",
+        "branch": "engine/etf-account-backtest"
+      },
+      "source_commit": "e74cefb65f175b07837cc7f1f8c7217e450a277b",
+      "pull_requests": [
+        "https://github.com/sinnergarden/axiom-engine/pull/2",
+        "https://github.com/sinnergarden/axiom-engine/pull/3"
+      ],
+      "source_tree_unchanged_after_merge": true
     },
     "axiom-ui": {
-      "git_commit": null,
-      "status": "local_directory_not_a_git_repository_not_published"
+      "repository": "sinnergarden/axiom-ui",
+      "git_commit": "d5f097e46580b2794d08ececddccb123d292d3ea",
+      "version": "0.1.0",
+      "branch": "publish/ui-readonly",
+      "status": "public_source_parent_reviewed_bounded_readonly_report",
+      "wheel_status": "no_new_wheel_evidence",
+      "legacy_local_directory": "old_non_git_copy_retained_pending_navigation_migration",
+      "library_delivery": "latest_daily_html_delivered_parent_confirmed_after_owner_report",
+      "screenshot_qa": "not_completed"
     }
   },
   "validation": {
-    "data_scoped_tests": 16,
-    "research_scoped_tests": 15,
-    "tutorial_fresh_code_cells": 4,
-    "tutorial_fresh_errors": 0,
-    "tutorial_other_retained_code_cells": 93,
-    "supplier_requests": 0,
-    "formal_data_root_writes": false,
-    "default_rebuild_scoped_tests": 17,
-    "default_rebuild_cases": [
-      "ordinary CLI new operation retains expanded symbols",
-      "new operation retains added field contract/profile/normalizer"
-    ]
+    "previous_data_and_joint_tutorial_round": {
+      "data_scoped_tests": 16,
+      "research_scoped_tests": 15,
+      "tutorial_fresh_code_cells": 4,
+      "tutorial_fresh_errors": 0,
+      "tutorial_other_retained_code_cells": 93,
+      "supplier_requests": 0,
+      "formal_data_root_writes": false,
+      "default_rebuild_scoped_tests": 17,
+      "default_rebuild_cases": [
+        "ordinary CLI new operation retains expanded symbols",
+        "new operation retains added field contract/profile/normalizer"
+      ]
+    },
+    "etf_round": {
+      "research_distinct_affected_tests": 16,
+      "engine_final_tests": 53,
+      "ui_final_tests": 14,
+      "independent_owner_reviews": "passed_for_bounded_scope",
+      "snapshot": "s_e32f4511b69d4fce9accad609feb4005f371cc5cb833ca260d6ae563b75558d1",
+      "signal_run_ref": "sha256:e2966ff9febf2b72268091f979afbc29a836218dab008305c2ef40c6dcc6b030",
+      "daily_backtest_run_ref": "sha256:c2bed666e2509ed1a8747bfae23f5d94a39f6d6db9227cd2a67f181ffcc3d77b",
+      "strict_control_run_ref": "sha256:6db153261ab0f6c933959aac448b66b6fbef7162d57d8ad8dcdc4031747b95ea",
+      "evidence_index": "docs/current-delivery.md"
+    },
+    "documentation_round": {
+      "fresh_code_cells": 0,
+      "supplier_requests": 0,
+      "formal_data_root_writes": false,
+      "notebook_code_and_saved_outputs": "retained",
+      "html_source": "canonical_notebooks_saved_outputs"
+    },
+    "tutorial_narrative_round": {
+      "baseline_docs_commit": "1848576ab52c1ac3527f94a5e5e5dff4a28fec98",
+      "notebook_code_cells_retained": 97,
+      "saved_outputs_retained": 237,
+      "markdown_order_and_presentation_metadata": "changed",
+      "static_dependency_provider_check": "passed",
+      "presentation_tests": 7,
+      "fresh_teaching_code_cells": 0,
+      "supplier_requests": 0,
+      "formal_data_root_writes": false,
+      "evidence": "reports/tutorial-narrative-check.json",
+      "execution_counts_and_execution_metadata": "retained"
+    },
+    "tutorial_chrome_round": {
+      "source_documents_commit": "42774c91775118f3cc12eb022c328af85b32cb4e",
+      "browser": "Chrome/154.0.8037.97",
+      "browser_sandbox": "default_enabled",
+      "sections_checked": 6,
+      "folded_and_expanded_views": "visually_reviewed",
+      "key_screenshots": 3,
+      "horizontal_scroll_and_keyboard": "passed",
+      "fresh_teaching_code_cells": 0,
+      "supplier_requests": 0,
+      "formal_data_root_writes": false,
+      "evidence": "reports/tutorial-chrome-review.json"
+    },
+    "experiment_records_round": {
+      "source_commit": "5de77e3db35c2806449927de1f5b2ddb3a466203",
+      "research_tests": 32,
+      "experiment_record_tests": 11,
+      "independent_review": "passed_after_repairs",
+      "saved_artifacts": "private local only; owner loader binding verified",
+      "compute_calls": 0
+    },
+    "p10_round": {
+      "source_commit": "e74cefb65f175b07837cc7f1f8c7217e450a277b",
+      "engine_tests": 68,
+      "independent_review": "passed_after_input_closure_repair",
+      "scope": "daily evaluation of saved account; fixed benchmark, month boundaries, episodes and optional dividend scope",
+      "private_outputs": "local only",
+      "merge_reruns": 0
+    },
+    "saved_run_projection_round": {
+      "source_commit": "59c45a18ec5e1b4d69e7ccffd13b750d450463ea",
+      "scoped_tests": 16,
+      "independent_review": "passed",
+      "baseline_full_suite_rerun": false,
+      "scope": "stable account groups across evaluation registrations; run markers and saved activity ordering",
+      "data_and_account_compute_calls": 0,
+      "private_artifacts": "local ignored only"
+    }
   },
   "bulk": {
-    "status": "paused_by_user",
+    "status": "initial_collection_and_corrected_audit_completed_with_limits_daily_pending",
     "builder_version": "0.3.3",
     "builder_commit": "cb19c8e7661bf6bb86caa19aaf5be5c4b71ae6b0",
     "builder_wheel_sha256": "8bbdd1c5ea5497d5a40e5680a032d9d5c199fd2a10169084310bde020e01a011",
-    "receipts_retained": 1849,
-    "operation_json_files_retained": 51,
-    "current_published": false,
-    "etf_started": false
+    "previous_paused_checkpoint": {
+      "receipts_retained": 1849,
+      "operation_json_files_retained": 51,
+      "current_published": false,
+      "etf_started": false,
+      "status": "paused_by_user"
+    },
+    "acceptance": "initial_stock_and_etf_sources_limited_not_full_use_coverage",
+    "status_evidence": "Data owner completed source report plus parent correction of exchange calendar audit, 2026-10-04",
+    "builder_identity_policy": "original operation bindings retained; continuation explicitly bound by Data owner"
   },
   "limits": [
-    "no twelve-year bulk acceptance",
+    "no complete twelve-year use-coverage acceptance; final daily Snapshot and common ETF execution-limit range pending",
     "no multi-year feature-build scale benchmark or one-day guarantee",
-    "fixed Core identity/pct_change/asof recipe; no arbitrary FeaturePlans, derived TTM, labels/training/model/backtest platform"
-  ]
+    "bounded deterministic ETF features/signals and offline daily account simulation only; no arbitrary FeaturePlans, derived TTM projection, labels/training/OOS model platform",
+    "UNKNOWN facts retained; ETF observed daily execution is explicit approximation, default strict block retained; not live rules",
+    "no live Broker, SQLite crash recovery, split/delisting support or complete BFF/browser product; screenshot QA not completed"
+  ],
+  "as_of": "2026-10-04",
+  "pending_implementations": {
+    "axiom-data": {
+      "source_commit": "e62774cbfeaaab3eae7522ce98d953a1d9dcf100",
+      "status": "daily_2026_09_30_final_snapshot_not_completed",
+      "evidence": "Data source read plus parent status report 2026-10-04",
+      "long_history_limit_probe": "all seven ETF common limit coverage under bounded owner probe; no profile relaxation",
+      "calendar_audit_status": "e62774c_parent_review_passed_corrected_report_completed"
+    },
+    "axiom-ui": {
+      "source_commit": "bc220cf28c15b26ed39ac530c5a0059f7dd65411",
+      "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/1",
+      "status": "draft_pr_bounded_readonly_workbench; saved_run_group_patch_local_review_not_yet_pushed",
+      "final_product_acceptance": false
+    }
+  }
 }

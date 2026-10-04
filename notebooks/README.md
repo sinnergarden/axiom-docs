@@ -1,8 +1,15 @@
-# 真实教程入口
+# 两种阅读路线
 
-唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读真实表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
+唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
 
-Researcher 从事实链路、固定版本和第一次读取开始，解释时间、缺失、复权、财务与成员，再讲查询重放和完整实验。Developer 从 Raw、字段映射和 manifest 开始，解释批量作业、daily/refresh、恢复、迁移与部署。跨仓接口和较长验收放在附录；Qlib 是显式消费格式。
+Researcher 沿一次研究准备工作展开：先看一只证券六天的价格，扩成矩阵，处理缺失与价格尺度，再加入当时可见的财报，保存并复用特征，最后交给下游。Developer 沿一次接入工作展开：保存响应、转换字段、检查并发布，再加入财报与基金，继续日更，处理范围变化、失败恢复和交接。
+
+第一次查询先显示代码和小表；完整初始化、长来源引用和工程核对按需展开。Qlib 是可选的显式导出路线。Researcher 的联合特征复用和 Developer 的合成离线扩标都在第 7 节。
+
+| 阅读定位 | 章节 |
+|---|---|
+| Researcher | [2：取表](researcher_tutorial.html#section-2) → [5：历史财报可见性](researcher_tutorial.html#section-5) → [7：特征复用](researcher_tutorial.html#section-7) |
+| Developer | [2：Raw 响应](developer_tutorial.html#section-2) → [3：字段映射](developer_tutorial.html#section-3) → [8：恢复](developer_tutorial.html#section-8) |
 
 ## 离线重新运行
 
@@ -26,12 +33,35 @@ AXIOM_TUTORIAL_DATA_PACKAGE="$(python -c 'import sysconfig; print(sysconfig.get_
 
 表格来自一年固定1800行情样本、两证券完整来源样本和七ETF日线样本，三者各有固定版本。两证券原教学样本含留存原供应商响应的离线回放，receipt 属于回放时间；新鲜生产入口验证另见 [bulk preflight](../docs/bulk-preflight.md)。合成测试只证明相应语义边界，不当作供应商数据。
 
-[权威设计](../docs/design/README.md)规定目标，[当前交付](https://github.com/sinnergarden/axiom-data/blob/main/DELIVERY.md)记录已测范围。研究策略、模型、账户回测和 UI 产品仍由其 owner 实现和验收。
+[权威设计](../docs/design/README.md)规定目标，[当前交付](../docs/current-delivery.md)记录已测范围与固定 owner 报告。ETF 信号、离线账户与静态 HTML 已完成短样本消费链；完整模型/OOS、Runtime/Broker 与 UI 产品仍按 owner 范围验收。
 
-Research 0.1.1（`eb6ae3a`）已发布 Data/Qlib/ViewRef adapter 和具名、多字段、多报告期联合输入的最小持久 FeatureBuild。每个 cutoff 由 Data 选修订，各财务流再选最新可见报告期，由 Core identity/pct_change/asof 执行，支持保存、重读和复用。Engine Core `c8a506b` 已发布；本地 Runtime 仍未提交。任意 FeaturePlan、TTM 联合投影、标签、训练、模型/OOS/策略回测及多年规模性能仍不是这次交付。 主线 Data 查询重放不依赖 Research。完整跨仓附录需要本地未发布的 Runtime/UI；新联合输入示例只需要已发布的三仓实现。
+本教程保存的联合输入示例来自 Research 0.1.1；本轮 ETF 另使用 Research 0.1.2、Engine 0.2.1 与 UI 0.1.0 的固定已推源码，见[版本表](../versions.json)与[当前交付](../docs/current-delivery.md)。本页安装命令沿用此前教程的已验 Data wheel；没有新的 Research/Engine/UI wheel 验收。主线 Data 查询重放不依赖 Research，跨仓附录的旧输出只证明当时调用；不以新源码身份追认旧输出为新回测。
 
 上面的 wheel 必须留存原文件，kernel 与运行命令使用同一安装环境。`AXIOM_TUTORIAL_DATA_PACKAGE` 指向该 wheel 的 site-packages；否则 helper 默认读源码树，离线构建需要干净且可恢复的 commit。执行更新 notebook 会使源码树变脏，留存安装包可以独立固定实际 builder；不允许只写一个旧 HEAD 代替真实代码来源。
 
-本轮新增 Researcher 联合输入与 Developer 离线扩标单元，分别连同初始化单元执行：4 个 fresh code cells、0 errors；其余 93 个代码单元保留此前输出，没有声称本轮全量重跑。当前合计 Researcher 43、Developer 54 个代码单元。
+此前新增 Researcher 联合输入与 Developer 离线扩标单元，分别连同初始化单元执行：4 个 fresh code cells、0 errors；其余 93 个代码单元保留此前输出，没有声称本轮全量重跑。当前合计 Researcher 43、Developer 54 个代码单元。
 
 [本轮实现与限制](../docs/current-delivery.md)记录字段/时间/证券三类增量和实际小样本测量。
+
+2026-10-04 ETF 入口：先读[数据与策略交接](../docs/etf-rotation-data.md)，再从[公开加载与复用](../docs/current-delivery.md#公开加载与持久复用)进入 Research 保存实验、Engine 中立回测/只读结果和 UI CLI。使用 owner 指定的固定产物位置，静态报告无需执行研究或访问 Data。
+
+本次叙述重编排保留 97 个代码单元及其执行计数与输出；单元顺序和展示元数据随教学路线调整。它只生成 HTML，没有执行教学代码或采集。逐单元与导航核对见[本轮检查](../reports/tutorial-narrative-check.json)。
+
+## 从保存输出生成 HTML
+
+在本仓根目录运行：
+
+```sh
+python examples/render_notebook.py --notebook ../notebooks/researcher_tutorial.ipynb
+python examples/render_notebook.py --notebook ../notebooks/developer_tutorial.ipynb
+```
+
+渲染器默认只读 notebook。HTML 提交后，可将两种角色与章节导航合为一个离线文件：
+
+```sh
+python examples/build_library_tutorials.py --source-ref <已提交的教程版本> --output /absolute/axiom-tutorials.html
+```
+
+合并器核对本地 HTML 与声明的 commit 一致，保留全部代码和输出文本，将文档链接固定到该版本。它不执行 notebook，也不访问数据源。
+
+上述关键章节已用现有 Mac Chrome 实际查看折叠前后展示，记录见 [Chrome 抽查](../reports/tutorial-chrome-review.json)。宽表会提示横向滚动，也可聚焦后用方向键浏览完整列。

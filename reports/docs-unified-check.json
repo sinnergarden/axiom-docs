@@ -1,0 +1,79 @@
+{
+  "schema_version": "axiom_docs_unified_check_v1",
+  "as_of": "2026-10-04",
+  "scope": "documentation and fixed provenance only",
+  "local_base_commit": "60c2ec912693703b1b4b94a96bf498489ac3f89f",
+  "pull_request_base_commit": "18a357e6d20864063067dc56cdfecb47eadb8c7c",
+  "integrated_sources": {
+    "data_docs": "01f0adcaead5f699f3bb83630fd6914a7060573d",
+    "ui_docs": "7ea61a65cbc5b78efcaf431b1f4e2c0529a4d2af"
+  },
+  "source_closure": {
+    "data_event_rules": "absorbed in Data main chapter; historical supplement is navigation",
+    "ui_sections_1_5": "owner contents retained exactly",
+    "ui_intro_and_8": "owner contents retained; merge policy aligned with unified PR flow",
+    "ui_original_assets_unchanged": 10,
+    "unique_source_readiness_table": true,
+    "owner_statistics_sections_retained": true
+  },
+  "local_links_checked": 128,
+  "notebook_html_retained": [
+    {
+      "path": "notebooks/researcher_tutorial.ipynb",
+      "sha256": "8aec6b37a1fa3303d02a2ac19a0646e952736219164c33ff2a3667b4a46fa475"
+    },
+    {
+      "path": "notebooks/developer_tutorial.ipynb",
+      "sha256": "a8770b7c1052875ce7a1bcb1d1bc23822b7a477136b71285a2994b465580703b"
+    },
+    {
+      "path": "notebooks/researcher_tutorial.html",
+      "sha256": "4a059c8fdea6e0fdddfaf6d5645cd96c42949e5d2e4819c34df420f2d39831d4"
+    },
+    {
+      "path": "notebooks/developer_tutorial.html",
+      "sha256": "37aa5dd12b875de1cfd58378272b9c114f704b7f6cd9f0a961c3791dfcdcb066"
+    }
+  ],
+  "fresh_teaching_cells": 0,
+  "supplier_calls": 0,
+  "feature_and_account_replays": 0,
+  "data_root_writes": false,
+  "owner_tests_reused": {
+    "research_baseline_full": 32,
+    "research_current_scoped": 16,
+    "engine_p10": 68
+  },
+  "remote_merge_tree_verification": {
+    "research": {
+      "merge": "e612430b53fcb4c0beeaed9a1b5c6fd977a31d63",
+      "source": "59c45a18ec5e1b4d69e7ccffd13b750d450463ea",
+      "tree_equal": true,
+      "remote_check_runs": 0
+    },
+    "engine": {
+      "merge": "ef2f693e4861482753893a99852de46232aea9c6",
+      "source": "e74cefb65f175b07837cc7f1f8c7217e450a277b",
+      "tree_equal": "owner and parent confirmed"
+    }
+  },
+  "limits": [
+    "Current UI grouping patch remains local review, not final product acceptance",
+    "New daily Snapshot and common ETF limit range pending Data owner acceptance",
+    "No private artifacts or raw Data copied",
+    "No new notebook execution, source collection, long build, deployment or live trading"
+  ],
+  "independent_review": {
+    "status": "passed",
+    "p1_p2_findings": 0,
+    "relative_links_checked": 128,
+    "checks": [
+      "Data accepted sections and unique timing/readiness authority",
+      "Saved-account grouping matches Research59c45a",
+      "UI owner statistics and readonly boundaries retained",
+      "Research and Engine merges verified with unchanged source trees",
+      "JSON, anchors and whitespace checks"
+    ],
+    "no_teaching_data_or_account_execution": true
+  }
+}

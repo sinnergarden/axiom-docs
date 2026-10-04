@@ -7,7 +7,7 @@
 本专项描述 axiom-engine 内的逻辑模块，物理仓库按[补丁 A](07_重要补丁_A.md)执行；Data 输入与首版范围已同步 2026-09-27 个人版，不改变本模块的计算或交易职责。
 
 2026-09-28 Data 接口实证：Research 所有的 adapter 已将真实月末 DataBatch/成员结果映射为 FactBatch、ExecutionContext 和 FeaturePlan，并执行 identity/lag/return；这不是全部策略或决策算子的真实验收。
-见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-14) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
+见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
 
 ## 1. 一句话定义
 
@@ -50,6 +50,8 @@ Data 不直接调用 Core；Data 的固定事实由调用方 adapter 转成 Fact
 UI 不提交交易计算请求；它读取 Research/Trade 已保存的 trace。原因码与 schema 可随 Core release 提供，不需要 Core Web 服务。
 
 ## 3. 主要类型与最小语义
+
+2026-10-04 有界实现：`axiom_engine.core.SignalFrame` 提供中立 `signal_frame_v1` JSON Document 验证，Research/Runtime 通过公开合同交接。finite score、行键唯一、完整 universe、validity、cutoff/available_at 和 immutable source refs 是消费前提；具体保存身份与证据见 [当前交付](../current-delivery.md)。没有把任意 SignalPlan/model plugin ABI 宣称为已完成。
 
 | 类型 | 最少包含 | 约束 |
 |---|---|---|
@@ -151,6 +153,8 @@ Strategy runtime package
 
 ## 6. 订单规划与边界案例
 
+本轮 `plan_rotation` 是纯函数：完整候选信号经时间/有效性验证后，正动量 Top1，分数并列按 security_id 升序；没有正值则目标现金。Runtime 每个 ISO 周首个交易日传入严格前一 session 信号和真实模拟账户，使用已知前收进行数量估计，附 account version。Core 输出 intent/trace，账户变动只由 Runtime 的模拟成交入账。缺候选信号拒绝，不从未来价格补信号；不是通用挂单/Broker 规划器。
+
 规划以**真实 AccountState**为基础，包含现金总额/可用/冻结、总持仓/可卖/冻结、未完成订单及其状态。不能把目标或前次 OrderIntent 当作真实持仓。
 
 建议固定次序：
@@ -218,7 +222,7 @@ src/axiom_core/
   tracing/           typed reasons and decision output
   tests/             fixtures and conformance
   docs/              Core-specific implementation and tests
-# Shared design: axiom-data/docs/design/ (one authoritative cross-repo index)
+# Shared design: axiom-docs/docs/design/ (one authoritative cross-repo index)
 ```
 
 不得依赖 `axiom_research` 或 `axiom_trade` 主包；不可 import 券商 SDK、数据库或 scheduler。Data 的 domain schema 仍归 Data；中立 Frame 是 adapter 层映射结果，不强迫 Data 引入整个 Core。

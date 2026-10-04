@@ -6,7 +6,7 @@
 > 来源以 signal-centric、Feature inventory、PIT/LLM 专项及历史讨论为主。历史文档中的“已存在”“可用”“有效”仅代表当时记载，未重新核对的内容不能直接 promotion。
 
 2026-09-28 Data 接口实证：ViewRef 的真实 Query 重放和 Research→Core 薄 adapter 已执行；连续成员、完整 FeatureBuild/模型/OOS/策略回测仍不是本次 Data 教程的验收结论。
-见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-14) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
+见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
 
 ## 1. 目标与最小闭环
 
@@ -48,9 +48,11 @@ Data 只提供可信事实与稳定派生；Research 不直接读 raw 或未登�
 
 Model/Feature 插件发布为独立、冻结的轻量运行包，生产不 import mutable Research 源码树。Research 可调用 Trade 的离线公共 API，Trade 不依赖 Research 训练主包，避免循环依赖。
 
-Research 0.1.1（`eb6ae3a`）已发布 Data/Qlib/ViewRef adapter 和具名、多字段、多报告期联合输入的最小持久 FeatureBuild。每个 cutoff 由 Data 选修订，各财务流再选最新可见报告期，由 Core identity/pct_change/asof 执行，支持保存、重读和复用。Engine Core `c8a506b` 已发布；本地 Runtime 仍未提交。任意 FeaturePlan、TTM 联合投影、标签、训练、模型/OOS/策略回测及多年规模性能仍不是这次交付。
+2026-10-04 当前有界实现：Research 0.1.2 延续 0.1.1 的联合输入与持久复用，增加固定 ETF 确定性 Feature/Signal 实验；Engine 已有消费冻结信号的离线账户路径，UI 已有保存结果的静态展示。分支源码、实际验收与限制见 [当前交付](../current-delivery.md)；正文中的通用模型/OOS/插件平台仍是目标。
 
 ## 3. 核心产物合同（P01、P05、P06）
+
+当前 ETF 公共入口为 `axiom_research.build_rotation_features`、`build_rotation_experiment`、`load_rotation_experiment`。固定 Data 查询、完整日历与 Research 声明的七证券参考集合，复用 Core 执行；不新增特征执行器。参考集合不是 Data 历史成员证据。已保存实验返回 FeatureBuild、确定性 signal run 和实验身份；本路径没有模型、fold、标签或训练，不将其伪装为 R0 的 model/OOS SignalIdentity。源代码及配置入口见 [当前交付](../current-delivery.md#公开加载与持久复用)。
 
 | 产物 | 必需内容 | 不能混淆 |
 |---|---|---|
@@ -93,6 +95,49 @@ compatible_core_api: core_api_v1
 
 Column 级 provenance 保存一次公式/输入关系；UI 可追到 source refs 和选中样本，不给每个 cell 都建立昂贵独立收据。
 
+<a id="experiment-records"></a>
+### 3.3 实验记录与只读索引
+
+状态：`accepted`（2026-10-04 的有界读取合同）；实现与验收另记[当前交付](../current-delivery.md)。首版复用已有 ETF RotationExperiment、FeatureBuild、SignalRun 和 ArtifactRef，不引入训练、特征执行器或第二套回测。
+
+研究问题保存稳定 `question_id`、内容身份 `question_ref`、`title`、`description`、`hypothesis` 和首次登记的 `created_at`。问题下的版本保存 `version_ref`、`question_id`、同问题的 `parent_version_ref`（首版为 null）、`label`、`explanation`、完整 `parameters`、固定 `input_refs`、人工声明的 `explicit_changes` 和登记时间。问题、版本及运行记录均不可变；参数改变产生新版本，不根据收益或参数替研究者补写意图。
+
+运行记录保存 `run_record_ref`、`question_id`、`version_ref`、`created_at`、`status`（COMPLETE / FAILED / BLOCKED）、`reason`、可选的显式 `outcome`、`output_refs`、`backtest_ref` 和 `evaluation_ref`。失败或阻断必须有原因；缺结果不补零，处理完成不代表策略有效。输入、输出沿用既有 ArtifactRef；FeatureBuild 与 SignalRun 的身份在相应引用中保留。Engine 引用精确保留原字段：`backtest_ref={run_id,content_digest,signal_ref,committed_sequence,uri}`；可选 `evaluation_ref={evaluation_ref,evaluation_content_digest,input_run_ref:{run_id,content_digest,committed_sequence},uri}`。前者信号必须对应输出 SignalRun，后者必须与前者的运行身份、输出 digest 和水位一致；不得把 Document.identity 叫作 run_id，也不改变旧 BacktestRun。
+
+分组、标签、收藏和搁置属于 Research 业务状态。`organization={revision,groups,tags,favorite,shelved}` 以 `expected_revision` 比较后更新，并保留全部旧修订；并发旧值不能覆盖新值。这里的 tags 是整理标签，与预测目标 LabelSpec 无关。首版采用显式路径的一份轻量 JSON 索引，原子替换与写入锁保证一致性，不建立 registry 或数据库平台。
+
+登记修订与实际回测分开：有账户结果的记录按 Engine 原值 `{run_id,content_digest,committed_sequence}` 导出稳定 `saved_run_ref`，仅替换评价或登记说明不产生新的回测。其计算为规范 JSON `{contract_version:'saved_backtest_ref_v1',input_run_ref:{run_id,content_digest,committed_sequence}}` 的 SHA-256；规范化使用 UTF-8、sort_keys、无额外空白。默认 runs 每个 saved_run_ref 一组，保留该问题下全部不可变 `registration_history`，旧 candidate 不删除。组表层使用筛选后最新保存登记作为导航，不能据此声称评价已审核；完整历史可逐条打开。没有账户结果的记录保留独立 `REGISTRATION_ONLY` 项，saved_run_ref 等于 run_record_ref；不把失败、阻断或信号登记计成一次回测。
+
+同一问题可有多次回测，首版支持**运行级**收藏与搁置：可选 `run_organizations` 按稳定 `saved_run_ref` 保存 `{revision,favorite,shelved}` 历史，公开 `update_run_organization(run_record_ref,expected_revision=...,favorite=...,shelved=...)` 将登记引用解析到该稳定目标，再作相同的修订检查。换评价后标记继续生效。runs 投影增加 `saved_run_ref`、`run_kind`（SAVED_BACKTEST / REGISTRATION_ONLY）、`registration_history` 和 `organization`，不改变不可变登记内容。旧索引缺此字段时仅读投影默认 revision=0、favorite=false、shelved=false，不能猜测旧问题收藏代表其中哪些运行；问题分组/tags 及原有组织状态继续可读。
+
+登记已有完整实验时，`ExperimentStore.register_saved_experiment(question=...,version=...,run=...)` 在一次原子写入内保存三类记录。question 使用 create_question 参数；version 使用 create_version 参数但不传 question_id；run 使用 record_run 参数但不传 question_id/version_ref。校验失败不能留下半套问题或版本。单记录入口保留，供显式分步研究使用。Reader 的公共 import 与可选 Data/Core 构建运行环境分离，旧构建入口按需加载。
+
+```python
+from axiom_research import ExperimentStore, ExperimentReader
+
+writer = ExperimentStore(index_path)
+question = writer.create_question(question_id="etf-momentum", title="ETF 轮动",
+    description="固定数据下的规则基线", hypothesis="由研究者明确填写")
+version = writer.create_version(question_id=question["question_id"], label="baseline",
+    explanation="本版目的与限制", parameters=parameters, input_refs=input_refs,
+    parent_version_ref=None, explicit_changes=["首次登记固定基线"])
+record = writer.record_run(question_id=question["question_id"],
+    version_ref=version["version_ref"], status="COMPLETE", output_refs=output_refs,
+    reason=None, outcome=None, backtest_ref=backtest_ref, evaluation_ref=None)
+writer.update_organization(question["question_id"], expected_revision=0,
+    groups=["ETF"], tags=["baseline"], favorite=True, shelved=False)
+
+reader = ExperimentReader(index_path)
+index = reader.index(group=None, tags=[], status=None, favorite=None, shelved=None,
+    question_id=None, version_ref=None, run_favorite=None, run_shelved=None)
+detail = reader.detail(question["question_id"])
+diff = reader.compare_versions(left_version_ref, right_version_ref)
+```
+
+公共投影 `experiment_projection_v1` 返回 `store_revision`、索引 `content_digest` 和 `questions:[{question,organization,last_activity_at,saved_backtest_count,registration_count,versions,runs}]`；detail 返回同一投影中的单个问题。saved_backtest_count 是当前投影内 SAVED_BACKTEST 组数，registration_count 是这些返回组及 REGISTRATION_ONLY 项的完整登记历史条数，两者分开命名。筛选 tags 要求全部命中；version_ref 保留对应版本及有匹配登记的组，status 要求至少一条匹配登记，组的完整历史仍保留；未运行版本在未指定 status 时仍可查看。兼容旧 favorite/shelved 参数的问题级语义，当前运行收藏/搁置使用显式 run_favorite/run_shelved，仅保留匹配组，无匹配则不返回该问题。默认近期排序按问题下全部保存 question/version/run 的 created_at 最大值 `last_activity_at`，保留稳定 ID tie-break；老问题新增运行或登记也回到近期前面，收藏修改不伪造运行时间，不取 mtime。版本比较返回声明变动及保存参数、输入引用的逐字段差异，不推断业绩因果，也不重算账户指标。
+
+Reader 构造、索引、详情和比较仅读取并校验索引元数据，不创建目录或文件，不逐次哈希整个产物目录，不导入 Data/Core 执行入口，也不调用训练或回测。外部产物在登记与实际读取时由各 owner 的公开 loader 校验；索引校验不替代产物可用性或真实性证明。旧产物未登记时不自动扫描成研究结论。UI 经此投影浏览，再按 Engine 公共 loader 读取已保存账户与评估结果。
+
 ## 4. Dataset、Label 与时序
 
 ### 4.1 数据准备顺序
@@ -109,6 +154,10 @@ Column 级 provenance 保存一次公式/输入关系；UI 可追到 source refs
 ```
 
 不能先只保留在池日期，再计算丢失历史的 rolling。已有持仓若不在候选池，仍由 Trade 跟踪；给池外持仓评分需要明确参考截面和缺数据政策。
+
+模型依赖须声明 domain/字段、历史长度、可接受滞后、required/optional 及缺数策略，引用 [Data 唯一源时序与就绪合同](02_axiom_data.md#source-readiness)。T 日业务事实次晨才可得时，历史与实盘均不能当作 T 收盘已知；Runtime 在冻结时点 C 检查依赖就绪并调用 Core，输出与意图截止 E 对齐。仅行情模型不等待未使用的域；本轮 ETF 不接入两融或 ML。
+
+2026-10-04 长历史裁决：保持现有执行 profile 和双向限价要求；若供应商确无早期历史，则使用 7 只 ETF 共同可用起点，若只是漏采则由 Data 显式补齐，不放宽价限。Research 为首个评估 session 保留严格前一 session 信号及此前 20D 预热；2019-07-01 仅是待 Data 范围证据确认的完整周首候选，结束日待最终 2026-09-30 Snapshot 固定后确认。缺口小探测和最终 Snapshot 尚未闭合前，不执行多年构建，不调整策略参数。
 
 ### 4.2 LabelSpec
 
@@ -141,7 +190,11 @@ Legacy baseline 可封存并用于 forensic 数值对照，但不因冻结就认
 
 不能同时改变 universe、PIT、Feature、模型和执行口径，再把收益变化全部归因模型。CSI800 与 CSI1800 的结果分开记录；source history 不足以支持 strict 长历史时，显式限制范围或 best-effort，不能为了训练 8 年而伪造历史版本。
 
+后续 ETF 长历史消费必须显式绑定 Data 新阶段验收后的最终 Snapshot，保留原固定小样本，不以 current 替换。策略仍沿用现有七证券参考集合、20 session 动量、正值 Top1 和周首交易日/严格前一 session 信号；先核实上市边界与完整交易日历，滚动窗口包含 20 个前置 session。上市前、warmup 与内部缺价/因子缺证分别保留 invalid 及原因，不压缩日历、不补零、不将参考集合伪装成历史成员证据。先用不超过现有 114 sessions 的固定窗口量测耗时、内存与写入体积并声明预算，再开展已授权的多年消费；不重新采集数据，不以短样本推断多年性能。
+
 ## 5. SignalRun、表达式与评估（P06/P10）
+
+本轮 ETF 导出 Core 中立 `signal_frame_v1`：顶层固定 `signal_run_ref`、`signal_stage=final`、`score_semantics=momentum_20d` 与完整 `universe`；行包含 `security_id/session/knowledge_cutoff/available_at/score/valid/invalid_reason/source_refs`，score 为有限 float 或 null，键唯一。warmup/缺数保留 invalid，不把缺信号变成零。source refs 固定 FeatureBuild 和逻辑 Data Views；账户消费采用严格前一交易日信号。该确定性配方尚无 IC/标签/OOS 评估结论。
 
 Raw 和 Derived SignalRun 使用同一读取/评估/回测协议。必要字段：security_id、feature/decision session、knowledge_cutoff、simulated_available_at 或实际可用时点、score、score semantics、signal_stage、valid/invalid_reason、model/fold/source refs。
 
@@ -241,6 +294,8 @@ Data 保存文档原文/版本与公开证据
 ## 8. 工程性能：复用，而非第二套快速语义
 
 ### 8.1 阶段缓存身份
+
+已实现的 ETF 产物按内容绑定数据/查询/配方/实际实现身份，原子发布；已有目录须验证文件与 digest，冲突或损坏保留原件并拒绝。Core 来源证明表按引用共享保存；`feature_frames()` 可展开已保存表，`signal_frame()` 可导出中立 JSON，均不执行 Core。相同输入缓存命中不读取 Data 事实、不改 mtime；搬移及新进程只读已测。证据 JSON 仍有明显体积成本，本轮小样本耗时/bytes 见 [当前交付](../current-delivery.md)，不推断多年规模。
 
 | 阶段 | 最低 cache/build key |
 |---|---|
