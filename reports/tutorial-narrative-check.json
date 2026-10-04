@@ -1,0 +1,54 @@
+{
+  "schema_version": "axiom_tutorial_narrative_check_v1",
+  "as_of": "2026-10-04",
+  "baseline_docs_commit": "1848576ab52c1ac3527f94a5e5e5dff4a28fec98",
+  "status": "passed",
+  "notebooks": {
+    "researcher": {
+      "code_cells_retained": 43,
+      "outputs_retained_once": 103,
+      "code_outputs_execution_count_digest": "bf0a754f6c78a7221b43a25b14e911198b8acd1533376359bbaf5d5bdc26a5bc",
+      "execution_metadata_retained": true,
+      "markdown_cells_added": 2,
+      "presentation_metadata_and_cell_order": "changed",
+      "chapter_count": 11,
+      "valid_focused_code_snippets": 1,
+      "all_original_code_present_in_html": true,
+      "all_rendered_output_text_preserved": true,
+      "duplicate_or_missing_html_ids": 0
+    },
+    "developer": {
+      "code_cells_retained": 54,
+      "outputs_retained_once": 134,
+      "code_outputs_execution_count_digest": "9c9be987b3c486eb68252a32dc6a9161b94dfe02e5fbbf51980d1f8ed8e8243d",
+      "execution_metadata_retained": true,
+      "markdown_cells_added": 0,
+      "presentation_metadata_and_cell_order": "changed",
+      "chapter_count": 10,
+      "valid_focused_code_snippets": 1,
+      "all_original_code_present_in_html": true,
+      "all_rendered_output_text_preserved": true,
+      "duplicate_or_missing_html_ids": 0
+    }
+  },
+  "scope": {
+    "fresh_teaching_code_cells": 0,
+    "supplier_requests": 0,
+    "formal_data_root_writes": false,
+    "full_notebook_execution": false,
+    "screenshot_qa": false
+  },
+  "presentation_tests": {
+    "passed": 7,
+    "command": "python -m unittest discover -s tests -v"
+  },
+  "dependency_check": "lexical loaded-name providers unchanged; local stores and arguments excluded; static check, not fresh execution",
+  "local_document_links_checked": 90,
+  "local_html_and_cross_role_anchors": "passed",
+  "library_bundle": {
+    "builder": "examples/build_library_tutorials.py",
+    "source_commit_guard": "unit_test_passed",
+    "pre_text_retention": "unit_test_passed",
+    "actual_artifact": "not_built_at_precommit_check"
+  }
+}

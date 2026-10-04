@@ -6,7 +6,7 @@
 > 延续 Evidence Console、Operation First、下钻而不堆信息；新增明确的跨模块 ChartContext/ChartLayer 合同。
 
 2026-09-28 Data 接口实证：真实 DataBatch 已投影为 P12 ChartContext/ChartLayer，保留来源、单位和查询 refs；本次没有部署 BFF/浏览器 UI，也没有虚构成交、账户图层。
-见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-14) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
+见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
 
 ## 1. 定位与三个用户问题
 

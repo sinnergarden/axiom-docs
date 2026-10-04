@@ -48,9 +48,9 @@ Engine 公共入口为 `axiom_engine.core.SignalFrame / plan_rotation` 和 `axio
 | 行情＋财务联合输入 | Research 0.1.1 `eb6ae3a` 的具名/多字段/多财务域输入、每 cutoff Data PIT、各流最新报告期、Core 执行与持久化；15 tests | 固定 identity/pct_change/asof；累计值不冒称 TTM/单季，无隐式旧报告回退 |
 | 字典与文档迁移 | Data 字典/事件/状态合同；本仓唯一公开设计和教程源 | 字典支持不证明 Snapshot 值完整；旧入口只导航 |
 
-[Researcher 末节](../notebooks/researcher_tutorial.html#section-17)保留两证券、六 sessions、12 行 × 12 数值字段的真实联合输入：当次本机约 0.68 秒构建、0.18 秒复用，独立 Data 实例与新进程加载一致。它与本轮 ETF 实验是不同样本/配方，不混用耗时或验收范围。[Developer 末节](../notebooks/developer_tutorial.html)保留合成 A→A+B 离线扩标，原 Raw/receipt/旧 Snapshot/current 不变。
+[Researcher 第 7 节](../notebooks/researcher_tutorial.html#section-7)保留两证券、六 sessions、12 行 × 12 数值字段的真实联合输入：当次本机约 0.68 秒构建、0.18 秒复用，独立 Data 实例与新进程加载一致。它与本轮 ETF 实验是不同样本/配方，不混用耗时或验收范围。[Developer 第 7 节](../notebooks/developer_tutorial.html#section-7)保留合成 A→A+B 离线扩标，原 Raw/receipt/旧 Snapshot/current 不变。
 
-此前新增教学连同初始化只执行 4 个 fresh code cells、0 errors；其余 93 个代码单元保留此前输出，两教程分别 43/54 个代码单元。本轮统一收尾只改 Markdown/入口并从保存输出生成 HTML，执行代码单元为 0；不重跑教程、采集、Qlib 导出或全历史测试。
+此前新增教学连同初始化只执行 4 个 fresh code cells、0 errors；其余 93 个代码单元保留此前输出，两教程分别 43/54 个代码单元。此前统一交付收尾只改 Markdown/入口并从保存输出生成 HTML，执行代码单元为 0；不重跑教程、采集、Qlib 导出或全历史测试。
 
 ## 尚未完成的范围
 
@@ -58,4 +58,6 @@ Engine 公共入口为 `axiom_engine.core.SignalFrame / plan_rotation` 和 `axio
 
 任意 FeaturePlan、TTM 联合投影、成熟标签/训练、模型选择/OOS、长期策略验证、跨 OS/多年规模性能、完整浏览器/BFF、SQLite/Broker 恢复与实盘均未因此获得验收。普通说明、注释和链接变更只做文档检查；可执行教学变更只执行受影响单元及前置条件。
 
-本轮文档检查记录见 [docs closeout check](../reports/docs-etf-closeout-check.json)：Notebook 代码、输出与元数据逐单元不变，保存输出重新渲染；新增本地链接、固定 owner 提交/文件与版本引用核对通过。没有新增截图或全教程执行结论。
+统一交付收尾的检查记录见 [docs closeout check](../reports/docs-etf-closeout-check.json)：该轮 Notebook 代码、输出与元数据逐单元不变，保存输出重新渲染；新增本地链接、固定 owner 提交/文件与版本引用核对通过。
+
+后续[教程叙述重编排](../reports/tutorial-narrative-check.json)保留全部 97 个代码单元、执行计数与保存输出，调整 Markdown、单元顺序和展示元数据。研究篇沿取表、财报时间、特征复用与交接展开；开发篇沿接入、发布、日更、修正和恢复展开。HTML 只渲染保存输出，默认折叠长来源与工程核对；本轮没有执行教学代码、采集或写正式数据根，没有新增截图结论。

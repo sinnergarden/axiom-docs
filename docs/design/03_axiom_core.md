@@ -7,7 +7,7 @@
 本专项描述 axiom-engine 内的逻辑模块，物理仓库按[补丁 A](07_重要补丁_A.md)执行；Data 输入与首版范围已同步 2026-09-27 个人版，不改变本模块的计算或交易职责。
 
 2026-09-28 Data 接口实证：Research 所有的 adapter 已将真实月末 DataBatch/成员结果映射为 FactBatch、ExecutionContext 和 FeaturePlan，并执行 identity/lag/return；这不是全部策略或决策算子的真实验收。
-见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-14) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
+见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
 
 ## 1. 一句话定义
 

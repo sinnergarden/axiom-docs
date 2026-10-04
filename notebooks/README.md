@@ -1,8 +1,10 @@
-# 真实教程入口
+# 两种阅读路线
 
-唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读真实表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
+唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
 
-Researcher 从事实链路、固定版本和第一次读取开始，解释时间、缺失、复权、财务与成员，再讲查询重放和完整实验。Developer 从 Raw、字段映射和 manifest 开始，解释批量作业、daily/refresh、恢复、迁移与部署。跨仓接口和较长验收放在附录；Qlib 是显式消费格式。
+Researcher 沿一次研究准备工作展开：先看一只证券六天的价格，扩成矩阵，处理缺失与价格尺度，再加入当时可见的财报，保存并复用特征，最后交给下游。Developer 沿一次接入工作展开：保存响应、转换字段、检查并发布，再加入财报与基金，继续日更，处理范围变化、失败恢复和交接。
+
+第一次查询先显示代码和小表；完整初始化、长来源引用和工程核对按需展开。Qlib 是可选的显式导出路线。Researcher 的联合特征复用和 Developer 的合成离线扩标都在第 7 节。
 
 ## 离线重新运行
 
@@ -36,4 +38,23 @@ AXIOM_TUTORIAL_DATA_PACKAGE="$(python -c 'import sysconfig; print(sysconfig.get_
 
 [本轮实现与限制](../docs/current-delivery.md)记录字段/时间/证券三类增量和实际小样本测量。
 
-2026-10-04 ETF 入口：先读[数据与策略交接](../docs/etf-rotation-data.md)，再从[公开加载与复用](../docs/current-delivery.md#公开加载与持久复用)进入 Research 保存实验、Engine 中立回测/只读结果和 UI CLI。使用 owner 指定的固定产物位置，静态报告无需执行研究或访问 Data。教程这一轮只同步 Markdown 并渲染保存输出，代码执行为 0。
+2026-10-04 ETF 入口：先读[数据与策略交接](../docs/etf-rotation-data.md)，再从[公开加载与复用](../docs/current-delivery.md#公开加载与持久复用)进入 Research 保存实验、Engine 中立回测/只读结果和 UI CLI。使用 owner 指定的固定产物位置，静态报告无需执行研究或访问 Data。
+
+本次叙述重编排保留 97 个代码单元及其执行计数与输出；单元顺序和展示元数据随教学路线调整。它只生成 HTML，没有执行教学代码或采集。逐单元与导航核对见[本轮检查](../reports/tutorial-narrative-check.json)。
+
+## 从保存输出生成 HTML
+
+在本仓根目录运行：
+
+```sh
+python examples/render_notebook.py --notebook ../notebooks/researcher_tutorial.ipynb
+python examples/render_notebook.py --notebook ../notebooks/developer_tutorial.ipynb
+```
+
+渲染器默认只读 notebook。HTML 提交后，可将两种角色与章节导航合为一个离线文件：
+
+```sh
+python examples/build_library_tutorials.py --source-ref <已提交的教程版本> --output /absolute/axiom-tutorials.html
+```
+
+合并器核对本地 HTML 与声明的 commit 一致，保留全部代码和输出文本，将文档链接固定到该版本。它不执行 notebook，也不访问数据源。

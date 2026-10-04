@@ -74,6 +74,19 @@
       "formal_data_root_writes": false,
       "notebook_code_and_saved_outputs": "retained",
       "html_source": "canonical_notebooks_saved_outputs"
+    },
+    "tutorial_narrative_round": {
+      "baseline_docs_commit": "1848576ab52c1ac3527f94a5e5e5dff4a28fec98",
+      "notebook_code_cells_retained": 97,
+      "saved_outputs_retained": 237,
+      "markdown_order_and_presentation_metadata": "changed",
+      "static_dependency_provider_check": "passed",
+      "presentation_tests": 7,
+      "fresh_teaching_code_cells": 0,
+      "supplier_requests": 0,
+      "formal_data_root_writes": false,
+      "evidence": "reports/tutorial-narrative-check.json",
+      "execution_counts_and_execution_metadata": "retained"
     }
   },
   "bulk": {

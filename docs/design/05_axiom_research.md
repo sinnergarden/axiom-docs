@@ -6,7 +6,7 @@
 > 来源以 signal-centric、Feature inventory、PIT/LLM 专项及历史讨论为主。历史文档中的“已存在”“可用”“有效”仅代表当时记载，未重新核对的内容不能直接 promotion。
 
 2026-09-28 Data 接口实证：ViewRef 的真实 Query 重放和 Research→Core 薄 adapter 已执行；连续成员、完整 FeatureBuild/模型/OOS/策略回测仍不是本次 Data 教程的验收结论。
-见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-14) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
+见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
 
 ## 1. 目标与最小闭环
 
