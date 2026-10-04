@@ -4,7 +4,7 @@
 
 ## 本轮 ETF 消费闭环
 
-固定 Data → Research Feature/Signal → Engine Core/Runtime 账户 → UI 保存结果展示，已完成短样本工程验收。Research 代码经 [PR #1](https://github.com/sinnergarden/axiom-research/pull/1) 亲审后合并为 `e612430`，与已审 `59c45a1` 源码树相同；Engine 账户与 P10 已经亲审后经 PR #2/#3 合并，合并后源码树不变。没有新 wheel 发布证据。UI 本轮实现已进入新 Git 仓的 `publish/ui-readonly` 分支；原本地非 Git 目录只保留旧副本，需后续导航式迁移，不作为另一处编辑源。
+固定 Data → Research Feature/Signal → Engine Core/Runtime 账户 → UI 保存结果展示，已完成短样本工程验收。Research 代码经 [PR #1](https://github.com/sinnergarden/axiom-research/pull/1) 亲审后合并为 `e612430`，与已审 `59c45a1` 源码树相同；Engine 账户、P10 与有界 v2 评价已经亲审后经 PR #2/#3/#4 合并，各次合并后源码树与对应已审提交相同。没有新 wheel 发布证据。UI 本轮实现已进入新 Git 仓的 `publish/ui-readonly` 分支；原本地非 Git 目录只保留旧副本，需后续导航式迁移，不作为另一处编辑源。
 
 | owner | 实际交付 | 固定源码与证据 | 验收边界 |
 |---|---|---|---|
@@ -14,6 +14,8 @@
 | UI | 公共 `load_backtest_run` 验证后导出静态 HTML；保留 owner 身份、水位、表格、指标及缺失/近似标记 | 0.1.0 [`d5f097e`](https://github.com/sinnergarden/axiom-ui/tree/d5f097e46580b2794d08ececddccb123d292d3ea)；[展示验收](https://github.com/sinnergarden/axiom-ui/blob/d5f097e46580b2794d08ececddccb123d292d3ea/reports/daily-owner-display-acceptance.json) | 14 tests、独立复核；无重算或 owner 写入；完整 BFF/浏览器产品和截图 QA 尚未验收 |
 
 ### 同一输入与两种执行政策
+
+Engine [PR #4](https://github.com/sinnergarden/axiom-engine/pull/4) 将 [有界长期评价](design/04_axiom_trade.md#long-history-evaluation) 的固定源码 `8876946` 合并为 `f0fd977`。定向边界测试、独立 review 及 731 自然日合成手算通过；旧 65 日保存账户仅生成新的 v2 评价，原 v1 结果与账户保持不变，94 自然日窗口两腿 CAGR 均为 null / `INSUFFICIENT_SPAN`。Research 已按原 input_run_ref 追加同一账户的评价登记历史，保存回测数仍为 1；不将合成两年样本或该短期 v2 输出称为多年真实收益验收。
 
 本轮输入固定为 `s_e32f4511b69d4fce9accad609feb4005f371cc5cb833ca260d6ae563b75558d1`。7 只 ETF、114 个交易日（2026-03-18—08-31），其中 2026-06-01—08-31 为 65 个评估交易日。最终信号引用为 `sha256:e2966ff9febf2b72268091f979afbc29a836218dab008305c2ef40c6dcc6b030`：798 行，658 valid，前 20 个交易日共 140 行预热 invalid；评估期 455 行全部有效。Research 另外独立构建、缓存命中、新进程加载及 Engine 中立消费均核对一致，数据源 hash/mtime 不变。
 
@@ -62,7 +64,7 @@ UI 价量输入只读同一冻结 Snapshot，精确复用保存账户的 market_
 
 Data 已完成第一阶段股票/ETF 来源采集与显式续接，0.3.8 固定源码 `54e98c6` 保留不可裁决事件的 cutoff 可见缺失范围；这属于有明确限制的来源交付，不能当作所有研究/交易用途均完整。事件裁决见 [Data 补充](design/event-ambiguity-continuation.md)。此前财务冲突修复待验和暂停 checkpoint 数量仅是历史状态。日历审计按交易所分组的修正 `e62774c` 已经主协调亲审通过，更正后的覆盖报告已完成，不沿用已失效的缺口数字；更新至 09-30 的最终 daily Snapshot 尚未完成。既有安装包、原 0.3.3 builder 和续接 operation 的具体绑定各自保留，不因新源码而改写旧身份。本轮 docs/消费者没有改写原计划、进程、Raw、checkpoint、数据根或 current。
 
-长历史遵守用户已明确的限价裁决：供应商真无早期数据则取 7 ETF 共同可用起点，漏采则由 Data 补齐；不放宽执行限价/profile。2019-07-01 是待共同覆盖证据确认的周首候选，Research 仍需前 20D 预热和严格前一 session 信号；终点待最终 09-30 Snapshot 固定。仅做小探测与现有小样本，不先启动多年特征或账户重跑。
+长历史已依据 Data 的有界 `etf_limit` / `stk_limit` 探测接受 **2019-07-01—2026-09-30** 为共同范围候选；精确代码窗口、正控、来源推断边界及起点门槛见 [Research 数据准备](design/05_axiom_research.md#41-数据准备顺序)。保持执行限价/profile、原日期和固定 7 ETF。Research 已在固定旧 Snapshot 完成首周小预算预检：连续 21 个行情/因子观测、严格前一 session 的全部有效信号、同输入复现、持久复用和 Engine 信号合同均通过；私有输入与产物仍仅保存在本地。这不证明最终 Snapshot 就绪或多年性能。最终 09-30 Snapshot 未固定前，不启动多年特征或账户重跑；两处范围内行情缺失按原 invalid/执行规则保留。
 
 任意 FeaturePlan、TTM 联合投影、成熟标签/训练、模型选择/OOS、长期策略验证、跨 OS/多年规模性能、完整浏览器/BFF、SQLite/Broker 恢复与实盘均未因此获得验收。普通说明、注释和链接变更只做文档检查；可执行教学变更只执行受影响单元及前置条件。
 

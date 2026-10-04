@@ -49,7 +49,7 @@
       "remote_ci": "no_check_runs"
     },
     "axiom-engine": {
-      "commit": "ef2f693e4861482753893a99852de46232aea9c6",
+      "commit": "f0fd9776bfaf4fbb2291a44b225fe9a5e4b13079",
       "version": "0.2.1",
       "branch": "main",
       "status": "merged_via_parent_reviewed_prs",
@@ -59,12 +59,18 @@
         "commit": "381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6",
         "branch": "engine/etf-account-backtest"
       },
-      "source_commit": "e74cefb65f175b07837cc7f1f8c7217e450a277b",
+      "source_commit": "88769468644c709197b3ee6ca7d751b47032013b",
       "pull_requests": [
         "https://github.com/sinnergarden/axiom-engine/pull/2",
-        "https://github.com/sinnergarden/axiom-engine/pull/3"
+        "https://github.com/sinnergarden/axiom-engine/pull/3",
+        "https://github.com/sinnergarden/axiom-engine/pull/4"
       ],
-      "source_tree_unchanged_after_merge": true
+      "source_tree_unchanged_after_merge": true,
+      "previous_evaluation_source": {
+        "commit": "e74cefb65f175b07837cc7f1f8c7217e450a277b",
+        "merge_commit": "ef2f693e4861482753893a99852de46232aea9c6",
+        "contract_version": "evaluation_report_v1"
+      }
     },
     "axiom-ui": {
       "repository": "sinnergarden/axiom-ui",
@@ -161,6 +167,21 @@
       "scope": "stable account groups across evaluation registrations; run markers and saved activity ordering",
       "data_and_account_compute_calls": 0,
       "private_artifacts": "local ignored only"
+    },
+    "long_evaluation_v2_round": {
+      "source_commit": "88769468644c709197b3ee6ca7d751b47032013b",
+      "merge_commit": "f0fd9776bfaf4fbb2291a44b225fe9a5e4b13079",
+      "source_tree": "d198f25f1ad65efcc010ac9df0b58eb639a64526",
+      "independent_review": "passed_parent_reviewed_pr",
+      "owner_reported_new_boundary_tests": 10,
+      "owner_reported_related_tests": 26,
+      "scope": "CAGR and existing same-period max drawdown from saved account; actual/actual calendar year split; v1 preserved",
+      "short_saved_period": "94 calendar days; both CAGR values null/INSUFFICIENT_SPAN",
+      "synthetic_hand_calculation": "731 calendar days, year_fraction 2; not real long-history returns",
+      "research_link": "same saved account; new v2 evaluation registration only; no additional backtest",
+      "private_outputs": "local only",
+      "data_and_account_execution_calls": 0,
+      "merge_reruns": 0
     }
   },
   "bulk": {
@@ -180,7 +201,7 @@
     "builder_identity_policy": "original operation bindings retained; continuation explicitly bound by Data owner"
   },
   "limits": [
-    "no complete twelve-year use-coverage acceptance; final daily Snapshot and common ETF execution-limit range pending",
+    "no complete twelve-year use-coverage acceptance; 2019-07-01 through 2026-09-30 seven-ETF candidate accepted after bounded limit probes; final daily Snapshot and final-scope verification pending",
     "no multi-year feature-build scale benchmark or one-day guarantee",
     "bounded deterministic ETF features/signals and offline daily account simulation only; no arbitrary FeaturePlans, derived TTM projection, labels/training/OOS model platform",
     "UNKNOWN facts retained; ETF observed daily execution is explicit approximation, default strict block retained; not live rules",
@@ -192,7 +213,34 @@
       "source_commit": "e62774cbfeaaab3eae7522ce98d953a1d9dcf100",
       "status": "daily_2026_09_30_final_snapshot_not_completed",
       "evidence": "Data source read plus parent status report 2026-10-04",
-      "long_history_limit_probe": "all seven ETF common limit coverage under bounded owner probe; no profile relaxation",
+      "long_history_limit_probe": {
+        "status": "bounded_owner_probes_completed_candidate_range_accepted",
+        "native_endpoint": "etf_limit",
+        "early_window": [
+          "2014-11-01",
+          "2019-06-25"
+        ],
+        "native_early_requests": 7,
+        "native_early_returned_rows": 0,
+        "positive_control_session": "2019-06-26",
+        "native_positive_control_requests": 7,
+        "native_positive_control_returned_rows": 7,
+        "alternative_endpoint": "stk_limit",
+        "alternative_etf_requests": 14,
+        "alternative_etf_returned_rows": 0,
+        "alternative_stock_positive_control_returned_rows": 1,
+        "original_native_responses": 21,
+        "original_native_response_cap": 3000,
+        "all_original_responses_below_cap": true,
+        "candidate_evaluation_range": [
+          "2019-07-01",
+          "2026-09-30"
+        ],
+        "source_conclusion_scope": "specified endpoints, seven code selectors and exact query windows only; no universal supplier absence claim or automatic fallback",
+        "profile_relaxation": false,
+        "required_next_gate": "final fixed daily Snapshot verification and start readiness revalidation; preserve two in-range market gaps, dates and universe",
+        "bounded_research_preflight": "passed_on_previous_fixed_snapshot_only; no account or multi-year build; private artifacts retained locally"
+      },
       "calendar_audit_status": "e62774c_parent_review_passed_corrected_report_completed"
     },
     "axiom-ui": {

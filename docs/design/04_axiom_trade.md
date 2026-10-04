@@ -328,7 +328,7 @@ EX 不晚于期末的经济事件必须与原账户一致；补充只允许当�
 <a id="long-history-evaluation"></a>
 ### 11.2 多年保存账户的有界年化评价
 
-状态：`accepted`（2026-10-04，主协调确认最小方案）；实现待本节固定提交后的 Engine 小增量 PR。只对完整冻结 BacktestRun 的保存观测增加账户与沪深300 CAGR，以及账户同区间既有最大回撤；不运行账户、不重算行情/成交/费用/分红，不扩为通用指标平台。旧 65 日 P10 保存结果、`daily_evaluation_spec()` 和 v1 schema 保持不变。
+状态：`accepted`（2026-10-04，主协调确认最小方案）；已由 [Engine PR #4](https://github.com/sinnergarden/axiom-engine/pull/4) 亲审合并，固定源码 `8876946` / main `f0fd977`，合并后源码树相同。只对完整冻结 BacktestRun 的保存观测增加账户与沪深300 CAGR，以及账户同区间既有最大回撤；不运行账户、不重算行情/成交/费用/分红，不扩为通用指标平台。旧 65 日 P10 保存结果、`daily_evaluation_spec()` 和 v1 schema 保持不变。
 
 新工厂 `long_history_evaluation_spec()` 返回 `evaluation_spec_v2`，完整复制 §11.1 spec，只改变 contract_version 及下列 annualization；其余依赖、月边界、持仓段、分红观察与缺失规则不变：
 
@@ -388,10 +388,10 @@ saved = load_backtest_evaluation(report_path)
 payload = saved.to_dict()
 ```
 
-§11.2 的已确认增量入口待 Engine 实现；复用上述评价、保存和只读加载函数，仅增加固定工厂，不另建账户路径：
+§11.2 的已确认增量入口已由 Engine PR #4 实现；复用上述评价、保存和只读加载函数，仅增加固定工厂，不另建账户路径。以下示例本轮未执行：
 
 ```python
-# 待实现合同示意，未执行；保留旧报告，写入独立的新路径。
+# 已实现合同入口，示例未执行；保留旧报告，写入独立的新路径。
 from axiom_engine.runtime import long_history_evaluation_spec
 report = evaluate_backtest(run, benchmark=benchmark,
     spec=long_history_evaluation_spec(), dividend_scope=scope)
