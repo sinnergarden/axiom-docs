@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="792pt" height="208.8pt" viewBox="0 0 792 208.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:description>Synthetic PRD discussion illustration; not owner backtest evidence.</dc:description>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 208.8
+L 792 208.8
+L 792 0
+L 0 0
+z
+" style="fill: #f5f7fb"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 30.3336 118.581696
+L 174.7944 118.581696
+Q 188.3376 118.581696 188.3376 116.213904
+L 188.3376 64.648656
+Q 188.3376 62.280864 174.7944 62.280864
+L 30.3336 62.280864
+Q 16.7904 62.280864 16.7904 64.648656
+L 16.7904 116.213904
+Q 16.7904 118.581696 30.3336 118.581696
+z
+" clip-path="url(#pa793457d16)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 222.1956 118.581696
+L 366.6564 118.581696
+Q 380.1996 118.581696 380.1996 116.213904
+L 380.1996 64.648656
+Q 380.1996 62.280864 366.6564 62.280864
+L 222.1956 62.280864
+Q 208.6524 62.280864 208.6524 64.648656
+L 208.6524 116.213904
+Q 208.6524 118.581696 222.1956 118.581696
+z
+" clip-path="url(#pa793457d16)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 414.0576 118.581696
+L 558.5184 118.581696
+Q 572.0616 118.581696 572.0616 116.213904
+L 572.0616 64.648656
+Q 572.0616 62.280864 558.5184 62.280864
+L 414.0576 62.280864
+Q 400.5144 62.280864 400.5144 64.648656
+L 400.5144 116.213904
+Q 400.5144 118.581696 414.0576 118.581696
+z
+" clip-path="url(#pa793457d16)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 605.9196 118.581696
+L 750.3804 118.581696
+Q 763.9236 118.581696 763.9236 116.213904
+L 763.9236 64.648656
+Q 763.9236 62.280864 750.3804 62.280864
+L 605.9196 62.280864
+Q 592.3764 62.280864 592.3764 64.648656
+L 592.3764 116.213904
+Q 592.3764 118.581696 605.9196 118.581696
+z
+" clip-path="url(#pa793457d16)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(42.372 87.624717)">Data</text>
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(42.372 98.856592)">固定行情与事实</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(234.234 87.390342)">Research</text>
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(234.234 99.090967)">实验 / 信号</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(426.096 87.520499)">Engine</text>
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(426.096 99.031124)">账户 / 标准评估</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(617.958 87.624717)">UI</text>
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(617.958 98.856592)">只读展示</text>
+   </g>
+   <g id="patch_6">
+    <path d="M 187.330236 90.43128
+Q 200.377444 90.43128 212.306617 90.43128
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+    <path d="M 208.306617 88.43128
+L 212.306617 90.43128
+L 208.306617 92.43128
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 379.192236 90.43128
+Q 392.239444 90.43128 404.168617 90.43128
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+    <path d="M 400.168617 88.43128
+L 404.168617 90.43128
+L 400.168617 92.43128
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 571.054236 90.43128
+Q 584.101444 90.43128 596.030617 90.43128
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+    <path d="M 592.030617 88.43128
+L 596.030617 90.43128
+L 592.030617 92.43128
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #63738a" x="31.086" y="153.5724" transform="rotate(-0 31.086 153.5724)">主视图：短限制说明        折叠区：来源版本 / 保存证据 / 账户水位 / 缺失原因</text>
+   </g>
+  </g>
+  <g id="text_6">
+   <text style="font-weight: 700; font-size: 12px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F06  展开来源后查看同一运行的证据链</text>
+  </g>
+  <g id="text_7">
+   <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能及口径待讨论</text>
+  </g>
+  <g id="text_8">
+   <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #63738a" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pa793457d16">
+   <rect x="19.8" y="41.76" width="752.4" height="131.544"/>
+  </clipPath>
+ </defs>
+</svg>

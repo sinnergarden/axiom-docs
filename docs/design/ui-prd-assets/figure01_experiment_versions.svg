@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="792pt" height="208.8pt" viewBox="0 0 792 208.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:description>Synthetic PRD discussion illustration; not owner backtest evidence.</dc:description>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 208.8
+L 792 208.8
+L 792 0
+L 0 0
+z
+" style="fill: #f5f7fb"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 30.3336 85.758336
+L 302.7024 85.758336
+Q 316.2456 85.758336 316.2456 83.202624
+L 316.2456 53.102016
+Q 316.2456 50.546304 302.7024 50.546304
+L 30.3336 50.546304
+Q 16.7904 50.546304 16.7904 53.102016
+L 16.7904 83.202624
+Q 16.7904 85.758336 30.3336 85.758336
+z
+" clip-path="url(#pb57e2a84bd)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 30.3336 125.513856
+L 302.7024 125.513856
+Q 316.2456 125.513856 316.2456 122.958144
+L 316.2456 92.857536
+Q 316.2456 90.301824 302.7024 90.301824
+L 30.3336 90.301824
+Q 16.7904 90.301824 16.7904 92.857536
+L 16.7904 122.958144
+Q 16.7904 125.513856 30.3336 125.513856
+z
+" clip-path="url(#pb57e2a84bd)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 30.3336 165.269376
+L 302.7024 165.269376
+Q 316.2456 165.269376 316.2456 162.713664
+L 316.2456 132.613056
+Q 316.2456 130.057344 302.7024 130.057344
+L 30.3336 130.057344
+Q 16.7904 130.057344 16.7904 132.613056
+L 16.7904 162.713664
+Q 16.7904 165.269376 30.3336 165.269376
+z
+" clip-path="url(#pb57e2a84bd)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 376.4376 105.636096
+L 739.0944 105.636096
+Q 752.6376 105.636096 752.6376 103.080384
+L 752.6376 54.521856
+Q 752.6376 51.966144 739.0944 51.966144
+L 376.4376 51.966144
+Q 362.8944 51.966144 362.8944 54.521856
+L 362.8944 103.080384
+Q 362.8944 105.636096 376.4376 105.636096
+z
+" clip-path="url(#pb57e2a84bd)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="42.372" y="70.961695" transform="rotate(-0 42.372 70.961695)">实验 01 · v1     已保存 · 示例负结果</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="42.372" y="110.717215" transform="rotate(-0 42.372 110.717215)">实验 01 · v2     已保存 · 修改一个因素</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="42.372" y="150.472735" transform="rotate(-0 42.372 150.472735)">实验 02 · v1     状态阻断 · 仍保留</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(388.476 76.150026)">选中版本：假设 / 本轮改动 / 关联运行</text>
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(388.476 87.381901)">版本关系与对照对象明确</text>
+   </g>
+   <g id="patch_6">
+    <path d="M 322.556961 108.455706
+Q 347.093606 96.549311 370.624386 85.131012
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+    <path d="M 366.152565 85.07793
+L 370.624386 85.131012
+L 367.898827 88.67662
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #63738a" x="388.476" y="141.984" transform="rotate(-0 388.476 141.984)">查看结果 → 比较 → 复制下一轮讨论摘要</text>
+   </g>
+  </g>
+  <g id="text_6">
+   <text style="font-weight: 700; font-size: 12px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F01  实验列表与版本关系</text>
+  </g>
+  <g id="text_7">
+   <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能及口径待讨论</text>
+  </g>
+  <g id="text_8">
+   <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #63738a" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pb57e2a84bd">
+   <rect x="19.8" y="35.496" width="752.4" height="141.984"/>
+  </clipPath>
+ </defs>
+</svg>
