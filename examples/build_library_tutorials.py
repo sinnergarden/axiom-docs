@@ -38,7 +38,7 @@ class PreText(HTMLParser):
 def role_body(document, role, source_ref):
     base = f"https://github.com/sinnergarden/axiom-docs/blob/{source_ref}/"
     body = re.search(r"<body>([\s\S]*)</body>", document).group(1)
-    body = re.sub(r'id="([^"]+)"', lambda m: f'id="{role}-{m[1]}"', body)
+    body = re.sub(r'(?<=\s)id="([^"]+)"', lambda m: f'id="{role}-{m[1]}"', body)
 
     def link(match):
         url = match[1]
@@ -55,7 +55,7 @@ def role_body(document, role, source_ref):
             url = base + path + ("#" + parsed.fragment if parsed.fragment else "")
         return f'href="{escape(url, quote=True)}" target="_blank" rel="noopener"'
 
-    body = re.sub(r'href="([^"]+)"', link, body)
+    body = re.sub(r'(?<=\s)href="([^"]+)"', link, body)
     before = PreText(); before.feed(document)
     after = PreText(); after.feed(body)
     if before.blocks != after.blocks:
@@ -89,7 +89,7 @@ def build(source_root, source_ref, output):
 <div class="role-tabs" role="tablist" aria-label="选择教学角色">
 <button data-role="researcher" role="tab" aria-selected="true" aria-controls="researcher">Quant Researcher</button>
 <button data-role="developer" role="tab" aria-selected="false" aria-controls="developer">Quant Developer</button></div>'''
-    script = '''function chooseRole(role){document.querySelectorAll('article[data-role]').forEach(function(a){a.hidden=a.dataset.role!==role;});document.querySelectorAll('button[data-role]').forEach(function(b){b.setAttribute('aria-selected',String(b.dataset.role===role));});}
+    script = '''function chooseRole(role){document.querySelectorAll('article[data-role]').forEach(function(a){a.hidden=a.dataset.role!==role;});document.querySelectorAll('button[data-role]').forEach(function(b){b.setAttribute('aria-selected',String(b.dataset.role===role));});if(typeof markWideTables==='function')markWideTables();}
 document.querySelectorAll('button[data-role]').forEach(function(b){b.addEventListener('click',function(){chooseRole(b.dataset.role);location.hash=b.dataset.role;});});
 function showAnchor(){var id=decodeURIComponent(location.hash.slice(1));var role=id.split('-')[0];if(role==='researcher'||role==='developer'){chooseRole(role);var target=document.getElementById(id);if(target){for(var p=target;p;p=p.parentElement){if(p.tagName==='DETAILS')p.open=true;}target.scrollIntoView();}}}
 document.querySelectorAll('[data-role-target]').forEach(function(a){a.addEventListener('click',function(){chooseRole(a.dataset.roleTarget);});});window.addEventListener('hashchange',showAnchor);showAnchor();'''

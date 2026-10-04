@@ -13,9 +13,10 @@ spec.loader.exec_module(module)
 
 class TutorialBundleTest(unittest.TestCase):
     def test_role_and_chapter_links_work_inside_single_file(self):
-        saved = '<html><head><style>body{}</style></head><body><section id="section-2"><a href="#section-2">章节</a><a href="developer_tutorial.html#section-7">另一个角色</a><pre>11.56 &lt; 12</pre></section></body></html>'
+        saved = '<html><head><style>body{}</style></head><body><section id="section-2" data-cell-id="stable-cell"><a href="#section-2">章节</a><a href="developer_tutorial.html#section-7">另一个角色</a><pre>11.56 &lt; 12</pre></section></body></html>'
         bundled = module.role_body(saved, "researcher", "abc123")
         self.assertIn('id="researcher-section-2"', bundled)
+        self.assertIn('data-cell-id="stable-cell"', bundled)
         self.assertIn('href="#researcher-section-2"', bundled)
         self.assertIn('href="#developer-section-7" data-role-target="developer"', bundled)
         self.assertIn('11.56 &lt; 12', bundled)

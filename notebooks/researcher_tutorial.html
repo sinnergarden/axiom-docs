@@ -10,6 +10,7 @@ pre{background:#f3f6fa;border-radius:7px;padding:16px;overflow:auto;font:12px/1.
 .example{border-left:4px solid #328778}.example-label{font-size:12px;font-weight:700;color:#277469;letter-spacing:.07em}.output-text{max-height:660px}.table-scroll{overflow:auto}.table-scroll table{width:max-content;min-width:100%}.table-scroll td,.table-scroll th{max-width:300px}.chart{width:100%;max-width:1000px;height:auto}
 details{border-top:1px solid #e4e9ef;padding-top:12px;margin-top:18px} summary{cursor:pointer;color:#577087;font-size:13px}.code{max-height:650px}
 .security-code{white-space:nowrap}.markdown>details{border:0;margin:0;padding:0}.markdown>details>summary{font-size:18px;color:#213e59}.supporting-output{margin-top:12px}
+.wide-table-note{font-size:12px;color:#577087;margin:14px 0 0}.table-scroll:focus-visible{outline:2px solid #328778;outline-offset:3px}
 @media(max-width:980px){.layout{display:block;padding:14px}nav{position:static;height:auto;max-height:220px;margin-bottom:18px}section{padding:18px}h1{font-size:26px}}
 @media print{nav,details{display:none}.layout{display:block}body{background:white}section{break-inside:auto;border:0}pre{white-space:pre-wrap}.table-scroll{overflow:visible}}
 </style></head><body><header><b>Axiom Data · For Quant Researcher</b><p>固定 Tushare 样本 · 按工作过程阅读 · 表格与计算输出沿用保存结果</p><a style="color:#c5e8ff" href="developer_tutorial.html">阅读 Dev 版</a></header><div class="layout"><nav><a href="#section-1">1. 确定这次要取什么</a><a href="#section-2">2. 取出第一张可以计算的表</a><a href="#section-3">3. 把价格变成可比较的输入</a><a href="#section-4">4. 给价格加一列财报信息</a><a href="#section-5">5. 回到当时，能看见哪份报告</a><a href="#section-6">6. 选择当日候选，保留预热历史</a><a href="#section-7">7. 构建特征，再重复一次实验</a><a href="#section-8">8. 把固定输入交给下游</a><a href="#section-9">9. 改特征或修正数据后，旧实验怎么办</a><a href="#section-10">10. 选用 Qlib 时复用同一份导出</a><a href="#section-11">11. 附录：接口、版本与工程核对</a></nav><main><section id="cell-0" class="markdown"><h1>把价格和财报变成可重复的研究输入</h1>
@@ -42,7 +43,7 @@ print(&#x27;本例只读取本地数据，供应商请求为 0。&#x27;)</pre></
     DAYS, &#x27;best_effort_vendor_v1&#x27;, {d:d+&#x27;T20:30:00+08:00&#x27; for d in DAYS})
 batch = DATA.read(snapshot=SNAPSHOT, query=q)
 display(batch.frame)
-print(&#x27;单位:&#x27;, {k:v[&#x27;unit&#x27;] for k,v in batch.field_meta.items()})</pre><div data-output-index="0"><div class="table-scroll"><div>
+print(&#x27;单位:&#x27;, {k:v[&#x27;unit&#x27;] for k,v in batch.field_meta.items()})</pre><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -123,7 +124,7 @@ print(&#x27;单位:&#x27;, {k:v[&#x27;unit&#x27;] for k,v in batch.field_meta.it
 <p>接着只取 close，把证券集合扩到 <code>000001.SZ</code>、<code>600000.SH</code>、<code>600519.SH</code>，再按证券和交易日展开成矩阵。<code>query()</code> 沿用刚才的交易日与收盘后口径。</p>
 </section><section class="example" data-cell-id="2d33372c"><div class="example-label">三证券收盘矩阵</div><pre class="code">panel = DATA.read(snapshot=SNAPSHOT, query=query((&#x27;close&#x27;,),
     symbols=tuple(IDS[c] for c in (&#x27;000001.SZ&#x27;,&#x27;600000.SH&#x27;,&#x27;600519.SH&#x27;))))
-display(panel.frame.pivot(index=&#x27;session&#x27;,columns=&#x27;security_id&#x27;,values=&#x27;close&#x27;))</pre><div data-output-index="0"><div class="table-scroll"><div>
+display(panel.frame.pivot(index=&#x27;session&#x27;,columns=&#x27;security_id&#x27;,values=&#x27;close&#x27;))</pre><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -193,7 +194,7 @@ display(panel.frame.pivot(index=&#x27;session&#x27;,columns=&#x27;security_id&#x
 </table>
 </div></div></div></section><section id="cell-9" class="markdown"><p>现在有了六行日线和三证券收盘矩阵。矩阵只是将 <code>(security_id, session)</code> 展开，接下来还要决定用于计算的价格尺度。</p>
 <p>需要加入新字段时，可以展开下面的字段字典，查看规范名和单位。这个行情版本已有价格、成交量和因子；收入字段显示“支持但该 Snapshot 未接入”。因此财报阶段会换到两证券完整来源样本。</p>
-</section><section class="example" data-cell-id="0c1d72fc"><details><summary>字段字典与原始映射</summary><div data-output-index="0"><div class="table-scroll"><div>
+</section><section class="example" data-cell-id="0c1d72fc"><details><summary>字段字典与原始映射</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -293,7 +294,7 @@ assert selected_dictionary.loc[selected_dictionary.canonical_field.eq(&#x27;tota
 print(&#x27;字典只读合同与来源映射；实际值、PIT 可见性和缺失原因仍看查询结果。&#x27;)</pre></details></section><section id="section-3" class="markdown"><h2>3. 把价格变成可比较的输入</h2>
 <p>刚才的六天没有空值。把窗口拉长后，会遇到休市、停牌和上市前日期；先保留空值，再查看 <code>Data.states</code> 给出的原因。</p>
 <p>下面的 <code>002185.SZ</code> 在 2025-09-25 停牌，09-27 是周末，两个日期都没有可用价格。<code>603418.SH</code> 的例子还区分历史当时未知的上市身份与今天回顾时已知的上市日期。</p>
-</section><section class="example" data-cell-id="5e6454f2"><div class="example-label">输出 · 停牌、休市与上市前日期</div><div data-output-index="0"><div class="table-scroll"><div>
+</section><section class="example" data-cell-id="5e6454f2"><div class="example-label">输出 · 停牌、休市与上市前日期</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -334,7 +335,7 @@ print(&#x27;字典只读合同与来源映射；实际值、PIT 可见性和缺�
     </tr>
   </tbody>
 </table>
-</div></div></div><div data-output-index="1"><div class="table-scroll"><div>
+</div></div></div><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -368,7 +369,7 @@ print(&#x27;字典只读合同与来源映射；实际值、PIT 可见性和缺�
     </tr>
   </tbody>
 </table>
-</div></div></div><div data-output-index="3"><div class="table-scroll"><div>
+</div></div></div><div data-output-index="3"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -427,7 +428,7 @@ print(&#x27;全范围缺价:&#x27;, AUDIT[&#x27;missing_market_cells&#x27;],
       AUDIT[&#x27;missing_market_cells&#x27;] - AUDIT[&#x27;known_suspension_missing_cells&#x27;])
 </pre></details></section><section id="cell-13" class="markdown"><p>有价格时也要留意状态。两证券完整来源样本在 2026-08-31 可以读到 close，但停复牌来源为空，状态仍是 unknown。研究可以按已声明口径使用价格，执行是否准入由 Engine 的 profile 另行决定。</p>
 <p>下面展开上市/退市来源和状态核对；日常算特征先看逐键价格与缺失原因。</p>
-</section><section class="example" data-cell-id="0d10cde3"><details><summary>上市身份来源</summary><div data-output-index="0"><div class="table-scroll"><div>
+</section><section class="example" data-cell-id="0d10cde3"><details><summary>上市身份来源</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -484,7 +485,7 @@ master = pd.DataFrame([r for part in master_domain[&#x27;partitions&#x27;]
 listing_columns = [c for c in (&#x27;security_id&#x27;,&#x27;listing_date&#x27;,&#x27;delisting_date&#x27;,
     &#x27;vendor_delist_date&#x27;,&#x27;list_status&#x27;,&#x27;first_observed_at&#x27;) if c in master.columns]
 display(master[listing_columns].head(8))
-print(&#x27;生产上市与退市来源:&#x27;, master_domain[&#x27;source_profile&#x27;][&#x27;id&#x27;])</pre></details></section><section class="example" data-cell-id="cc30b5c5"><details><summary>退市记录来源</summary><div data-output-index="0"><div class="table-scroll"><div>
+print(&#x27;生产上市与退市来源:&#x27;, master_domain[&#x27;source_profile&#x27;][&#x27;id&#x27;])</pre></details></section><section class="example" data-cell-id="cc30b5c5"><details><summary>退市记录来源</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -590,7 +591,7 @@ print(&#x27;生产上市与退市来源:&#x27;, master_domain[&#x27;source_profi
         display(delisted_events[event_columns].head(8))
         print(&#x27;规范上市事件来源:&#x27;, event_domain[&#x27;source_profile&#x27;][&#x27;id&#x27;])
 state_day = &#x27;2026-08-31&#x27;
-state_ids = (IDS[&#x27;000001.SZ&#x27;], IDS[&#x27;600000.SH&#x27;])</pre></details></section><section class="example" data-cell-id="142e2dfb"><div class="example-label">输出 · 价格与未知交易状态</div><div data-output-index="0"><div class="table-scroll"><div>
+state_ids = (IDS[&#x27;000001.SZ&#x27;], IDS[&#x27;600000.SH&#x27;])</pre></details></section><section class="example" data-cell-id="142e2dfb"><div class="example-label">输出 · 价格与未知交易状态</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -631,7 +632,7 @@ state_ids = (IDS[&#x27;000001.SZ&#x27;], IDS[&#x27;600000.SH&#x27;])</pre></deta
     </tr>
   </tbody>
 </table>
-</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="1"><div class="table-scroll"><div>
+</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -688,7 +689,7 @@ print(&#x27;严格历史 cutoff 早于原 Raw 接收，状态仍未知。&#x27;)
 <p><strong>调整价(t) = 原价(t) × factor(t) / factor(锚点)。</strong></p>
 <p>本例将锚点设在 2026-08-31，价格和因子使用同一个 cutoff。六天的累计因子都为 139.008，所以因子比都为 1，调整后的 close 与原价相等。第一行没有前一观察，<code>observed_return_1d</code> 留空。</p>
 <p>较长窗口里因子可能变化，比较的是因子比，而不是累计因子是否等于 1。模拟某个历史决策时，锚点与可见因子也要固定在那个时点。</p>
-</section><section class="example" data-cell-id="a8f640aa"><div class="example-label">输出 · 共同锚点下的价格与收益</div><div data-output-index="0"><div class="table-scroll"><div>
+</section><section class="example" data-cell-id="a8f640aa"><div class="example-label">输出 · 共同锚点下的价格与收益</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -798,7 +799,7 @@ assert research.observed_return_1d.iloc[0] is pd.NA or pd.isna(research.observed
 </pre></details></section><section id="section-4" class="markdown"><h2>4. 给价格加一列财报信息</h2>
 <p>接下来想把收入放到价格旁边。一年行情样本没有财务域，因此改用已有的两证券完整来源样本：行情窗口是 2026-06—08 月，财务另有前置报告期。</p>
 <p>先读取 <code>600000.SH</code> 的合并收入表，字段为 <code>total_revenue</code> 和 <code>parent_net_income</code>，单位都是 CNY。<code>EventQuery</code> 按报告期返回记录；这一步用当前知识查看样本里的报告，下一节再回到历史 cutoff。域清单与证券范围可以展开核对。</p>
-</section><section class="example" data-cell-id="276e605a"><details><summary>完整来源域清单</summary><div data-output-index="0"><div class="table-scroll"><div>
+</section><section class="example" data-cell-id="276e605a"><details><summary>完整来源域清单</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -922,7 +923,7 @@ display(pd.DataFrame([{&#x27;domain&#x27;:name,
 fin_domains = (&#x27;financial_events&#x27;, &#x27;balance_sheet_events&#x27;, &#x27;cash_flow_events&#x27;,
                &#x27;financial_indicator_events&#x27;, &#x27;corporate_actions&#x27;,
                &#x27;top_holders_reports&#x27;, &#x27;price_limits&#x27;)
-assert all(name in full_manifest[&#x27;domains&#x27;] for name in fin_domains), &#x27;complete-source publication is required&#x27;</pre></details></section><section class="example" data-cell-id="1f0e6d7e"><details><summary>原生键与来源配置</summary><div data-output-index="0"><div class="table-scroll"><div>
+assert all(name in full_manifest[&#x27;domains&#x27;] for name in fin_domains), &#x27;complete-source publication is required&#x27;</pre></details></section><section class="example" data-cell-id="1f0e6d7e"><details><summary>原生键与来源配置</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -1051,7 +1052,7 @@ market_ids = sorted({r[&#x27;security_id&#x27;] for p in full_manifest[&#x27;dom
 此 Snapshot 同时含 Tushare 成员观测；供应商源由留存原始 Raw 离线回放，无新在线请求。
 </pre></div><pre class="code">print(&#x27;采集范围:&#x27;, full_scope[&#x27;start_session&#x27;], &#x27;至&#x27;, full_scope[&#x27;end_session&#x27;],
       &#x27;；市场证券:&#x27;, &#x27;, &#x27;.join(market_ids), &#x27;；成员候选身份数:&#x27;, len(full_scope[&#x27;symbols&#x27;]))
-print(&#x27;此 Snapshot 同时含 Tushare 成员观测；供应商源由留存原始 Raw 离线回放，无新在线请求。&#x27;)</pre></details></section><section class="example" data-cell-id="e1f760be"><div class="example-label">输出 · 600000.SH 的收入报告</div><div data-output-index="0"><div class="table-scroll"><div>
+print(&#x27;此 Snapshot 同时含 Tushare 成员观测；供应商源由留存原始 Raw 离线回放，无新在线请求。&#x27;)</pre></details></section><section class="example" data-cell-id="e1f760be"><div class="example-label">输出 · 600000.SH 的收入报告</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -1143,7 +1144,7 @@ print(&#x27;此 Snapshot 同时含 Tushare 成员观测；供应商源由留存�
     </tr>
   </tbody>
 </table>
-</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="1"><div class="table-scroll"><div>
+</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -1322,7 +1323,7 @@ print(&#x27;Reader 先按 cutoff 选可见 revision，再按报告期和 endpoin
 </pre></details></section><section id="cell-24" class="markdown"><h3>从累计收入得到单季和 TTM</h3>
 <p>收入表里的流量是年内累计值。2026 年上半年收入为 93,777,000,000 元，一季度为 46,573,000,000 元，所以二季度单季收入为 47,204,000,000 元。</p>
 <p><code>single_quarter</code> 用组成报告做差分，<code>ttm</code> 接出过去四季。本样本在较早报告期缺组件，TTM 留空；到 2025-12-31，四季已齐，TTM 为 173,964,000,000 元。资产负债表的期末存量保持原值，不走累计差分。</p>
-</section><section class="example" data-cell-id="3b2d9898"><div class="example-label">输出 · 单季、TTM 与缺组件</div><div data-output-index="0"><div class="table-scroll"><div>
+</section><section class="example" data-cell-id="3b2d9898"><div class="example-label">输出 · 单季、TTM 与缺组件</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -1406,7 +1407,7 @@ print(&#x27;Reader 先按 cutoff 选可见 revision，再按报告期和 endpoin
     </tr>
   </tbody>
 </table>
-</div></div></div><div data-output-index="1"><div class="table-scroll"><div>
+</div></div></div><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -1490,7 +1491,7 @@ print(&#x27;Reader 先按 cutoff 选可见 revision，再按报告期和 endpoin
     </tr>
   </tbody>
 </table>
-</div></div></div><div data-output-index="2"><div class="table-scroll"><div>
+</div></div></div><div data-output-index="2"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -1595,7 +1596,7 @@ examples = (
     (&#x27;top_holders_reports&#x27;, (&#x27;holders&#x27;,&#x27;holder_count&#x27;,&#x27;group_completeness&#x27;,&#x27;top10_ratio&#x27;), {}),
 )
 event_results = {}</pre></details></section><section class="example" data-cell-id="50062a49"><details><summary>其他财务域的记录</summary><div data-output-index="0"><pre class="output-text">balance_sheet_events</pre></div><div data-output-index="1"><pre class="output-text"> security: cnstock.600000.SH.19991110 rows: 6 key: [&#x27;security_id&#x27;, &#x27;endpoint&#x27;, &#x27;report_type&#x27;, &#x27;report_period&#x27;]
-</pre></div><div data-output-index="2"><div class="table-scroll"><div>
+</pre></div><div data-output-index="2"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -1680,7 +1681,7 @@ event_results = {}</pre></details></section><section class="example" data-cell-i
 </table>
 </div></div></div><div data-output-index="3"><pre class="output-text">limitation: [&#x27;report versions use declared supplier announcement days; same-day corrections use actual observation order, not a verified publication sequence&#x27;]
 </pre></div><div data-output-index="4"><pre class="output-text">cash_flow_events security: cnstock.600000.SH.19991110 rows: 4 key: [&#x27;security_id&#x27;, &#x27;endpoint&#x27;, &#x27;report_type&#x27;, &#x27;report_period&#x27;]
-</pre></div><div data-output-index="5"><div class="table-scroll"><div>
+</pre></div><div data-output-index="5"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -1742,7 +1743,7 @@ event_results = {}</pre></details></section><section class="example" data-cell-i
 </table>
 </div></div></div><div data-output-index="6"><pre class="output-text">limitation: [&#x27;report versions use declared supplier announcement days; same-day corrections use actual observation order, not a verified publication sequence&#x27;]
 financial_indicator_events security: cnstock.600000.SH.19991110 rows: 6 key: [&#x27;security_id&#x27;, &#x27;endpoint&#x27;, &#x27;report_period&#x27;]
-</pre></div><div data-output-index="7"><div class="table-scroll"><div>
+</pre></div><div data-output-index="7"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -1820,7 +1821,7 @@ financial_indicator_events security: cnstock.600000.SH.19991110 rows: 6 key: [&#
 </table>
 </div></div></div><div data-output-index="8"><pre class="output-text">limitation: [&#x27;report versions use declared supplier announcement days; same-day corrections use actual observation order, not a verified publication sequence&#x27;]
 corporate_actions security: cnstock.600000.SH.19991110 rows: 9 key: [&#x27;security_id&#x27;, &#x27;report_period&#x27;, &#x27;announcement_date&#x27;, &#x27;process_status&#x27;]
-</pre></div><div data-output-index="9"><div class="table-scroll"><div>
+</pre></div><div data-output-index="9"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -1932,7 +1933,7 @@ corporate_actions security: cnstock.600000.SH.19991110 rows: 9 key: [&#x27;secur
 </table>
 </div></div></div><div data-output-index="10"><pre class="output-text">limitation: [&#x27;terminal states ordered by system observation under declared source policy; vendor revision/publication order is unknown&#x27;]
 </pre></div><div data-output-index="11"><pre class="output-text">top_holders_reports security: cnstock.600000.SH.19991110 rows: 6 key: [&#x27;security_id&#x27;, &#x27;report_period&#x27;]
-</pre></div><div data-output-index="12"><div class="table-scroll"><div>
+</pre></div><div data-output-index="12"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2038,7 +2039,7 @@ corporate_actions security: cnstock.600000.SH.19991110 rows: 9 key: [&#x27;secur
     print(domain_name, &#x27;security:&#x27;, selected_id, &#x27;rows:&#x27;, len(result.frame),
           &#x27;key:&#x27;, segment[&#x27;contract&#x27;][&#x27;logical_key&#x27;])
     display(result.frame.head(12))
-    print(&#x27;limitation:&#x27;, result.context.get(&#x27;limitations&#x27;))</pre></details></section><section class="example" data-cell-id="c976234d"><details><summary>事件键与状态记录</summary><div data-output-index="0"><div class="table-scroll"><div>
+    print(&#x27;limitation:&#x27;, result.context.get(&#x27;limitations&#x27;))</pre></details></section><section class="example" data-cell-id="c976234d"><details><summary>事件键与状态记录</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2079,7 +2080,7 @@ corporate_actions security: cnstock.600000.SH.19991110 rows: 9 key: [&#x27;secur
   </tbody>
 </table>
 </div></div></div><div data-output-index="1"><pre class="output-text">明确实施状态行: 2 ；其他状态不可直接当作已实施现金流。
-</pre></div><div data-output-index="2"><div class="table-scroll"><div>
+</pre></div><div data-output-index="2"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2181,7 +2182,7 @@ def implemented_dividend_at(cutoff, policy):
 early = implemented_dividend_at(&#x27;2026-06-01T09:30:00+08:00&#x27;,
     &#x27;best_effort_vendor_v1&#x27;)
 after_implementation = implemented_dividend_at(&#x27;2026-06-08T09:30:00+08:00&#x27;,
-    &#x27;best_effort_vendor_v1&#x27;)</pre></details></section><section class="example" data-cell-id="e1411921"><div class="example-label">输出 · 实施公告前后的可见行</div><div data-output-index="0"><div class="table-scroll"><div>
+    &#x27;best_effort_vendor_v1&#x27;)</pre></details></section><section class="example" data-cell-id="e1411921"><div class="example-label">输出 · 实施公告前后的可见行</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2239,7 +2240,7 @@ assert len(early.frame) == 0
 assert len(after_implementation.frame) == 1
 assert len(strict_after.frame) == 0
 implementation = after_implementation.frame.iloc[0]
-assert str(implementation[&#x27;implementation_announcement_date&#x27;]) == &#x27;2026-06-05&#x27;</pre></details></section><section class="example" data-cell-id="ae9abbf8"><div class="example-label">输出 · 分红实施记录</div><div data-output-index="0"><div class="table-scroll"><div>
+assert str(implementation[&#x27;implementation_announcement_date&#x27;]) == &#x27;2026-06-05&#x27;</pre></details></section><section class="example" data-cell-id="ae9abbf8"><div class="example-label">输出 · 分红实施记录</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2343,7 +2344,7 @@ print(&#x27;06-08 仅按供应商公告时间假设可见；严格 historical cu
 <p>“按实际接收”是 <code>operational_pit_v1</code>。本例没有修订绑定的精确公开时刻证据，因此 <code>market_pit_safe_v1</code> 的结果与它相同。“按供应商公告日假设”是 <code>best_effort_vendor_v1</code>：两版披露日相同，历史可见集合会选到终态 120，它不能重建初版 vintage。</p>
 <p>本教程的历史研究沿用已声明的 best-effort 口径。若需要证明某个历史系统当时已经收到初版，仅有今天回采的终态记录不够，必须保留当时观察或对应版本的公开证据。</p>
 <p>再回到 <code>600000.SH</code> 收入表，下面用 2026-06-01 09:30 比较三种口径。价格查询的同类比较保留在展开项里。</p>
-</section><section class="example" data-cell-id="bdbdbcfd"><details><summary>展开价格的三种时间口径</summary><div data-output-index="0"><div class="table-scroll"><div>
+</section><section class="example" data-cell-id="bdbdbcfd"><details><summary>展开价格的三种时间口径</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2392,7 +2393,7 @@ print(&#x27;06-08 仅按供应商公告时间假设可见；严格 historical cu
   </tbody>
 </table>
 </div></div></div><div data-output-index="1"><pre class="output-text">一条真实字段来源：
-</pre></div><div data-output-index="2"><div class="table-scroll"><div>
+</pre></div><div data-output-index="2"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2449,7 +2450,7 @@ assert comparison[0][&#x27;visible_close&#x27;] == comparison[1][&#x27;visible_c
 assert comparison[2][&#x27;visible_close&#x27;] == len(DAYS)
 print(&#x27;一条真实字段来源：&#x27;)
 display(pd.DataFrame(batch.field_meta[&#x27;close&#x27;][&#x27;by_key&#x27;][:1]))
-</pre></details></section><section class="example" data-cell-id="a4aa2f22"><div class="example-label">输出 · 同一历史 cutoff 的收入查询</div><div data-output-index="0"><div class="table-scroll"><div>
+</pre></details></section><section class="example" data-cell-id="a4aa2f22"><div class="example-label">输出 · 同一历史 cutoff 的收入查询</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2529,7 +2530,7 @@ print(&#x27;固定 Snapshot:&#x27;, MEMBER_SNAPSHOT,
       &#x27;；规范成员行:&#x27;, sum(p[&#x27;rows&#x27;] for p in member_domain[&#x27;partitions&#x27;]))
 print(&#x27;成员覆盖摘要:&#x27;, {k:v for k,v in member_coverage.items()
     if k in (&#x27;basis&#x27;,&#x27;between_snapshots&#x27;,&#x27;universe_ids&#x27;,&#x27;observation_dates&#x27;,&#x27;limitations&#x27;)})
-state_rows = pd.DataFrame(member_coverage.get(&#x27;complete_states&#x27;, ()))</pre></details></section><section class="example" data-cell-id="ac80bede"><div class="example-label">输出 · 当日成员与快照日期</div><div data-output-index="0"><div class="table-scroll"><div>
+state_rows = pd.DataFrame(member_coverage.get(&#x27;complete_states&#x27;, ()))</pre></details></section><section class="example" data-cell-id="ac80bede"><div class="example-label">输出 · 当日成员与快照日期</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2634,7 +2635,7 @@ state_rows = pd.DataFrame(member_coverage.get(&#x27;complete_states&#x27;, ()))<
     </tr>
   </tbody>
 </table>
-</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="1"><div class="table-scroll"><div>
+</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2692,7 +2693,7 @@ display(vendor_members.frame)
 member_meta = pd.DataFrame(vendor_members.field_meta[&#x27;is_member&#x27;][&#x27;by_key&#x27;])
 meta_columns = [c for c in (&#x27;security_id&#x27;,&#x27;session&#x27;,&#x27;snapshot_date&#x27;,&#x27;source_snapshot_date&#x27;,
     &#x27;effective_from&#x27;,&#x27;first_observed_at&#x27;,&#x27;availability_basis&#x27;,&#x27;missing_reason&#x27;)
-    if c in member_meta.columns]</pre></details></section><section class="example" data-cell-id="1fc12f7d"><details><summary>固定成员版本的来源</summary><div data-output-index="0"><div class="table-scroll"><div>
+    if c in member_meta.columns]</pre></details></section><section class="example" data-cell-id="1fc12f7d"><details><summary>固定成员版本的来源</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2748,7 +2749,7 @@ meta_columns = [c for c in (&#x27;security_id&#x27;,&#x27;session&#x27;,&#x27;sn
     </tr>
   </tbody>
 </table>
-</div></div></div><div data-output-index="1"><div class="table-scroll"><div>
+</div></div></div><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2808,7 +2809,7 @@ assert strict.frame.is_member.isna().all()
 print(&#x27;08-03 沿用最近的 07-31 供应商快照；08-31 新快照不倒填 8 月初。&#x27;)
 print(&#x27;这只是 Tushare 供应商研究口径；月内真实调样时刻没有逐日来源。&#x27;)
 CHANGED_ID = &#x27;cnstock.000506.SZ.19930312&#x27;
-CHANGE_DAYS = (&#x27;2026-05-29&#x27;,&#x27;2026-06-01&#x27;,&#x27;2026-06-30&#x27;,&#x27;2026-07-01&#x27;)</pre></details></section><section class="example" data-cell-id="4c091e39"><div class="example-label">输出 · 000506.SZ 的成员变化</div><div data-output-index="0"><div class="table-scroll"><div>
+CHANGE_DAYS = (&#x27;2026-05-29&#x27;,&#x27;2026-06-01&#x27;,&#x27;2026-06-30&#x27;,&#x27;2026-07-01&#x27;)</pre></details></section><section class="example" data-cell-id="4c091e39"><div class="example-label">输出 · 000506.SZ 的成员变化</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2858,7 +2859,7 @@ CHANGE_DAYS = (&#x27;2026-05-29&#x27;,&#x27;2026-06-01&#x27;,&#x27;2026-06-30&#x
     </tr>
   </tbody>
 </table>
-</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="1"><div class="table-scroll"><div>
+</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -2919,7 +2920,7 @@ change_meta = pd.DataFrame(changed.field_meta[&#x27;is_member&#x27;][&#x27;by_ke
 display(change_meta[[&#x27;session&#x27;,&#x27;source_snapshot_date&#x27;,&#x27;first_observed_at&#x27;]])
 assert change_meta.source_snapshot_date.tolist() == [
     &#x27;2026-05-29&#x27;,&#x27;2026-05-29&#x27;,&#x27;2026-06-30&#x27;,&#x27;2026-06-30&#x27;]
-print(&#x27;000506 仅在供应商 06-30 新快照转为成员；没有倒填为 06-15 的精确调整。&#x27;)</pre></details></section><section class="example" data-cell-id="f96baa92"><details><summary>成员来源变更摘要</summary><div data-output-index="0"><div class="table-scroll"><div>
+print(&#x27;000506 仅在供应商 06-30 新快照转为成员；没有倒填为 06-15 的精确调整。&#x27;)</pre></details></section><section class="example" data-cell-id="f96baa92"><details><summary>成员来源变更摘要</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -3093,7 +3094,7 @@ MONTH_ENDS = (&#x27;2026-07-31&#x27;, &#x27;2026-08-31&#x27;)
 <p>先把价格查询保存下来。这里记录固定 Snapshot、QuerySpec 与 Reader 版本，换一个 Data 实例后按这些参数重读，表格与来源相等。</p>
 <p>这一步保存的是输入查询。接下来把价格和财报组成 FeatureBuild，才有可以直接复用的特征结果。</p>
 </section><section class="example" data-cell-id="4ff14a18"><div class="example-label">输出 · 查询重放与缓存</div><div data-output-index="0"><pre class="output-text">查询 JSON bytes: 799 重放相等: True
-</pre></div><div data-output-index="1"><div class="table-scroll"><div>
+</pre></div><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -3171,7 +3172,7 @@ started=time.perf_counter()
 built=build_joint_features(UNIFIED, **params)
 build_seconds=time.perf_counter()-started
 panel=built.read()
-display(panel)</pre><div data-output-index="0"><div class="table-scroll"><div>
+display(panel)</pre><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -3412,7 +3413,7 @@ display(panel)</pre><div data-output-index="0"><div class="table-scroll"><div>
     </tr>
   </tbody>
 </table>
-</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="1"><div class="table-scroll"><div>
+</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -4070,7 +4071,7 @@ display(panel)</pre><div data-output-index="0"><div class="table-scroll"><div>
   </tbody>
 </table>
 </div></div></div><div data-output-index="2"><pre class="output-text">收入流在这六个 session 内实际切换了报告期，仍按各自 cutoff 选择。
-</pre></div><div data-output-index="3"><div class="table-scroll"><div>
+</pre></div><div data-output-index="3"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -4216,7 +4217,7 @@ ETF_REPORT = json.loads(Path(os.environ.get(&#x27;AXIOM_ETF_REPORT&#x27;,
 assert ETF.resolve(&#x27;current&#x27;) == ETF_SNAPSHOT
 assert ETF_REPORT[&#x27;snapshot_id&#x27;] == ETF_SNAPSHOT
 assert ETF_REPORT[&#x27;verify&#x27;][&#x27;verified&#x27;] and ETF_REPORT[&#x27;audit&#x27;][&#x27;status&#x27;] == &#x27;passed&#x27;
-etf_manifest = ETF.store.load_snapshot(ETF_SNAPSHOT)</pre></details></section><section class="example" data-cell-id="c2ca9e32"><div class="example-label">输出 · 七 ETF 与预热范围</div><div data-output-index="0"><div class="table-scroll"><div>
+etf_manifest = ETF.store.load_snapshot(ETF_SNAPSHOT)</pre></details></section><section class="example" data-cell-id="c2ca9e32"><div class="example-label">输出 · 七 ETF 与预热范围</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -4337,7 +4338,7 @@ benchmark = etf_read(&#x27;benchmark_daily&#x27;, (&#x27;close&#x27;,), prior_da
 limits = etf_read(&#x27;price_limits&#x27;, (&#x27;up_limit&#x27;,&#x27;down_limit&#x27;), current_day,
     current_day+&#x27;T09:00:00+08:00&#x27;)
 # An opening price is a historical market-replay outcome. It is never a same-day
-# input to a pre-open decision, and the rest of that day&#x27;s bar is not queried here.</pre></details></section><section class="example" data-cell-id="f89131ef"><div class="example-label">输出 · 前日决策输入与当日执行回放</div><div data-output-index="0"><div class="table-scroll"><div>
+# input to a pre-open decision, and the rest of that day&#x27;s bar is not queried here.</pre></details></section><section class="example" data-cell-id="f89131ef"><div class="example-label">输出 · 前日决策输入与当日执行回放</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -4445,7 +4446,7 @@ limits = etf_read(&#x27;price_limits&#x27;, (&#x27;up_limit&#x27;,&#x27;down_lim
     </tr>
   </tbody>
 </table>
-</div></div></div><div data-output-index="1"><div class="table-scroll"><div>
+</div></div></div><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -4513,7 +4514,7 @@ limits = etf_read(&#x27;price_limits&#x27;, (&#x27;up_limit&#x27;,&#x27;down_lim
     </tr>
   </tbody>
 </table>
-</div></div></div><div data-output-index="2"><div class="table-scroll"><div>
+</div></div></div><div data-output-index="2"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -4589,7 +4590,7 @@ limits = etf_read(&#x27;price_limits&#x27;, (&#x27;up_limit&#x27;,&#x27;down_lim
     </tr>
   </tbody>
 </table>
-</div></div></div><div data-output-index="4"><div class="table-scroll"><div>
+</div></div></div><div data-output-index="4"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -4657,7 +4658,7 @@ limits = etf_read(&#x27;price_limits&#x27;, (&#x27;up_limit&#x27;,&#x27;down_lim
     </tr>
   </tbody>
 </table>
-</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="3"><div class="table-scroll"><div>
+</div></div></div><details class="supporting-output"><summary>展开来源、单位与检查输出</summary><div data-output-index="3"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -4705,7 +4706,7 @@ print(&#x27;单位:&#x27;, {k:v[&#x27;unit&#x27;] for k,v in prior_bar.field_met
 print(&#x27;日线一条真实来源:&#x27;, prior_bar.field_meta[&#x27;close&#x27;][&#x27;by_key&#x27;][0])
 strict_old = ETF.read(snapshot=ETF_SNAPSHOT,
     query=QuerySpec(&#x27;market_daily&#x27;, (&#x27;close&#x27;,), etf_ids, (prior_day,),
-        &#x27;operational_pit_v1&#x27;, {prior_day:prior_cutoff}))</pre></details></section><section class="example" data-cell-id="7bcf8e4c"><div class="example-label">输出 · 窗口内的现金分红</div><div data-output-index="0"><div class="table-scroll"><div>
+        &#x27;operational_pit_v1&#x27;, {prior_day:prior_cutoff}))</pre></details></section><section class="example" data-cell-id="7bcf8e4c"><div class="example-label">输出 · 窗口内的现金分红</div><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -4787,7 +4788,7 @@ print(&#x27;旧日严格 cutoff 早于原 Raw 接收，不能回填日线可见�
 </section><section id="section-10" class="markdown"><details><summary>选用 Qlib 时复用同一份导出</summary><h2>10. 选用 Qlib 时复用同一份导出</h2>
 <p>如果研究代码需要 Qlib，将已固定的 Snapshot 与查询显式导出，再由 Research 的 QlibView 读取。下面读取股票和 ETF 的已有导出。</p>
 <p>导出时已经固定 cutoff。只改模型或用已有列换特征配方，可继续用同一目录；改数据版本、字段或 cutoff，建立新导出。原始财报仍通过事件查询处理。</p>
-</details></section><section class="example" data-cell-id="39ed988e"><details><summary>股票 Qlib adapter 读取</summary><div data-output-index="0"><div class="table-scroll"><div>
+</details></section><section class="example" data-cell-id="39ed988e"><details><summary>股票 Qlib adapter 读取</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -4881,7 +4882,7 @@ print(&#x27;旧日严格 cutoff 早于原 Raw 接收，不能回填日线可见�
     </tr>
   </tbody>
 </table>
-</div></div></div><div data-output-index="1"><div class="table-scroll"><div>
+</div></div></div><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -5739,7 +5740,7 @@ print(&#x27;实际 Qlib 验收:&#x27;, qlib_report[&#x27;qlib_version&#x27;], ql
 assert stock_qlib.reference[&#x27;snapshot_id&#x27;] == UNIFIED_SNAPSHOT
 verify_qlib_export(stock_qlib.path)
 </pre></details></section><section id="cell-58" class="markdown"><details><summary>ETF 读取保持基金份额单位和完整预热日历。命名成员文件表达当时可见的成员区间，`all.txt` 则是候选范围。下面的比较核对 Reader 与 Qlib 的键、NaN、单位和数值容差。</summary><p>ETF 读取保持基金份额单位和完整预热日历。命名成员文件表达当时可见的成员区间，<code>all.txt</code> 则是候选范围。下面的比较核对 Reader 与 Qlib 的键、NaN、单位和数值容差。</p>
-</details></section><section class="example" data-cell-id="ba445881"><details><summary>ETF Qlib adapter 读取</summary><div data-output-index="0"><div class="table-scroll"><div>
+</details></section><section class="example" data-cell-id="ba445881"><details><summary>ETF Qlib adapter 读取</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -6931,7 +6932,7 @@ fact_query = query(sessions=MONTH_ENDS)
 facts = gate.read_decision(decision_session=MONTH_ENDS[-1], query=fact_query, clock=clock)
 vendor_member_query = replace(query((&#x27;is_member&#x27;,), sessions=MONTH_ENDS,
     domain=&#x27;universe_membership&#x27;), universe_id=&#x27;csi1800&#x27;)</pre></details></section><section class="example" data-cell-id="d36afee2"><details><summary>特征与回放的中立合同</summary><div data-output-index="0"><pre class="output-text">成员查询 policy: best_effort_vendor_v1 ；历史成员限制: [&#x27;vendor release time is an assumption, not historical vintage evidence&#x27;, &#x27;Supplier index_weight was observed on dated snapshots only; no intramonth membership change is proven.&#x27;, &#x27;Best-effort uses an assumed 18:00 Asia/Shanghai dated release; strict policies use actual Raw receipt.&#x27;]
-</pre></div><div data-output-index="1"><div class="table-scroll"><div>
+</pre></div><div data-output-index="1"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -6999,7 +7000,7 @@ assert len(gate.references) == 2
 # This return spans TWO OBSERVED MONTH-ENDS, not two consecutive trading days.
 raw_close = facts.frame.close.tolist()
 assert abs(core_output[&#x27;rows&#x27;][1][&#x27;values&#x27;][2] - (raw_close[1]/raw_close[0]-1)) &lt; 1e-12
-view_for_ui = adapted.view_ref.to_dict()</pre></details></section><section class="example" data-cell-id="f6c2bdcd"><details><summary>原接口示例图</summary><div data-output-index="0"><div class="table-scroll"><div>
+view_for_ui = adapted.view_ref.to_dict()</pre></details></section><section class="example" data-cell-id="f6c2bdcd"><details><summary>原接口示例图</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -7067,7 +7068,7 @@ market = gate.read_market(decision_session=MONTH_ENDS[-1], query=market_query, c
 assert market.context[&#x27;query&#x27;][&#x27;purpose&#x27;] == &#x27;market_replay&#x27;</pre></details></section><section id="cell-64" class="markdown"><details><summary>运行环境与数据位置</summary><h3>运行环境与数据位置</h3>
 <p>两份 ipynb 是教学源，HTML 从保存输出生成。离线初始化使用 <a href="../examples/tutorial_support.py">tutorial_support.py</a>；Data 根与留存报告在本地，路径可通过 <code>AXIOM_WORKSPACE</code>、<code>AXIOM_TUTORIAL_DATA_ROOT</code>、<code>AXIOM_UNIFIED_DATA_ROOT</code> 调整。</p>
 <p>复跑入口及依赖见<a href="README.md">教程说明</a>。涉及 Data 构建时，用 <code>AXIOM_TUTORIAL_DATA_PACKAGE</code> 绑定实际留存安装包；代码版本、wheel 和此前执行范围见<a href="../versions.json">versions.json</a>。下面保留目录大小及核对结果，耗时仅属于对应样本。</p>
-</details></section><section class="example" data-cell-id="13de7c98"><details><summary>行情样本的字节与查询计时</summary><div data-output-index="0"><div class="table-scroll"><div>
+</details></section><section class="example" data-cell-id="13de7c98"><details><summary>行情样本的字节与查询计时</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -7135,7 +7136,7 @@ print(&#x27;当前搬移包:&#x27;, measure_tree(Path(str(ROOT)+&#x27;-bundle&#x
 print(&#x27;此前真实运行计时（非本次重新联网）:&#x27;, RUN[&#x27;timing&#x27;])
 print(&#x27;12×一年 active runtime:&#x27;, round(RUN[&#x27;timing&#x27;][&#x27;bulk_active_process_seconds&#x27;]*12/60, 1), &#x27;分钟&#x27;)
 print(&#x27;12×一年目录 logical bytes:&#x27;, round(measure_tree(ROOT)[&#x27;bytes&#x27;]*12/2**30, 2), &#x27;GiB&#x27;)
-</pre></details></section><section class="example" data-cell-id="7f95497f"><details><summary>完整来源样本的字节与构建计时</summary><div data-output-index="0"><div class="table-scroll"><div>
+</pre></details></section><section class="example" data-cell-id="7f95497f"><details><summary>完整来源样本的字节与构建计时</summary><div data-output-index="0"><div class="table-scroll" tabindex="0" aria-label="示例表格"><div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
         vertical-align: middle;
@@ -7207,4 +7208,7 @@ assert ((UNIFIED_ROOT/&#x27;current.json&#x27;).read_bytes()
 assert (ETF_ROOT/&#x27;current.json&#x27;).read_bytes() == ETF_CURRENT_BEFORE
 print(&#x27;正式数据根的 current 未变化；教程无供应商调用。临时文件即将清理。&#x27;)
 TEMPDIR.cleanup()
-</pre></details></section></main></div></body></html>
+</pre></details></section></main></div><script>
+function markWideTables(){document.querySelectorAll('.table-scroll').forEach(function(t){var note=t.previousElementSibling;if(!note||!note.classList.contains('wide-table-note')){note=document.createElement('p');note.className='wide-table-note';note.textContent='宽表可左右滚动查看完整列；也可聚焦表格后使用方向键。';t.before(note);}note.hidden=!(t.clientWidth>0&&t.scrollWidth>t.clientWidth);});}
+window.addEventListener('load',markWideTables);window.addEventListener('resize',markWideTables);document.addEventListener('toggle',markWideTables,true);
+</script></body></html>
