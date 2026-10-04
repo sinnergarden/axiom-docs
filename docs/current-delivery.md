@@ -4,13 +4,13 @@
 
 ## 本轮 ETF 消费闭环
 
-固定 Data → Research Feature/Signal → Engine Core/Runtime 账户 → UI 保存结果展示，已完成短样本工程验收。Research、Engine 的代码已推送独立分支供审阅，尚未合并主线，也没有新 wheel 发布证据。UI 本轮实现已进入新 Git 仓的 `publish/ui-readonly` 分支；原本地非 Git 目录只保留旧副本，需后续导航式迁移，不作为另一处编辑源。
+固定 Data → Research Feature/Signal → Engine Core/Runtime 账户 → UI 保存结果展示，已完成短样本工程验收。Research 代码经 [PR #1](https://github.com/sinnergarden/axiom-research/pull/1) 亲审后合并为 `e612430`，与已审 `59c45a1` 源码树相同；Engine 账户与 P10 已经亲审后经 PR #2/#3 合并，合并后源码树不变。没有新 wheel 发布证据。UI 本轮实现已进入新 Git 仓的 `publish/ui-readonly` 分支；原本地非 Git 目录只保留旧副本，需后续导航式迁移，不作为另一处编辑源。
 
 | owner | 实际交付 | 固定源码与证据 | 验收边界 |
 |---|---|---|---|
 | Data | 复用既有 7 ETF 日线、因子、限价、身份、日历、分红 Snapshot；本轮消费者只读 | 已验 Data 0.3.5 `f6b8fad`；[数据合同与原型](etf-rotation-data.md) | best-effort 时间/终态修订假设；状态缺源仍为 UNKNOWN |
-| Research | 共同锚点复权 20D 特征、固定确定性最终信号、原子保存与无计算复用；沿用 Data/Core | 0.1.2 [`f88a24f`](https://github.com/sinnergarden/axiom-research/tree/f88a24fdcc6b28f399444c854b1f37702c7a5389)；[交付及对齐清单](https://github.com/sinnergarden/axiom-research/blob/f88a24fdcc6b28f399444c854b1f37702c7a5389/reports/etf-delivery.json)、[真实样本](https://github.com/sinnergarden/axiom-research/blob/f88a24fdcc6b28f399444c854b1f37702c7a5389/reports/etf-real-acceptance.json)、[独立复核](https://github.com/sinnergarden/axiom-research/blob/f88a24fdcc6b28f399444c854b1f37702c7a5389/reports/etf-review.json) | 16 项不同受影响测试；无任意 FeaturePlan、标签/训练/模型/OOS |
-| Engine | 中立 SignalFrame、纯轮动意图、冻结信号/market replay 离线回测、Decimal 账本和现金分红、保存/只读加载 | 0.2.1 [`381fe6c`](https://github.com/sinnergarden/axiom-engine/tree/381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6)；[最终日线验收](https://github.com/sinnergarden/axiom-engine/blob/381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6/reports/etf-daily-acceptance.json)、[独立复核](https://github.com/sinnergarden/axiom-engine/blob/381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6/reports/etf-daily-review.json) | 53 tests；日级近似，无 live Broker、SQLite 崩溃恢复、送转/退市支持 |
+| Research | 共同锚点复权 20D 特征、确定性最终信号、原子保存与无计算复用；0.1.3 新增不可变问题/版本/登记及只读投影 | 0.1.2 [`f88a24f`](https://github.com/sinnergarden/axiom-research/tree/f88a24fdcc6b28f399444c854b1f37702c7a5389)；[交付及对齐清单](https://github.com/sinnergarden/axiom-research/blob/f88a24fdcc6b28f399444c854b1f37702c7a5389/reports/etf-delivery.json)、[真实样本](https://github.com/sinnergarden/axiom-research/blob/f88a24fdcc6b28f399444c854b1f37702c7a5389/reports/etf-real-acceptance.json)、[独立复核](https://github.com/sinnergarden/axiom-research/blob/f88a24fdcc6b28f399444c854b1f37702c7a5389/reports/etf-review.json) ；0.1.4 [`59c45a1`](https://github.com/sinnergarden/axiom-research/tree/59c45a18ec5e1b4d69e7ccffd13b750d450463ea)、[索引检查](https://github.com/sinnergarden/axiom-research/blob/59c45a18ec5e1b4d69e7ccffd13b750d450463ea/reports/experiment-records-check.json)、[已合并 PR #1](https://github.com/sinnergarden/axiom-research/pull/1) | 0.1.3 全套 32 tests；0.1.4 修正定向 16 tests 与独立复审；无训练/模型/OOS |
+| Engine | 中立 SignalFrame、纯轮动意图、冻结信号/market replay 离线回测、Decimal 账本和现金分红、保存/只读加载 | 0.2.1 [`381fe6c`](https://github.com/sinnergarden/axiom-engine/tree/381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6)；[最终日线验收](https://github.com/sinnergarden/axiom-engine/blob/381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6/reports/etf-daily-acceptance.json)、[独立复核](https://github.com/sinnergarden/axiom-engine/blob/381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6/reports/etf-daily-review.json) ；P10 固定源码 [`e74cefb`](https://github.com/sinnergarden/axiom-engine/tree/e74cefb65f175b07837cc7f1f8c7217e450a277b) 经 [PR #3](https://github.com/sinnergarden/axiom-engine/pull/3) 合并为 `ef2f693` | 原账户 53 tests、P10 68 tests 与独立复审；日级近似，无 live Broker、SQLite 崩溃恢复、送转/退市支持 |
 | UI | 公共 `load_backtest_run` 验证后导出静态 HTML；保留 owner 身份、水位、表格、指标及缺失/近似标记 | 0.1.0 [`d5f097e`](https://github.com/sinnergarden/axiom-ui/tree/d5f097e46580b2794d08ececddccb123d292d3ea)；[展示验收](https://github.com/sinnergarden/axiom-ui/blob/d5f097e46580b2794d08ececddccb123d292d3ea/reports/daily-owner-display-acceptance.json) | 14 tests、独立复核；无重算或 owner 写入；完整 BFF/浏览器产品和截图 QA 尚未验收 |
 
 ### 同一输入与两种执行政策
@@ -27,15 +27,21 @@
 | 默认严格对照 | 14 orders / 0 fills；NAV 10,000 元；committed sequence 69 | run `sha256:6db153261ab0f6c933959aac448b66b6fbef7162d57d8ad8dcdc4031747b95ea`；未知状态阻断 |
 | 合成 golden | 3 fills，现金/持仓/成本/NAV 手算一致 | [原始核算验收](https://github.com/sinnergarden/axiom-engine/blob/381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6/reports/etf-acceptance.json)；不属于供应商或真实收益证据 |
 
-日线近似的 content digest 为 `sha256:21ca7a5e9a7b3aea5435d85d58955dcbe5f3c6cfcb83c788b3372cf3bed4247c`。保存结果固定 signal/market/profile/implementation refs、最终账户及水位；相同输入重复执行一致，UI 表格与 owner 保存值相等。历史 `4a72394` 的零成交报告保留为旧严格对照，当前实际实现以 `381fe6c` 为准。上述结果不证明 alpha、OOS、长期收益、容量或实盘适用性。
+日线近似的 content digest 为 `sha256:21ca7a5e9a7b3aea5435d85d58955dcbe5f3c6cfcb83c788b3372cf3bed4247c`。保存结果固定 signal/market/profile/implementation refs、最终账户及水位；相同输入重复执行一致，UI 表格与 owner 保存值相等。历史 `4a72394` 的零成交报告保留为旧严格对照，原账户验收基线为 `381fe6c`；当前加入 P10 的实际源码为 `e74cefb`，合并提交 `ef2f693` 的源码树与其完全相同。上述结果不证明 alpha、OOS、长期收益、容量或实盘适用性。
 
-最新 daily HTML 已存入 Library 并发送用户，此交付由父任务确认，晚于 UI 仓报告中当时的外部上传阻断记录。用户收到的 daily HTML 可以独立打开；合集入口使用同目录兄弟文件链接，单个附件不能保证跨附件导航可用。UI 无截图视觉验收结论。
+最新 daily HTML 已存入 Library 并发送用户，此交付由父任务确认，晚于 UI 仓报告中当时的外部上传阻断记录。用户收到的 daily HTML 可以独立打开；合集入口使用同目录兄弟文件链接，单个附件不能保证跨附件导航可用。原静态报告未有截图视觉验收结论。当前工作台功能与三视图已确认，UI 正在隔离分支实施，draft PR #1 的公开 head 为 `bc220cf`；稳定运行分组增量尚在本地 review，不能把它写为最终产品已验收。新增视觉与只读接入需求见 [PRD](design/08_axiom_ui_research_prd_draft.md)及[应用说明](ui-workbench-read-contract.md)。
 
 ### 公开加载与持久复用
 
 Research 公共入口是 `axiom_research.build_rotation_features`、`build_rotation_experiment`、`load_rotation_experiment`。已保存实验的 `signal_frame()` 输出 Core 中立 `signal_frame_v1`，`feature_frames()` 展开保存的共享证明表；加载不读 Data，不执行 Core。API 与固定配置见 [rotation.py](https://github.com/sinnergarden/axiom-research/blob/f88a24fdcc6b28f399444c854b1f37702c7a5389/src/axiom_research/rotation.py)、[sample config](https://github.com/sinnergarden/axiom-research/blob/f88a24fdcc6b28f399444c854b1f37702c7a5389/examples/etf_rotation_sample.json)。产物位置由调用方指定；本地生成结果没有上传 Git。
 
 Engine 公共入口为 `axiom_engine.core.SignalFrame / plan_rotation` 和 `axiom_engine.runtime.BacktestRequest / MarketReplay / run_backtest / save_backtest_run / load_backtest_run`。Runtime 不 import Research，直接消费冻结 frame 和显式 market replay。UI 使用同一公共只读加载入口；[UI CLI](https://github.com/sinnergarden/axiom-ui/blob/d5f097e46580b2794d08ececddccb123d292d3ea/README.md)导出保存结果，缺数据标 unavailable，不补零、不重新计算账户指标。
+
+Research 0.1.3 的 `ExperimentStore / ExperimentReader` 登记已有产物，保存显式问题、版本、状态与差异；Reader 仅读索引，冷启动不导入 Data/Engine。已保存同一账户的历史评价与当前通过复审的 P10 关联均留在本地，未重跑账户。登记修订与同一回测的聚合、运行级收藏及近期活动口径见 [Research 主章](design/05_axiom_research.md#experiment-records)；0.1.4 修正 `59c45a1` 已通过 16 项定向测试和独立复审并经主协调亲审后以 merge commit `e612430` 合入 PR #1；远端没有 check-runs，不称 CI 通过；此前 32 项全套及原配方验收保留，不重复无关全套或账户。
+
+Engine P10 `load_backtest_evaluation` 仅读取/hash/ref 校验独立保存报告，冻结沪深300价格指数、回撤/月边界、完整持仓段和有界分红证据，按 [统一合同](design/04_axiom_trade.md#daily-evaluation)展示缺失与样本限制。68 tests、输入闭包修复后的独立复审及既有 65 日账户消费通过；私人评估 JSON 未提交。合并只改变 Git parents，未重复回放。
+
+UI 价量输入只读同一冻结 Snapshot，精确复用保存账户的 market_daily query，除字段扩充 OHLCV 外保持其余值，包括 66 sessions 的 05-29 anchor。462 行及逐键 metadata 的共同 open/close/volume 重建 digest 与原 source.reference 相同；两次公共读取一致，原 Data 文件、账户和评价的 hash/mtime 不变。新增事实文件及登记仅在本地，未重算指标或采集。
 
 本机该固定样本 Research 构建约 9.26 秒、复用约 0.098 秒。产物 39,198,766 bytes（约 39.2 MB / 37.38 MiB），其中 evidence JSON 38,697,312 bytes（约 98.72%）。证明表共享并可逐引用重建；仍有明显证据输出成本。此测量不清 OS 页缓存，不证明多年扩展性能或一天内任意规模变更。
 
@@ -54,7 +60,9 @@ Engine 公共入口为 `axiom_engine.core.SignalFrame / plan_rotation` 和 `axio
 
 ## 尚未完成的范围
 
-十二年 bulk 未完成全量验收。父任务截至本页更新时确认：行情下载已完成，财务同键冲突仍由原 Data 任务修复；0.3.6 本地修复 `48b8f4f` 尚未推送、显式续接待验。已验代码仍记为 Data 0.3.5，原任务 builder 保留冻结 0.3.3 身份，不把新源码写成正在运行包。本轮 docs/消费者没有检查或改写原计划、进程、Raw、checkpoint、数据根或 current。此前暂停时 1,849 receipts / 51 operation JSON 只作为历史检查点，不能当作现时数量。
+Data 已完成第一阶段股票/ETF 来源采集与显式续接，0.3.8 固定源码 `54e98c6` 保留不可裁决事件的 cutoff 可见缺失范围；这属于有明确限制的来源交付，不能当作所有研究/交易用途均完整。事件裁决见 [Data 补充](design/event-ambiguity-continuation.md)。此前财务冲突修复待验和暂停 checkpoint 数量仅是历史状态。日历审计按交易所分组的修正 `e62774c` 及更新至 09-30 的最终 daily Snapshot 仍待 owner 最终验收，不沿用已失效的缺口数字。既有安装包、原 0.3.3 builder 和续接 operation 的具体绑定各自保留，不因新源码而改写旧身份。本轮 docs/消费者没有改写原计划、进程、Raw、checkpoint、数据根或 current。
+
+长历史遵守用户已明确的限价裁决：供应商真无早期数据则取 7 ETF 共同可用起点，漏采则由 Data 补齐；不放宽执行限价/profile。2019-07-01 是待共同覆盖证据确认的周首候选，Research 仍需前 20D 预热和严格前一 session 信号；终点待最终 09-30 Snapshot 固定。仅做小探测与现有小样本，不先启动多年特征或账户重跑。
 
 任意 FeaturePlan、TTM 联合投影、成熟标签/训练、模型选择/OOS、长期策略验证、跨 OS/多年规模性能、完整浏览器/BFF、SQLite/Broker 恢复与实盘均未因此获得验收。普通说明、注释和链接变更只做文档检查；可执行教学变更只执行受影响单元及前置条件。
 

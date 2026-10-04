@@ -106,6 +106,12 @@ Column 级 provenance 保存一次公式/输入关系；UI 可追到 source refs
 
 分组、标签、收藏和搁置属于 Research 业务状态。`organization={revision,groups,tags,favorite,shelved}` 以 `expected_revision` 比较后更新，并保留全部旧修订；并发旧值不能覆盖新值。这里的 tags 是整理标签，与预测目标 LabelSpec 无关。首版采用显式路径的一份轻量 JSON 索引，原子替换与写入锁保证一致性，不建立 registry 或数据库平台。
 
+登记修订与实际回测分开：有账户结果的记录按 Engine 原值 `{run_id,content_digest,committed_sequence}` 导出稳定 `saved_run_ref`，仅替换评价或登记说明不产生新的回测。其计算为规范 JSON `{contract_version:'saved_backtest_ref_v1',input_run_ref:{run_id,content_digest,committed_sequence}}` 的 SHA-256；规范化使用 UTF-8、sort_keys、无额外空白。默认 runs 每个 saved_run_ref 一组，保留该问题下全部不可变 `registration_history`，旧 candidate 不删除。组表层使用筛选后最新保存登记作为导航，不能据此声称评价已审核；完整历史可逐条打开。没有账户结果的记录保留独立 `REGISTRATION_ONLY` 项，saved_run_ref 等于 run_record_ref；不把失败、阻断或信号登记计成一次回测。
+
+同一问题可有多次回测，首版支持**运行级**收藏与搁置：可选 `run_organizations` 按稳定 `saved_run_ref` 保存 `{revision,favorite,shelved}` 历史，公开 `update_run_organization(run_record_ref,expected_revision=...,favorite=...,shelved=...)` 将登记引用解析到该稳定目标，再作相同的修订检查。换评价后标记继续生效。runs 投影增加 `saved_run_ref`、`run_kind`（SAVED_BACKTEST / REGISTRATION_ONLY）、`registration_history` 和 `organization`，不改变不可变登记内容。旧索引缺此字段时仅读投影默认 revision=0、favorite=false、shelved=false，不能猜测旧问题收藏代表其中哪些运行；问题分组/tags 及原有组织状态继续可读。
+
+登记已有完整实验时，`ExperimentStore.register_saved_experiment(question=...,version=...,run=...)` 在一次原子写入内保存三类记录。question 使用 create_question 参数；version 使用 create_version 参数但不传 question_id；run 使用 record_run 参数但不传 question_id/version_ref。校验失败不能留下半套问题或版本。单记录入口保留，供显式分步研究使用。Reader 的公共 import 与可选 Data/Core 构建运行环境分离，旧构建入口按需加载。
+
 ```python
 from axiom_research import ExperimentStore, ExperimentReader
 
@@ -123,12 +129,12 @@ writer.update_organization(question["question_id"], expected_revision=0,
 
 reader = ExperimentReader(index_path)
 index = reader.index(group=None, tags=[], status=None, favorite=None, shelved=None,
-    question_id=None, version_ref=None)
+    question_id=None, version_ref=None, run_favorite=None, run_shelved=None)
 detail = reader.detail(question["question_id"])
 diff = reader.compare_versions(left_version_ref, right_version_ref)
 ```
 
-公共投影 `experiment_projection_v1` 返回 `store_revision`、索引 `content_digest` 和 `questions:[{question,organization,versions,runs}]`；detail 返回同一投影中的单个问题。筛选 tags 要求全部命中；version_ref 保留对应版本与运行，status 要求至少一条匹配运行，未运行版本在未指定 status 时仍可查看。排序使用 owner 保存的登记时间和稳定身份，不能以文件 mtime 猜最近运行。版本比较返回声明变动及保存参数、输入引用的逐字段差异，不推断业绩因果，也不重算账户指标。
+公共投影 `experiment_projection_v1` 返回 `store_revision`、索引 `content_digest` 和 `questions:[{question,organization,last_activity_at,saved_backtest_count,registration_count,versions,runs}]`；detail 返回同一投影中的单个问题。saved_backtest_count 是当前投影内 SAVED_BACKTEST 组数，registration_count 是这些返回组及 REGISTRATION_ONLY 项的完整登记历史条数，两者分开命名。筛选 tags 要求全部命中；version_ref 保留对应版本及有匹配登记的组，status 要求至少一条匹配登记，组的完整历史仍保留；未运行版本在未指定 status 时仍可查看。兼容旧 favorite/shelved 参数的问题级语义，当前运行收藏/搁置使用显式 run_favorite/run_shelved，仅保留匹配组，无匹配则不返回该问题。默认近期排序按问题下全部保存 question/version/run 的 created_at 最大值 `last_activity_at`，保留稳定 ID tie-break；老问题新增运行或登记也回到近期前面，收藏修改不伪造运行时间，不取 mtime。版本比较返回声明变动及保存参数、输入引用的逐字段差异，不推断业绩因果，也不重算账户指标。
 
 Reader 构造、索引、详情和比较仅读取并校验索引元数据，不创建目录或文件，不逐次哈希整个产物目录，不导入 Data/Core 执行入口，也不调用训练或回测。外部产物在登记与实际读取时由各 owner 的公开 loader 校验；索引校验不替代产物可用性或真实性证明。旧产物未登记时不自动扫描成研究结论。UI 经此投影浏览，再按 Engine 公共 loader 读取已保存账户与评估结果。
 
@@ -148,6 +154,10 @@ Reader 构造、索引、详情和比较仅读取并校验索引元数据，不�
 ```
 
 不能先只保留在池日期，再计算丢失历史的 rolling。已有持仓若不在候选池，仍由 Trade 跟踪；给池外持仓评分需要明确参考截面和缺数据政策。
+
+模型依赖须声明 domain/字段、历史长度、可接受滞后、required/optional 及缺数策略，引用 [Data 唯一源时序与就绪合同](02_axiom_data.md#source-readiness)。T 日业务事实次晨才可得时，历史与实盘均不能当作 T 收盘已知；Runtime 在冻结时点 C 检查依赖就绪并调用 Core，输出与意图截止 E 对齐。仅行情模型不等待未使用的域；本轮 ETF 不接入两融或 ML。
+
+2026-10-04 长历史裁决：保持现有执行 profile 和双向限价要求；若供应商确无早期历史，则使用 7 只 ETF 共同可用起点，若只是漏采则由 Data 显式补齐，不放宽价限。Research 为首个评估 session 保留严格前一 session 信号及此前 20D 预热；2019-07-01 仅是待 Data 范围证据确认的完整周首候选，结束日待最终 2026-09-30 Snapshot 固定后确认。缺口小探测和最终 Snapshot 尚未闭合前，不执行多年构建，不调整策略参数。
 
 ### 4.2 LabelSpec
 
@@ -179,6 +189,8 @@ maturity_rule / missing_or_delisting_policy
 Legacy baseline 可封存并用于 forensic 数值对照，但不因冻结就认定正确。新 baseline 绑定实际消费范围的 Snapshot/QuerySpec、PIT 限制、Feature、Label/Dataset 和执行检查；可接受的历史 best-effort 事前声明，不要求 Data 先建通用认证平台，也不能据探索结果宣称严格历史可见。
 
 不能同时改变 universe、PIT、Feature、模型和执行口径，再把收益变化全部归因模型。CSI800 与 CSI1800 的结果分开记录；source history 不足以支持 strict 长历史时，显式限制范围或 best-effort，不能为了训练 8 年而伪造历史版本。
+
+后续 ETF 长历史消费必须显式绑定 Data 新阶段验收后的最终 Snapshot，保留原固定小样本，不以 current 替换。策略仍沿用现有七证券参考集合、20 session 动量、正值 Top1 和周首交易日/严格前一 session 信号；先核实上市边界与完整交易日历，滚动窗口包含 20 个前置 session。上市前、warmup 与内部缺价/因子缺证分别保留 invalid 及原因，不压缩日历、不补零、不将参考集合伪装成历史成员证据。先用不超过现有 114 sessions 的固定窗口量测耗时、内存与写入体积并声明预算，再开展已授权的多年消费；不重新采集数据，不以短样本推断多年性能。
 
 ## 5. SignalRun、表达式与评估（P06/P10）
 

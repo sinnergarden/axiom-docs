@@ -364,6 +364,8 @@ query_chart_layers(run_ref, security_id, interval) -> RuntimeChartLayers
 
 CLI 只做解析与调用，Notebook/Agent/systemd 使用相同 service。只读 inspect 不发送委托、不调用会写生产目录的初始化。UI 查询返回 committed watermark，避免同一屏拼接不同事务阶段的 cash/positions。
 
+运行调度按 Research 声明的模型依赖检查 [Data 就绪合同](02_axiom_data.md#source-readiness)，在冻结时点 C 固定输入后调用 Core，并保留意图有效截止 E 与实测预算。到 C 必需输入缺失则跳过/阻断，optional 只按既定合同处理；不因某域次晨才就绪而回填可知时间，不在 Runtime 复制供应商接口钟点表。本轮没有新增通用调度框架或实盘路径。
+
 ```text
 src/axiom_trade/
   runtime/ backtest/ adapters/{feed,signal,broker,state}/
