@@ -218,7 +218,12 @@ Core FeaturePlan，不另写执行器。公式/单位/窗口与实际 plan 同�
 
 **LabelSpec** 固定 `forward_5_session_open_close_v1`：feature session f 后真实交易日历的
 第 1 个 session open 至第 5 个 session close，`close(f+5)/open(f+1)−1`，两端使用同锚点
-可见复权价，绝对收益、无归一化、无成本。每行保存实际 start/end session、端点价格/
+可见复权价，原始绝对收益、无成本。原始收益保留用于标签证据与 IC/RankIC；训练 target
+另按 feature session 的历史可见成员、Feature 全部有效且结果实际成熟的样本执行既有 Core
+cs_zscore（ddof=0、epsilon=1e−12、无 clip、缺值跳过且原缺值保留、常量截面 missing）。
+保存 raw_return、normalized_target、截面实际 eligible keys/section ref、Core plan/context/frame refs，
+以及原始 label_available_at 与归一化依赖的 normalized_available_at；归一化是 outcome-only
+结果处理，不将未来标签接入 decision facts。每行保存实际 start/end session、端点价格/
 因子来源与 `label_available_at`（所有必要结果事实可用时间最大值），只有它不晚于 fold
 fit cutoff 才训练；H=180 也须真实端点与成熟事实，不能自然日减 180 或只解析名称。
 结果查询与 decision facts 分离，缺价/因子/终点不填零。每月 fit cutoff 在首个预测日期之前，
@@ -229,8 +234,11 @@ SignalEvidence → 同一 Engine`。CPU LightGBM regression 固定 100 trees、l
 num_leaves=31、max_depth=5、min_data_in_leaf=20、seed=42、num_threads=1、feature_fraction=1、
 bagging_fraction=1、deterministic=true、force_col_wise=true；不搬旧调优参数。模型保存原生
 booster、列顺序、训练键/成熟 cutoff、输入与实现/环境 refs，可独立加载预测。缓存身份绑定
-这些依赖，复用不得重读事实、执行 Core 或训练；明确 prediction_raw、signal_score、rank、
-target_weight，原始预测才具有上述五日收益语义。IC/RankIC 按日联合有效成员计算（n≥20，
+这些依赖。完全相同实验复用不得重读事实、执行 Core 或训练；仅修改标签或训练时可复用
+已冻结 Feature 与原始 Label，身份绑定原实验/Feature/Label refs，且不重跑 Feature。
+明确 prediction_raw、signal_score、rank、target_weight；本模型输出为标准化 target 的预测分数，
+`score_semantics=forward_5_session_cs_zscore_prediction`，无量纲，不解释为五日收益率或百分比。
+IC/RankIC 仍与保存的原始五 session 收益按日联合有效成员计算（n≥20，
 常量/不足为 null），保存覆盖数、排除原因及成熟标签 refs，不当作账户收益。
 
 每周首个真实交易 session 使用严格前一 session 预测，降序稳定 security_id tie-break、
