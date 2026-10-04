@@ -254,19 +254,21 @@ feature 原 refs、完整 union/member/validity 和原截面时钟；不冒用 E
 在 Research 重建排名或 target_weight。
 
 每周首个真实交易 session 使用严格前一 session 预测，降序稳定 security_id tie-break、
-Top5 等权，不加正值门槛；不足五个有效成员为 NO_DECISION。Core/Runtime owner 需冻结
-中立 ML 信号与动态候选合同；旧 momentum `signal_frame_v1`/Top1 不改名冒用。Research
+Top5 等权，不加正值门槛；不足五个有效成员为 NO_DECISION。Core/Runtime owner 按下述
+冻结合同实施中立 ML 信号与动态候选；旧 momentum `signal_frame_v1`/Top1 不改名冒用。Research
 不实现撮合。股票事件、T+1、价限、状态、税费、持仓出池与估值准入未齐时，真实模型/
 信号/IC 先验收，Engine 保存明确 BLOCKED 原因，UI 只读这些 owner 产物；不能用 ETF
 profile 宣称完整股票账户闭环。账户准入通过后才交既有 Engine 运行。
 
-本轮下一账户候选只对上述保存预测施加 `sz_main_a_000_002_003_v1` 执行资格：feature
+本轮有界账户合同只对上述保存预测施加 `sz_main_a_000_002_003_v1` 执行资格：feature
 session 历史 CSI300 成员内、canonical 深市股票代码 000/002/003 子集。过滤结果绑定新
 账户 strategy/plan，不重训或改写原 314 union 预测，不把子集收益冒称全市场结果。
 先核各周严格前一 session 是否至少五只有效候选，任一资格内 member invalid 为
 NO_DECISION；事件/因子核查覆盖完整资格 union，不只最终 Top5，再由同一 Engine
-冻结股票专用规则；见 [Trade §6.1 候选](04_axiom_trade.md#stock-daily-observed-minimal)。
+实施冻结股票专用规则；见 [Trade §6.1](04_axiom_trade.md#stock-daily-observed-minimal)。
 stock_daily_observed 保留 UNKNOWN 与同日撮合事后证据；严格状态对照同时保留。
+stock_action_policy=observed_implemented_only 的行动诊断/阻断边界只由 Trade 主章定义；
+六组全非实施歧义保留原 NULL 与证据，不改 Data/预测，不凭诊断换股或补第六名。
 
 验收固定输入再现、冷构建/缓存复用、独立进程模型预测/只读加载、标签晚到与不规则日历
 边界、缺失/常量截面，以及 Engine 合同消费。分别记录 Qlib 导出、Feature、Label/Dataset、
