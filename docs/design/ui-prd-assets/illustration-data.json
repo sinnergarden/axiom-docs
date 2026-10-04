@@ -1,5 +1,5 @@
 {
-  "source": "ui_prd_illustrations_v1: ALL SYNTHETIC; discussion only; NOT OWNER BACKTEST",
+  "source": "ui_prd_illustrations_v2: ALL SYNTHETIC; visual draft; NOT OWNER BACKTEST",
   "dates": [
     "2026-03-02",
     "2026-03-09",
@@ -687,15 +687,58 @@
     "wins": 5,
     "closed_segments": 8,
     "open_segments": 1,
-    "segment_accounting": "8 fully closed illustrative holding segments; fees included; open segment excluded"
+    "segment_accounting": "8 fully closed illustrative holding segments; fees and dividends belong to each segment; 1 open segment excluded; ties kept in closed denominator",
+    "mean_segment_net_pnl": "-4.125",
+    "mean_segment_return": null,
+    "mean_segment_return_status": "not_provided_capital_denominator_not_frozen"
   },
-  "reuse_note": "Illustrative values reused unchanged from the earlier layout fixture. This file owns PRD diagram inputs; no business data included.",
+  "reuse_note": "Existing illustrative curves, candles, events, monthly values and 8 segment P&Ls reused unchanged. New explicitly synthetic display metadata/distribution and mean P&L demonstrate missing-return behavior. Panels are independent toy examples, not one reconciled account. No business data included.",
   "display_units": {
     "nav": "index",
     "baseline": "index",
     "drawdown": "percent",
     "months": "percent",
     "closed_segments_net_pnl": "CNY",
-    "candles": "CNY per fund unit"
-  }
+    "candles": "CNY per fund unit",
+    "candles_volume": "synthetic display units, not real market unit evidence"
+  },
+  "month_year": 2026,
+  "partial_months": [
+    "08"
+  ],
+  "segment_distribution": {
+    "centers_cny": [
+      -150,
+      -50,
+      50,
+      150
+    ],
+    "counts": [
+      2,
+      1,
+      4,
+      1
+    ],
+    "bin_edges_cny": [
+      -200,
+      -100,
+      0,
+      100,
+      200
+    ],
+    "source": "Explicit synthetic distribution of the unchanged 8 illustrative segments; not a real owner report"
+  },
+  "baseline_display_name": "沪深300 · 合成示意；具体价格/全收益系列待核实",
+  "holding_spans": [
+    {
+      "start_index": 6,
+      "end_index": 24,
+      "label": "段01"
+    },
+    {
+      "start_index": 39,
+      "end_index": 50,
+      "label": "段02"
+    }
+  ]
 }

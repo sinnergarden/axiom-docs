@@ -71,7 +71,7 @@ def render(source: Path, output: Path, revision: str, layouts: Path | None):
 
     body = re.sub(r'href="([^"]+)"', link, body)
     body = re.sub(r'<h3>(F0[1-6]) (.*?)</h3>', r'<h3 id="\1">\1 \2</h3>', body)
-    body = re.sub(r'<h2>([1-8]) (.*?)</h2>', r'<h2 id="section-\1">\1 \2</h2>', body)
+    body = re.sub(r'<h2>([1-9]) (.*?)</h2>', r'<h2 id="section-\1">\1 \2</h2>', body)
     appendix = ""
     if layouts:
         images=[]
@@ -91,7 +91,7 @@ def render(source: Path, output: Path, revision: str, layouts: Path | None):
           '<meta name="viewport" content="width=device-width,initial-scale=1">'
           '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; '
           'img-src data:; style-src \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'">'
-          '<title>Axiom 研究工作台 PRD 草案</title><style>'+CSS+'</style></head><body>'
+          '<title>Axiom 研究工作台 PRD 设计稿</title><style>'+CSS+'</style></head><body>'
           +body+appendix+footer+'</body></html>')
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(html)

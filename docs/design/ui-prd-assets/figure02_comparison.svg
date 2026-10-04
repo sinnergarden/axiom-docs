@@ -10,7 +10,7 @@
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
-      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+      <dc:title>Matplotlib v3.9.4, https://matplotlib.org/</dc:title>
      </cc:Agent>
     </dc:creator>
    </cc:Work>
@@ -50,7 +50,7 @@ L 0 3.5
       </g>
      </g>
      <g id="text_1">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #63738a" x="75.96" y="173.9035" transform="rotate(-0 75.96 173.9035)">03月</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="75.96" y="173.9035" transform="rotate(-0 75.96 173.9035)">03月</text>
      </g>
     </g>
     <g id="xtick_2">
@@ -60,7 +60,7 @@ L 0 3.5
       </g>
      </g>
      <g id="text_2">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #63738a" x="212.76" y="173.9035" transform="rotate(-0 212.76 173.9035)">04月</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="212.76" y="173.9035" transform="rotate(-0 212.76 173.9035)">04月</text>
      </g>
     </g>
     <g id="xtick_3">
@@ -70,7 +70,7 @@ L 0 3.5
       </g>
      </g>
      <g id="text_3">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #63738a" x="349.56" y="173.9035" transform="rotate(-0 349.56 173.9035)">06月</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="349.56" y="173.9035" transform="rotate(-0 349.56 173.9035)">06月</text>
      </g>
     </g>
     <g id="xtick_4">
@@ -80,7 +80,7 @@ L 0 3.5
       </g>
      </g>
      <g id="text_4">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #63738a" x="486.36" y="173.9035" transform="rotate(-0 486.36 173.9035)">08月</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="486.36" y="173.9035" transform="rotate(-0 486.36 173.9035)">08月</text>
      </g>
     </g>
    </g>
@@ -102,7 +102,7 @@ L -3.5 0
       </g>
      </g>
      <g id="text_5">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="48.44" y="158.335023" transform="rotate(-0 48.44 158.335023)">1.00</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="48.44" y="158.335023" transform="rotate(-0 48.44 158.335023)">1.00</text>
      </g>
     </g>
     <g id="ytick_2">
@@ -117,7 +117,7 @@ L 506.88 137.514088
       </g>
      </g>
      <g id="text_6">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="48.44" y="140.577838" transform="rotate(-0 48.44 140.577838)">1.02</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="48.44" y="140.577838" transform="rotate(-0 48.44 140.577838)">1.02</text>
      </g>
     </g>
     <g id="ytick_3">
@@ -132,7 +132,7 @@ L 506.88 119.756903
       </g>
      </g>
      <g id="text_7">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="48.44" y="122.820653" transform="rotate(-0 48.44 122.820653)">1.04</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="48.44" y="122.820653" transform="rotate(-0 48.44 122.820653)">1.04</text>
      </g>
     </g>
     <g id="ytick_4">
@@ -147,7 +147,7 @@ L 506.88 101.999718
       </g>
      </g>
      <g id="text_8">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="48.44" y="105.063468" transform="rotate(-0 48.44 105.063468)">1.06</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="48.44" y="105.063468" transform="rotate(-0 48.44 105.063468)">1.06</text>
      </g>
     </g>
     <g id="ytick_5">
@@ -162,7 +162,7 @@ L 506.88 84.242534
       </g>
      </g>
      <g id="text_9">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="48.44" y="87.306284" transform="rotate(-0 48.44 87.306284)">1.08</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="48.44" y="87.306284" transform="rotate(-0 48.44 87.306284)">1.08</text>
      </g>
     </g>
     <g id="ytick_6">
@@ -177,7 +177,7 @@ L 506.88 66.485349
       </g>
      </g>
      <g id="text_10">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="48.44" y="69.549099" transform="rotate(-0 48.44 69.549099)">1.10</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="48.44" y="69.549099" transform="rotate(-0 48.44 69.549099)">1.10</text>
      </g>
     </g>
     <g id="ytick_7">
@@ -192,11 +192,11 @@ L 506.88 48.728164
       </g>
      </g>
      <g id="text_11">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="48.44" y="51.791914" transform="rotate(-0 48.44 51.791914)">1.12</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="48.44" y="51.791914" transform="rotate(-0 48.44 51.791914)">1.12</text>
      </g>
     </g>
     <g id="text_12">
-     <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #63738a" x="24.679375" y="100.224" transform="rotate(-90 24.679375 100.224)">净值指数</text>
+     <text style="fill: #63738a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="24.679375" y="100.224" transform="rotate(-90 24.679375 100.224)">净值指数</text>
     </g>
    </g>
    <g id="line2d_19">
@@ -283,38 +283,38 @@ L 78.64 50.1995
 " style="fill: none; stroke: #476eaa; stroke-width: 2; stroke-linecap: square"/>
     </g>
     <g id="text_13">
-     <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: start" x="85.04" y="52.9995" transform="rotate(-0 85.04 52.9995)">策略示例</text>
+     <text style="font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="85.04" y="52.9995" transform="rotate(-0 85.04 52.9995)">策略示例</text>
     </g>
     <g id="line2d_22">
-     <path d="M 62.64 61.9595
-L 70.64 61.9595
-L 78.64 61.9595
+     <path d="M 62.64 62.25575
+L 70.64 62.25575
+L 78.64 62.25575
 " style="fill: none; stroke-dasharray: 6.29,2.72; stroke-dashoffset: 0; stroke: #bb8e34; stroke-width: 1.7"/>
     </g>
     <g id="text_14">
-     <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: start" x="85.04" y="64.7595" transform="rotate(-0 85.04 64.7595)">七 ETF 等权持有 · 候选示意</text>
+     <text style="font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="85.04" y="65.05575" transform="rotate(-0 85.04 65.05575)">沪深300 · 合成示意 / 系列待核实</text>
     </g>
    </g>
   </g>
   <g id="text_15">
-   <text style="font-weight: 700; font-size: 12px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F02  策略与候选基准的同口径比较</text>
+   <text style="fill: #25354a; font: 700 12px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F02  回测结果对比 · 添加市场基准</text>
   </g>
   <g id="text_16">
-   <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能及口径待讨论</text>
+   <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能已确认 / 视觉待确认</text>
   </g>
   <g id="text_17">
-   <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #63738a" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
+   <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
   </g>
   <g id="text_18">
-   <text style="font-weight: 700; font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="554.4" y="66.816" transform="rotate(-0 554.4 66.816)">比较前核对</text>
+   <text style="fill: #25354a; font: 700 10px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="554.4" y="66.816" transform="rotate(-0 554.4 66.816)">与 F03 共用图和指标</text>
   </g>
   <g id="text_19">
-   <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #63738a" transform="translate(554.4 83.074437)">期间 · 初始账户 · 收益口径</text>
-   <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #63738a" transform="translate(554.4 98.136)">费用 · 分红 · 执行差异</text>
+   <text style="fill: #63738a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(554.4 91.426437)">加旧版 / 基准即比较</text>
+   <text style="fill: #63738a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(554.4 106.488)">共用区间 · 资金 · 费用 · 滑点</text>
   </g>
   <g id="text_20">
-   <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(554.4 135.274437)">缺基准：不画线</text>
-   <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(554.4 150.336)">口径不兼容：列出差异</text>
+   <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(554.4 143.626437)">配置详情折叠，只提示差异</text>
+   <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(554.4 158.688)">缺基准：明确不可用</text>
   </g>
  </g>
  <defs>

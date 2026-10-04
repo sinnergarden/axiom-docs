@@ -10,7 +10,7 @@
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
-      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+      <dc:title>Matplotlib v3.9.4, https://matplotlib.org/</dc:title>
      </cc:Agent>
     </dc:creator>
    </cc:Work>
@@ -530,7 +530,7 @@ L 0 3.5
       </g>
      </g>
      <g id="text_1">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #63738a" x="67.876539" y="171.8155" transform="rotate(-0 67.876539 171.8155)">03-02</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="67.876539" y="171.8155" transform="rotate(-0 67.876539 171.8155)">03-02</text>
      </g>
     </g>
     <g id="xtick_2">
@@ -540,7 +540,7 @@ L 0 3.5
       </g>
      </g>
      <g id="text_2">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #63738a" x="215.160241" y="171.8155" transform="rotate(-0 215.160241 171.8155)">05-01</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="215.160241" y="171.8155" transform="rotate(-0 215.160241 171.8155)">05-01</text>
      </g>
     </g>
     <g id="xtick_3">
@@ -550,7 +550,7 @@ L 0 3.5
       </g>
      </g>
      <g id="text_3">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #63738a" x="362.443944" y="171.8155" transform="rotate(-0 362.443944 171.8155)">06-30</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="362.443944" y="171.8155" transform="rotate(-0 362.443944 171.8155)">06-30</text>
      </g>
     </g>
     <g id="xtick_4">
@@ -560,7 +560,7 @@ L 0 3.5
       </g>
      </g>
      <g id="text_4">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #63738a" x="502.363461" y="171.8155" transform="rotate(-0 502.363461 171.8155)">08-26</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="502.363461" y="171.8155" transform="rotate(-0 502.363461 171.8155)">08-26</text>
      </g>
     </g>
    </g>
@@ -582,7 +582,7 @@ L -3.5 0
       </g>
      </g>
      <g id="text_5">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="36.56" y="147.303677" transform="rotate(-0 36.56 147.303677)">5.75</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="36.56" y="147.303677" transform="rotate(-0 36.56 147.303677)">5.75</text>
      </g>
     </g>
     <g id="ytick_2">
@@ -597,7 +597,7 @@ L 526.68 123.717096
       </g>
      </g>
      <g id="text_6">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="36.56" y="126.780846" transform="rotate(-0 36.56 126.780846)">6.00</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="36.56" y="126.780846" transform="rotate(-0 36.56 126.780846)">6.00</text>
      </g>
     </g>
     <g id="ytick_3">
@@ -612,7 +612,7 @@ L 526.68 103.194266
       </g>
      </g>
      <g id="text_7">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="36.56" y="106.258016" transform="rotate(-0 36.56 106.258016)">6.25</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="36.56" y="106.258016" transform="rotate(-0 36.56 106.258016)">6.25</text>
      </g>
     </g>
     <g id="ytick_4">
@@ -627,7 +627,7 @@ L 526.68 82.671435
       </g>
      </g>
      <g id="text_8">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="36.56" y="85.735185" transform="rotate(-0 36.56 85.735185)">6.50</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="36.56" y="85.735185" transform="rotate(-0 36.56 85.735185)">6.50</text>
      </g>
     </g>
     <g id="ytick_5">
@@ -642,7 +642,7 @@ L 526.68 62.148604
       </g>
      </g>
      <g id="text_9">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="36.56" y="65.212354" transform="rotate(-0 36.56 65.212354)">6.75</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="36.56" y="65.212354" transform="rotate(-0 36.56 65.212354)">6.75</text>
      </g>
     </g>
     <g id="ytick_6">
@@ -657,11 +657,11 @@ L 526.68 41.625773
       </g>
      </g>
      <g id="text_10">
-      <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="36.56" y="44.689523" transform="rotate(-0 36.56 44.689523)">7.00</text>
+      <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="36.56" y="44.689523" transform="rotate(-0 36.56 44.689523)">7.00</text>
      </g>
     </g>
     <g id="text_11">
-     <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #63738a" x="12.830625" y="99.18" transform="rotate(-90 12.830625 99.18)">元 / 份</text>
+     <text style="fill: #63738a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="12.830625" y="99.18" transform="rotate(-90 12.830625 99.18)">元 / 份</text>
     </g>
    </g>
    <g id="LineCollection_1">
@@ -994,7 +994,7 @@ L 110.26165 122.150406
 " style="fill: none; stroke: #476eaa; stroke-width: 0.8; stroke-linecap: round"/>
    </g>
    <g id="text_12">
-    <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #476eaa" x="112.06165" y="105.657005" transform="rotate(-0 112.06165 105.657005)">B</text>
+    <text style="fill: #476eaa; font: 9px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="112.06165" y="105.657005" transform="rotate(-0 112.06165 105.657005)">B</text>
    </g>
    <g id="patch_68">
     <path d="M 156.246761 101.916112
@@ -1006,7 +1006,7 @@ L 154.446761 112.578558
 " style="fill: none; stroke: #476eaa; stroke-width: 0.8; stroke-linecap: round"/>
    </g>
    <g id="text_13">
-    <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #476eaa" x="156.246761" y="96.085157" transform="rotate(-0 156.246761 96.085157)">B</text>
+    <text style="fill: #476eaa; font: 9px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="156.246761" y="96.085157" transform="rotate(-0 156.246761 96.085157)">B</text>
    </g>
    <g id="patch_69">
     <path d="M 244.616982 145.215513
@@ -1018,7 +1018,7 @@ L 246.416982 139.617587
 " style="fill: none; stroke: #476eaa; stroke-width: 0.8; stroke-linecap: round"/>
    </g>
    <g id="text_14">
-    <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #476eaa" x="244.616982" y="156.110332" transform="rotate(-0 244.616982 156.110332)">S</text>
+    <text style="fill: #476eaa; font: 9px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="244.616982" y="156.110332" transform="rotate(-0 244.616982 156.110332)">S</text>
    </g>
    <g id="patch_70">
     <path d="M 355.079759 62.545113
@@ -1030,7 +1030,7 @@ L 353.279759 73.20756
 " style="fill: none; stroke: #476eaa; stroke-width: 0.8; stroke-linecap: round"/>
    </g>
    <g id="text_15">
-    <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #476eaa" x="355.079759" y="56.714159" transform="rotate(-0 355.079759 56.714159)">B</text>
+    <text style="fill: #476eaa; font: 9px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="355.079759" y="56.714159" transform="rotate(-0 355.079759 56.714159)">B</text>
    </g>
    <g id="patch_71">
     <path d="M 436.085795 108.282627
@@ -1042,28 +1042,29 @@ L 437.885795 102.684701
 " style="fill: none; stroke: #476eaa; stroke-width: 0.8; stroke-linecap: round"/>
    </g>
    <g id="text_16">
-    <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #476eaa" x="436.085795" y="119.177446" transform="rotate(-0 436.085795 119.177446)">S</text>
+    <text style="fill: #476eaa; font: 9px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: middle" x="436.085795" y="119.177446" transform="rotate(-0 436.085795 119.177446)">S</text>
    </g>
   </g>
   <g id="text_17">
-   <text style="font-weight: 700; font-size: 12px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F04  K 线 成交点与选点复盘</text>
+   <text style="fill: #25354a; font: 700 12px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F04  K 线 成交点与选点复盘</text>
   </g>
   <g id="text_18">
-   <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能及口径待讨论</text>
+   <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能已确认 / 视觉待确认</text>
   </g>
   <g id="text_19">
-   <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #63738a" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
+   <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
   </g>
   <g id="text_20">
-   <text style="font-weight: 700; font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="562.32" y="60.552" transform="rotate(-0 562.32 60.552)">选中的 B 点 · 合成示例</text>
+   <text style="fill: #25354a; font: 700 10px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="562.32" y="60.552" transform="rotate(-0 562.32 60.552)">选中的 B 点 · 合成示例</text>
   </g>
   <g id="text_21">
-   <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #63738a" transform="translate(562.32 86.841375)">信号 → 决策 → 委托 → 成交</text>
-   <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #63738a" transform="translate(562.32 102.312)">保存价量 / 费用 / 执行原因</text>
+   <text style="fill: #63738a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(562.32 86.841375)">信号 → 决策 → 委托 → 成交</text>
+   <text style="fill: #63738a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(562.32 102.312)">保存价量 / 费用 / 执行原因</text>
   </g>
   <g id="text_22">
-   <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(562.32 144.386312)">未成交记录单列原因</text>
-   <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(562.32 160.776)">缺 high / low 不伪造 K 线</text>
+   <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(562.32 131.142687)">决策 debug · 低优先级增强</text>
+   <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(562.32 145.158312)">特征 / 分数 / 排名 / 门槛</text>
+   <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(562.32 158.688)">未保存的依据明确不可用</text>
   </g>
  </g>
  <defs>

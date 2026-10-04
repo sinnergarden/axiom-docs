@@ -10,7 +10,7 @@
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
-      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+      <dc:title>Matplotlib v3.9.4, https://matplotlib.org/</dc:title>
      </cc:Agent>
     </dc:creator>
    </cc:Work>
@@ -30,91 +30,84 @@ z
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 30.3336 85.758336
-L 302.7024 85.758336
-Q 316.2456 85.758336 316.2456 83.202624
-L 316.2456 53.102016
-Q 316.2456 50.546304 302.7024 50.546304
-L 30.3336 50.546304
-Q 16.7904 50.546304 16.7904 53.102016
-L 16.7904 83.202624
-Q 16.7904 85.758336 30.3336 85.758336
+    <path d="M 52.9056 119.834496
+L 302.7024 119.834496
+Q 316.2456 119.834496 316.2456 117.278784
+L 316.2456 91.437696
+Q 316.2456 88.881984 302.7024 88.881984
+L 52.9056 88.881984
+Q 39.3624 88.881984 39.3624 91.437696
+L 39.3624 117.278784
+Q 39.3624 119.834496 52.9056 119.834496
 z
 " clip-path="url(#pb57e2a84bd)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
    </g>
    <g id="patch_3">
-    <path d="M 30.3336 125.513856
-L 302.7024 125.513856
-Q 316.2456 125.513856 316.2456 122.958144
-L 316.2456 92.857536
-Q 316.2456 90.301824 302.7024 90.301824
-L 30.3336 90.301824
-Q 16.7904 90.301824 16.7904 92.857536
-L 16.7904 122.958144
-Q 16.7904 125.513856 30.3336 125.513856
+    <path d="M 52.9056 156.750336
+L 302.7024 156.750336
+Q 316.2456 156.750336 316.2456 154.194624
+L 316.2456 128.353536
+Q 316.2456 125.797824 302.7024 125.797824
+L 52.9056 125.797824
+Q 39.3624 125.797824 39.3624 128.353536
+L 39.3624 154.194624
+Q 39.3624 156.750336 52.9056 156.750336
 z
 " clip-path="url(#pb57e2a84bd)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
    </g>
    <g id="patch_4">
-    <path d="M 30.3336 165.269376
-L 302.7024 165.269376
-Q 316.2456 165.269376 316.2456 162.713664
-L 316.2456 132.613056
-Q 316.2456 130.057344 302.7024 130.057344
-L 30.3336 130.057344
-Q 16.7904 130.057344 16.7904 132.613056
-L 16.7904 162.713664
-Q 16.7904 165.269376 30.3336 165.269376
-z
-" clip-path="url(#pb57e2a84bd)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
-   </g>
-   <g id="patch_5">
-    <path d="M 376.4376 105.636096
-L 739.0944 105.636096
-Q 752.6376 105.636096 752.6376 103.080384
-L 752.6376 54.521856
-Q 752.6376 51.966144 739.0944 51.966144
-L 376.4376 51.966144
-Q 362.8944 51.966144 362.8944 54.521856
-L 362.8944 103.080384
-Q 362.8944 105.636096 376.4376 105.636096
+    <path d="M 391.4856 118.414656
+L 731.5704 118.414656
+Q 745.1136 118.414656 745.1136 115.858944
+L 745.1136 67.300416
+Q 745.1136 64.744704 731.5704 64.744704
+L 391.4856 64.744704
+Q 377.9424 64.744704 377.9424 67.300416
+L 377.9424 115.858944
+Q 377.9424 118.414656 391.4856 118.414656
 z
 " clip-path="url(#pb57e2a84bd)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
    </g>
    <g id="text_1">
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="42.372" y="70.961695" transform="rotate(-0 42.372 70.961695)">实验 01 · v1     已保存 · 示例负结果</text>
+    <text style="fill: #63738a; font: 9px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="34.848" y="46.85472" transform="rotate(-0 34.848 46.85472)">近期结果     标签 / 状态     收藏 / 搁置</text>
    </g>
    <g id="text_2">
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="42.372" y="110.717215" transform="rotate(-0 42.372 110.717215)">实验 01 · v2     已保存 · 修改一个因素</text>
+    <text style="fill: #25354a; font: 700 10px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="34.848" y="73.83168" transform="rotate(-0 34.848 73.83168)">研究问题 01：动量能否更稳？</text>
    </g>
    <g id="text_3">
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="42.372" y="150.472735" transform="rotate(-0 42.372 150.472735)">实验 02 · v1     状态阻断 · 仍保留</text>
+    <text style="fill: #63738a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="64.944" y="107.167615" transform="rotate(-0 64.944 107.167615)">v1 → run 01 · 负结果保留</text>
    </g>
    <g id="text_4">
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(388.476 76.150026)">选中版本：假设 / 本轮改动 / 关联运行</text>
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(388.476 87.381901)">版本关系与对照对象明确</text>
-   </g>
-   <g id="patch_6">
-    <path d="M 322.556961 108.455706
-Q 347.093606 96.549311 370.624386 85.131012
-" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
-    <path d="M 366.152565 85.07793
-L 370.624386 85.131012
-L 367.898827 88.67662
-" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+    <text style="fill: #476eaa; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="64.944" y="144.193611" transform="rotate(-0 64.944 144.193611)">v2 → run 02 · 近期 / 收藏</text>
    </g>
    <g id="text_5">
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #63738a" x="388.476" y="141.984" transform="rotate(-0 388.476 141.984)">查看结果 → 比较 → 复制下一轮讨论摘要</text>
+    <text style="fill: #63738a; font: 9px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="34.848" y="183.15936" transform="rotate(-0 34.848 183.15936)">研究问题 02 → v1 → run 03 · 失败 / 搁置</text>
+   </g>
+   <g id="text_6">
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(403.524 88.928586)">当前 v2：假设 / 本轮变动</text>
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(403.524 100.160461)">关联运行与输入输出版本</text>
+   </g>
+   <g id="patch_5">
+    <path d="M 322.417356 139.452137
+Q 354.618122 117.846638 385.890473 96.864071
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+    <path d="M 381.454538 97.431939
+L 385.890473 96.864071
+L 383.683207 100.75354
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+   </g>
+   <g id="text_7">
+    <text style="fill: #63738a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="396" y="150.50304" transform="rotate(-0 396 150.50304)">看结果 → 加对照 → 下一轮讨论</text>
    </g>
   </g>
-  <g id="text_6">
-   <text style="font-weight: 700; font-size: 12px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F01  实验列表与版本关系</text>
-  </g>
-  <g id="text_7">
-   <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能及口径待讨论</text>
-  </g>
   <g id="text_8">
-   <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #63738a" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
+   <text style="fill: #25354a; font: 700 12px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F01  研究问题 → 实验版本 → 运行</text>
+  </g>
+  <g id="text_9">
+   <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能已确认 / 视觉待确认</text>
+  </g>
+  <g id="text_10">
+   <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
   </g>
  </g>
  <defs>

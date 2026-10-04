@@ -10,7 +10,7 @@
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
-      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+      <dc:title>Matplotlib v3.9.4, https://matplotlib.org/</dc:title>
      </cc:Agent>
     </dc:creator>
    </cc:Work>
@@ -30,112 +30,64 @@ z
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 30.3336 118.581696
-L 174.7944 118.581696
-Q 188.3376 118.581696 188.3376 116.213904
-L 188.3376 64.648656
-Q 188.3376 62.280864 174.7944 62.280864
-L 30.3336 62.280864
-Q 16.7904 62.280864 16.7904 64.648656
-L 16.7904 116.213904
-Q 16.7904 118.581696 30.3336 118.581696
+    <path d="M 45.3816 122.528016
+L 302.7024 122.528016
+Q 316.2456 122.528016 316.2456 120.160224
+L 316.2456 72.541296
+Q 316.2456 70.173504 302.7024 70.173504
+L 45.3816 70.173504
+Q 31.8384 70.173504 31.8384 72.541296
+L 31.8384 120.160224
+Q 31.8384 122.528016 45.3816 122.528016
 z
 " clip-path="url(#pa793457d16)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
    </g>
    <g id="patch_3">
-    <path d="M 222.1956 118.581696
-L 366.6564 118.581696
-Q 380.1996 118.581696 380.1996 116.213904
-L 380.1996 64.648656
-Q 380.1996 62.280864 366.6564 62.280864
-L 222.1956 62.280864
-Q 208.6524 62.280864 208.6524 64.648656
-L 208.6524 116.213904
-Q 208.6524 118.581696 222.1956 118.581696
-z
-" clip-path="url(#pa793457d16)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
-   </g>
-   <g id="patch_4">
-    <path d="M 414.0576 118.581696
-L 558.5184 118.581696
-Q 572.0616 118.581696 572.0616 116.213904
-L 572.0616 64.648656
-Q 572.0616 62.280864 558.5184 62.280864
-L 414.0576 62.280864
-Q 400.5144 62.280864 400.5144 64.648656
-L 400.5144 116.213904
-Q 400.5144 118.581696 414.0576 118.581696
-z
-" clip-path="url(#pa793457d16)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
-   </g>
-   <g id="patch_5">
-    <path d="M 605.9196 118.581696
-L 750.3804 118.581696
-Q 763.9236 118.581696 763.9236 116.213904
-L 763.9236 64.648656
-Q 763.9236 62.280864 750.3804 62.280864
-L 605.9196 62.280864
-Q 592.3764 62.280864 592.3764 64.648656
-L 592.3764 116.213904
-Q 592.3764 118.581696 605.9196 118.581696
+    <path d="M 421.5816 131.736096
+L 739.0944 131.736096
+Q 752.6376 131.736096 752.6376 129.368304
+L 752.6376 67.279536
+Q 752.6376 64.911744 739.0944 64.911744
+L 421.5816 64.911744
+Q 408.0384 64.911744 408.0384 67.279536
+L 408.0384 129.368304
+Q 408.0384 131.736096 421.5816 131.736096
 z
 " clip-path="url(#pa793457d16)" style="fill: #ffffff; stroke: #dce3ed; stroke-linejoin: miter"/>
    </g>
    <g id="text_1">
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(42.372 87.624717)">Data</text>
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(42.372 98.856592)">固定行情与事实</text>
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(57.42 93.544198)">▸ 数据与运行信息</text>
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(57.42 104.776073)">同一 run · 默认折叠</text>
+   </g>
+   <g id="patch_4">
+    <path d="M 350.28218 93.806599
+Q 368.37902 94.700425 385.359187 95.539097
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
+    <path d="M 381.852366 93.563696
+L 385.359187 95.539097
+L 381.674774 97.159313
+" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
    </g>
    <g id="text_2">
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(234.234 87.390342)">Research</text>
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(234.234 99.090967)">实验 / 信号</text>
+    <text style="fill: #63738a; font: 9px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="328.284" y="95.69304" transform="rotate(-0 328.284 95.69304)">展开</text>
    </g>
    <g id="text_3">
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(426.096 87.520499)">Engine</text>
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(426.096 99.031124)">账户 / 标准评估</text>
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(433.62 90.082982)">Data 版本 / Feature / Signal 引用</text>
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(433.62 101.642357)">Core 与 Runtime 版本 / 账户水位</text>
+    <text style="fill: #25354a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'" transform="translate(433.62 112.874232)">质量与缺失说明</text>
    </g>
    <g id="text_4">
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(617.958 87.624717)">UI</text>
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; fill: #25354a" transform="translate(617.958 98.856592)">只读展示</text>
+    <text style="fill: #63738a; font: 10px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="31.086" y="165.41136" transform="rotate(-0 31.086 165.41136)">主要限制保留短句；完整来源按需展开，不占满结果页面。</text>
    </g>
-   <g id="patch_6">
-    <path d="M 187.330236 90.43128
-Q 200.377444 90.43128 212.306617 90.43128
-" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
-    <path d="M 208.306617 88.43128
-L 212.306617 90.43128
-L 208.306617 92.43128
-" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
-   </g>
-   <g id="patch_7">
-    <path d="M 379.192236 90.43128
-Q 392.239444 90.43128 404.168617 90.43128
-" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
-    <path d="M 400.168617 88.43128
-L 404.168617 90.43128
-L 400.168617 92.43128
-" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
-   </g>
-   <g id="patch_8">
-    <path d="M 571.054236 90.43128
-Q 584.101444 90.43128 596.030617 90.43128
-" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
-    <path d="M 592.030617 88.43128
-L 596.030617 90.43128
-L 592.030617 92.43128
-" style="fill: none; stroke: #476eaa; stroke-linecap: round"/>
-   </g>
-   <g id="text_5">
-    <text style="font-size: 10px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #63738a" x="31.086" y="153.5724" transform="rotate(-0 31.086 153.5724)">主视图：短限制说明        折叠区：来源版本 / 保存证据 / 账户水位 / 缺失原因</text>
-   </g>
+  </g>
+  <g id="text_5">
+   <text style="fill: #25354a; font: 700 12px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F06  数据与运行信息 · 默认折叠</text>
   </g>
   <g id="text_6">
-   <text style="font-weight: 700; font-size: 12px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #25354a" x="22.176" y="16.704" transform="rotate(-0 22.176 16.704)">F06  展开来源后查看同一运行的证据链</text>
+   <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: end" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能已确认 / 视觉待确认</text>
   </g>
   <g id="text_7">
-   <text style="font-size: 9px; font-family: 'Hiragino Sans GB'; text-anchor: end; fill: #63738a" x="772.2" y="16.704" transform="rotate(-0 772.2 16.704)">合成示意 · 功能及口径待讨论</text>
-  </g>
-  <g id="text_8">
-   <text style="font-size: 8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #63738a" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
+   <text style="fill: #63738a; font: 8px 'Hiragino Sans GB', 'DejaVu Sans'; text-anchor: start" x="22.176" y="201.492" transform="rotate(-0 22.176 201.492)">所有曲线、交易及统计均为设计示例，不是实际回测结果。</text>
   </g>
  </g>
  <defs>
