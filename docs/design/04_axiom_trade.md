@@ -296,7 +296,59 @@ Research 和 UI 消费本仓标准结果，不另实现 CAGR/DD。EvaluationSpec
 
 报告同时列 Data/PIT、样本/OOS、执行 profile、未支持事件和未检查范围。收益高不能覆盖正确性 blocker；费用或 benchmark 口径不同的回测不可直接混在排行榜上。
 
+<a id="daily-evaluation"></a>
+### 11.1 本轮日级 P10 冻结合同
+
+状态：`accepted`（2026-10-04）；这是已确认的首版合同，实现与测试结果在[当前交付](../current-delivery.md)单独记录。上述指标目录是长期目标；本 profile 只提供日净值/回撤、月收益、完整持仓段及独立沪深300价格基准，不计算年化、Sharpe 或 IRR。
+
+`daily_evaluation_spec()` 的唯一首版 EvaluationSpec 为：
+
+```json
+{"contract_version":"evaluation_spec_v1","frequency":"daily","benchmark_security_id":"000300.SH","benchmark_series_kind":"price_index_excluding_dividends","anchor":"previous_session","drawdown_peak":"initial_nav_included","monthly_partial_policy":"separate_observed_return","episode_definition":"position_0_nonzero_0","dividend_recognition":"ex_income_record_entitlement_pay_transfer","return_denominator":"cumulative_buy_cost_including_fees","weighting":"equal_closed_episode","external_cash_flows":"reject","annualization":"none","missing_policy":"null_no_fill"}
+```
+
+EvaluationReport 独立保存，不改旧 BacktestRun。其 `contract_version=evaluation_report_v1`；`input_run_ref={run_id,content_digest,committed_sequence}` 精确绑定账户结果，`signal_ref/market_ref/profile_ref` 沿用账户值。`evaluation_ref` 绑定 input_run_ref、spec_ref、benchmark_ref、dividend_scope_ref（包括 null）、evaluation_version、implementation_ref；`content_digest` 校验除自身之外的全部输出。报告还保存 `status=COMPLETE/PARTIAL`、`spec_ref/spec`、`benchmark_ref/benchmark_input`、`dividend_scope_ref/dividend_scope`、实现版本、`series`、`monthly_returns`、`episodes`、`episode_metrics`、`benchmark` 和 `limitations`。输出身份与逻辑运行身份分别保留；不能把 Document.identity 当 run_id。
+
+日账户 `series` 每项保存 session、nav_minor、nav_index、peak_nav_minor、drawdown、committed_sequence；回撤前高包含 initial NAV。金额原值为整数分，比例为 decimal 字符串；UI 只格式化成元与百分比。
+
+`monthly_returns` 每项保存 month、status（COMPLETE/PARTIAL/MISSING）、first_session、last_session、boundary_session、start_nav_minor、end_nav_minor、return、observed_return、reason、committed_sequence。完整月必须由冻结交易日历证明自然月左右边界，并有当月首末交易日的账户观测：左边至少到上月 session 或当月自然首日，右边至少到月最后自然日或下月 session。月收益以此前月末 session NAV 为边界；首月只有 run 的前一 session 恰为该边界时才可使用 initial NAV。不能用工作日猜周末或休市。不能证明完整的首尾月标 PARTIAL，正式 return 为 null，局部 observed_return 另列；缺边界或价格不填 0。
+
+基准默认 `000300.SH`，独立于 ETF 策略池，采用 `price_index_excluding_dividends`，单位 index points。benchmark 保存严格前一 session 的 anchor_session/anchor_close、状态及逐日 close、nav_index、daily_return、drawdown、valid、missing_reason、source_refs，另列 total_return/max_drawdown。缺价或峰值历史不完整时相关值为 null。benchmark_input 保存固定 Data Snapshot、QuerySpec、批次和查询证据。价格指数不含分红，与含分红账户收益的差异必须展示，不能称全收益对照。
+
+持仓段为单证券 0→非0→0，段内加减仓合并。每段保存 episode_id/security_id、CLOSED/OPEN、entry/exit session 与 sequence、left_censored、income_status、statistics_eligible/exclusion_reasons、初末数量、累计买入成本、卖出收入、费用、分红收入、pending/receivable、净盈亏或期末标记盈亏、收益分母、net_return、fill_refs 及分红归属链。初始持仓无入场记录为 left_censored；开放、左截断及已知收入未确定的段不进完整统计。登记日收盘权益归所属段，EX 确认收入一次，PAY 只转现金；读取保存账本金额，不能另行舍入重算。完整可统计段净收益率为净盈亏除以累计买入成本（含费用）；按段等权平均，与 IRR 无关。
+
+episode_metrics 保存 closed_count、eligible_closed_count、open_count、left_censored_count、income_pending_count、win_count/loss_count/tie_count、win_rate、mean_net_pnl_minor、mean_episode_return、return_denominator、weighting、dividend_scope_status。胜率分母为 eligible_closed_count，平局保留；平均净盈亏为 decimal 分均值（可有小数），段内金额仍为整数分。无合格段返回 null。
+
+**分红观察范围。** 旧账户事件按 ex_date 窗口读取，不能证明所有登记日已发生、EX 尚未发生的已知分红均已覆盖。可选 `DividendScope` 经同固定 Snapshot 的公共 Reader，以 `time_field=record_date`、start_session/end_session 和期末 knowledge_cutoff（UTC）查询，保存 `contract_version=dividend_scope_v1`、universe、`coverage=observed_records_only`、actions、source_refs/source_evidence/limitations。actions 保存 event_id、security_id、record_session、ex_session、pay_session、cash_per_unit、available_at、source_refs；Record digest 必须与旧账户事件身份匹配，固定 QuerySpec、purpose 和 cutoff 一并留存。
+
+EX 不晚于期末的经济事件必须与原账户一致；补充只允许当时已知且 record≤end、EX>end 的 pending 检查，不倒改旧净值或重复确认收入。缺 scope 时 `dividend_scope_status=COVERAGE_UNKNOWN`，不能确定的 pending_dividend_minor 为 null；已知 pending 保留，income_pending_count 只表示已知 pending 段数，不能把未知总量当成已排除的 0。缺 scope 不阻止正常已观测闭合段的净盈亏及统计，但须显式限制范围。有 scope 时标 OBSERVED_RECORDS_ONLY，仍不保证供应源完整；结束后披露的公告不成为当时已知。
+
 ## 12. 公共入口与只读接口
+
+日级 P10 的有界公共入口如下；评估是显式离线写入步骤，UI/Research 只调用保存结果的 loader：
+
+```python
+from axiom_engine.runtime import (
+    BenchmarkSeries, EvaluationSpec, EvaluationReport, DividendScope,
+    daily_evaluation_spec, read_csi300_benchmark, read_dividend_scope,
+    evaluate_backtest, save_backtest_evaluation, load_backtest_evaluation,
+    load_backtest_run,
+)
+run = load_backtest_run(run_path)
+benchmark = read_csi300_benchmark(data, snapshot=snapshot,
+    sessions=calendar_anchor_through_end)
+scope = read_dividend_scope(data, snapshot=snapshot, universe=universe,
+    start_session=start_session, end_session=end_session)
+report = evaluate_backtest(run, benchmark=benchmark,
+    spec=daily_evaluation_spec(), dividend_scope=scope)  # scope 可为 None
+save_backtest_evaluation(report, report_path)
+
+# 只读消费者：校验保存内容，不 run_backtest/evaluate_backtest。
+saved = load_backtest_evaluation(report_path)
+payload = saved.to_dict()
+```
+
+以下为其余通用目标接口，不因上面的有界 profile 而宣称全部实现：
 
 ```python
 run_backtest(request: BacktestRequest) -> BacktestRunRef

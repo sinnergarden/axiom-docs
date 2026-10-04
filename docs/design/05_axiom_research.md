@@ -95,6 +95,43 @@ compatible_core_api: core_api_v1
 
 Column 级 provenance 保存一次公式/输入关系；UI 可追到 source refs 和选中样本，不给每个 cell 都建立昂贵独立收据。
 
+<a id="experiment-records"></a>
+### 3.3 实验记录与只读索引
+
+状态：`accepted`（2026-10-04 的有界读取合同）；实现与验收另记[当前交付](../current-delivery.md)。首版复用已有 ETF RotationExperiment、FeatureBuild、SignalRun 和 ArtifactRef，不引入训练、特征执行器或第二套回测。
+
+研究问题保存稳定 `question_id`、内容身份 `question_ref`、`title`、`description`、`hypothesis` 和首次登记的 `created_at`。问题下的版本保存 `version_ref`、`question_id`、同问题的 `parent_version_ref`（首版为 null）、`label`、`explanation`、完整 `parameters`、固定 `input_refs`、人工声明的 `explicit_changes` 和登记时间。问题、版本及运行记录均不可变；参数改变产生新版本，不根据收益或参数替研究者补写意图。
+
+运行记录保存 `run_record_ref`、`question_id`、`version_ref`、`created_at`、`status`（COMPLETE / FAILED / BLOCKED）、`reason`、可选的显式 `outcome`、`output_refs`、`backtest_ref` 和 `evaluation_ref`。失败或阻断必须有原因；缺结果不补零，处理完成不代表策略有效。输入、输出沿用既有 ArtifactRef；FeatureBuild 与 SignalRun 的身份在相应引用中保留。Engine 引用精确保留原字段：`backtest_ref={run_id,content_digest,signal_ref,committed_sequence,uri}`；可选 `evaluation_ref={evaluation_ref,evaluation_content_digest,input_run_ref:{run_id,content_digest,committed_sequence},uri}`。前者信号必须对应输出 SignalRun，后者必须与前者的运行身份、输出 digest 和水位一致；不得把 Document.identity 叫作 run_id，也不改变旧 BacktestRun。
+
+分组、标签、收藏和搁置属于 Research 业务状态。`organization={revision,groups,tags,favorite,shelved}` 以 `expected_revision` 比较后更新，并保留全部旧修订；并发旧值不能覆盖新值。这里的 tags 是整理标签，与预测目标 LabelSpec 无关。首版采用显式路径的一份轻量 JSON 索引，原子替换与写入锁保证一致性，不建立 registry 或数据库平台。
+
+```python
+from axiom_research import ExperimentStore, ExperimentReader
+
+writer = ExperimentStore(index_path)
+question = writer.create_question(question_id="etf-momentum", title="ETF 轮动",
+    description="固定数据下的规则基线", hypothesis="由研究者明确填写")
+version = writer.create_version(question_id=question["question_id"], label="baseline",
+    explanation="本版目的与限制", parameters=parameters, input_refs=input_refs,
+    parent_version_ref=None, explicit_changes=["首次登记固定基线"])
+record = writer.record_run(question_id=question["question_id"],
+    version_ref=version["version_ref"], status="COMPLETE", output_refs=output_refs,
+    reason=None, outcome=None, backtest_ref=backtest_ref, evaluation_ref=None)
+writer.update_organization(question["question_id"], expected_revision=0,
+    groups=["ETF"], tags=["baseline"], favorite=True, shelved=False)
+
+reader = ExperimentReader(index_path)
+index = reader.index(group=None, tags=[], status=None, favorite=None, shelved=None,
+    question_id=None, version_ref=None)
+detail = reader.detail(question["question_id"])
+diff = reader.compare_versions(left_version_ref, right_version_ref)
+```
+
+公共投影 `experiment_projection_v1` 返回 `store_revision`、索引 `content_digest` 和 `questions:[{question,organization,versions,runs}]`；detail 返回同一投影中的单个问题。筛选 tags 要求全部命中；version_ref 保留对应版本与运行，status 要求至少一条匹配运行，未运行版本在未指定 status 时仍可查看。排序使用 owner 保存的登记时间和稳定身份，不能以文件 mtime 猜最近运行。版本比较返回声明变动及保存参数、输入引用的逐字段差异，不推断业绩因果，也不重算账户指标。
+
+Reader 构造、索引、详情和比较仅读取并校验索引元数据，不创建目录或文件，不逐次哈希整个产物目录，不导入 Data/Core 执行入口，也不调用训练或回测。外部产物在登记与实际读取时由各 owner 的公开 loader 校验；索引校验不替代产物可用性或真实性证明。旧产物未登记时不自动扫描成研究结论。UI 经此投影浏览，再按 Engine 公共 loader 读取已保存账户与评估结果。
+
 ## 4. Dataset、Label 与时序
 
 ### 4.1 数据准备顺序
