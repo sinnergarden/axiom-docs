@@ -572,7 +572,7 @@ Research 的统一评估至少包括 IC/Rank IC、ICIR、分位组收益、覆�
 
 **本版细化：**信号评估实现归 Research；账户净值、回测与 shadow/real 共用的指标实现归 Trade 的 reporting。Research 引用标准 BacktestEvaluation，不另写一套 CAGR/DD；UI 只展示。共同结果 envelope 统一对象引用、metric spec、scope、数据表和警告。
 
-完整持仓段和月收益统计由 Runtime 按确认口径生成并保存；Research 关联结果，UI 只读联动。本次职责确认不自动采用 PRD 中仍待讨论的分段或统计公式。
+完整持仓段和月收益统计由 Runtime 按确认口径生成并保存；Research 关联结果，UI 只读联动。统计口径引用[当前 PRD 的已确认规则](https://github.com/sinnergarden/axiom-docs/blob/60373bdce705e2f8042bea0727d89e2207319b1a/docs/design/08_axiom_ui_research_prd_draft.md#confirmed-statistics)，边界表不另维护公式。
 
 ### 10.5 门禁分开，不设万能绿色勾
 
