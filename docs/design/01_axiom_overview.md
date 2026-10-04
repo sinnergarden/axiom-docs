@@ -22,7 +22,7 @@
 | [05 Research](05_axiom_research.md) | 如何提升信号和策略、控制试验、复用产物和发布 | Feature/Label/Dataset/Model/Signal/研究证据 |
 | [06 UI](06_axiom_ui.md) | 怎样看懂事实、Feature、决策、账户和异常 | 只读组合查询、图表联动、交互与展示验收 |
 
-文档切分不按页面或每个类单拆。Runtime、统一回测、模拟成交和事务账本都留在 Trade；Feature 与模型专项思考留在 Research；跨仓设计统一存放于 `axiom-data/docs/design/`，不增加独立治理 repo；物理存放位置不改变各仓的逻辑职责。
+文档切分不按页面或每个类单拆。Runtime、统一回测、模拟成交和事务账本都留在 Trade；Feature 与模型专项思考留在 Research；跨仓设计统一存放于 `axiom-docs/docs/design/`，不增加独立治理框架；物理存放位置不改变各仓的逻辑职责。
 
 **冲突处理：**模块细节由 owner 文档决定；涉及边界和数据协议的变更，先形成小型变更提案，同步总纲、受影响专项与契约测试，再执行。总纲本身可以被反例推翻，不是让 agent 机械服从的不可修改宪法。
 
@@ -45,15 +45,21 @@ Axiom 同时承担研究平台、投资辅助和自动交易系统三个角色�
 5. **正式产物不可原地修改。** 修改事实、公式、模型或规则均产生新版本；一次执行固定实际依赖，不再自行寻找“最新”。
 6. **按独立版本轴拆仓，不按类的数量拆仓。** 优先单机、文件 artifact、Python 公共 API 和少量 CLI，不建设微服务、消息队列或通用工作流平台。
 
+<a id="module-boundaries"></a>
+
 ## 2. 四个物理仓库与五个逻辑领域
 
-| 仓库/逻辑模块 | 主要负责 | 主要交付 | 不负责 |
-|---|---|---|---|
-| `axiom-data` | 采集、标准事实、PIT、稳定派生、snapshot、事实视图、数据验证 | `DataSnapshotRef`、`FactViewRef`、`MarketReplayViewRef`、`QlibViewRef`、`UniverseRef` | 预测 Feature 选择、label 定义、训练、策略、成交、Feature 有效性裁决 |
-| `axiom-engine/core` | 通用 Feature 算子、推理协议、信号变换、组合/风险/订单规划协议、策略状态转换 | 版本化执行库、输入输出类型、确定性决策结果 | 采集、找最新版本、具体研究配方、训练编排、撮合、数据库、调度 |
-| `axiom-research` | Feature/label/模型/策略研究、训练、信号评估、实验比较、研究发布 | `FeatureRelease`、`FeatureBuild`、`TrainingDataset`、`ModelRelease`、`SignalRun`、`StrategyRelease` | 另写回测引擎、券商接口、真实账户账本、修改 Data 内部文件 |
-| `axiom-engine/runtime` | runtime、统一回测、shadow/real、Broker、账户核算、ledger、恢复和对账 | `RunManifest`、`BacktestRun`、订单/成交/持仓事件、账户快照、部署记录 | 另写 Feature/预测/选股规则、改变上游事实、自动证明 alpha |
-| `axiom-ui` | 研究、数据、运行、订单与账户的只读总看板 | 页面、查询接口、可重建展示索引 | 修数据、改持仓、下单、隐式发布策略、重新定义指标 |
+本表是统一模块边界入口。各 repo、专项设计和 PRD 引用[本表](#module-boundaries)确定职责；§3 的对象 owner、§9 的交换矩阵和专项合同细化这些边界，不另维护一份完整职责表。按[维护约定](../design-maintenance.md)，随讨论确认增量更新相应行及受影响引用，用户无需一次列全。下列输入与输出沿用既有设计语义，不新增接口，也不代表实现已完成。
+
+**2026-10-04 用户讨论确认的补充：**Data 执行事实 Query/View、事实导出及复用；Research 提出事实需求，管理派生 Feature、模型输入产物和实验版本，其 Feature 构建仍复用 Core；Engine 计算账户回测与标准账户指标，Research 关联其结果；UI 只读展示、选择、比较与联动。这一确认不将总纲其他“本版细化”自动变为已确认方案。
+
+| Owner（仓库/逻辑域） | 负责范围 | 输入 | 输出 | 消费者 | 不负责范围 |
+|---|---|---|---|---|---|
+| [Data](02_axiom_data.md) · `axiom-data` | 采集、标准事实、PIT、事实口径的稳定派生、snapshot、数据验证；执行事实 Query/View、事实导出及复用 | 来源事实及配置；Research 的事实需求；Research/Engine/UI 的固定版本、字段、范围和时间查询 | `DataSnapshotRef`、`FactViewRef`、`MarketReplayViewRef`、`QlibViewRef`、`UniverseRef`；事实查询结果、显式导出及来源/质量证据 | Research；Engine/Runtime；UI 的事实层 | 研究派生 Feature/模型输入产物管理、预测 Feature 选择、label 定义、训练、实验管理、策略与成交、Feature 有效性裁决 |
+| [Engine/Core](03_axiom_core.md) · `axiom-engine/core` | 共享 Feature 执行、推理、信号变换、组合/风险/订单规划、策略状态转换 | Research 发布的 Feature/模型/信号计划与执行包；Research/Runtime adapter 注入的固定事实、账户/策略状态及规则 | 版本化执行库、输入输出类型；`FeatureFrame`、`PredictionFrame`、`SignalFrame`、确定性决策结果与 trace | Research；Engine/Runtime；UI 随保存产物读取 trace | 采集、找最新版本、具体研究配方、实验管理、训练编排、撮合、数据库、调度；直接响应 UI 计算请求 |
+| [Research](05_axiom_research.md) · `axiom-research` | 提出事实需求；管理派生 Feature 与模型输入产物，其构建复用 Core；管理训练、信号评估与发布；管理实验假设、参数、输入输出版本、运行关联及版本差异，关联 Engine 标准结果 | 固定 Data Query/View 结果、事实导出及版本引用；研究假设与参数；Core 执行结果；Engine 的回测和账户评估产物 | 事实需求；`FeatureRelease`、`FeatureBuild`、模型输入阶段产物、`TrainingDataset`、`ModelRelease`、`SignalRun`、`StrategyRelease`；实验说明、版本关系、运行与结果引用、差异说明 | Data 接收需求；Core 消费执行包；Engine/Runtime 消费信号与策略；UI 展示研究投影；研究者查看证据 | 另写 Feature 执行器或账户回测引擎、重算 Engine 账户指标、券商接口、真实账户账本、修改 Data 内部文件 |
+| [Engine/Trade Runtime](04_axiom_trade.md) · `axiom-engine/runtime` | runtime、唯一账户回测、shadow/real、Broker、账户核算、ledger、恢复和对账；计算标准账户指标与评估 | 固定市场回放/事实视图；Research 的 `SignalRun` 或策略/模型包；账户初值、执行及评估配置；Core 决策结果 | `RunManifest`、`BacktestRun`、订单/成交/持仓事件、账户快照、标准账户指标/评估报告、部署记录 | Research 关联并比较结果；UI 展示运行及账户；运行/对账工具 | 管理 Research 实验假设与版本差异、另写 Feature/预测/选股规则、改变上游事实、自动证明 alpha |
+| [UI](06_axiom_ui.md) · `axiom-ui` | 只读展示研究、事实、运行、订单与账户；选择、比较和图表联动，格式化 owner 保存结果 | Data 事实投影；Research 实验及版本关联、Feature/模型输入/信号产物；Engine 运行、账户及标准评估结果 | 页面、公共只读入口的查询组合、选择/比较联动、可重建展示索引与页面偏好 | 研究者和开发者浏览、比较、复盘；各 owner 接收只读查询需求 | 管理实验及其业务版本、从参数猜实验假设或用户意图、重算业务指标、触发 Feature/训练/回测、修数据、改持仓、下单、隐式发布策略 |
 
 ```text
 供应商 → axiom-data → 固定的事实视图 ─────────────┐
@@ -86,7 +92,7 @@ Core 是库，不是必须独立启动的服务。Research 与 Trade 都可以�
 
 ### 3.1 主要对象
 
-下表是逻辑边界，不要求为每行建设独立服务或登记系统。属于同一发布包的对象可共享一个 manifest，通过子对象引用区分。
+下表细化[§2 模块边界](#module-boundaries)中的对象 owner，不要求为每行建设独立服务或登记系统。属于同一发布包的对象可共享一个 manifest，通过子对象引用区分。
 
 | 对象 | 表达什么 | 权威 owner |
 |---|---|---|
@@ -638,7 +644,7 @@ review 不是只问“代码符合文档吗”，还要问“当前合同是否�
 
 ### 12.2 轻量跨仓治理
 
-**本版细化：**总体边界及跨仓契约索引统一存放于 `axiom-data/docs/design/`，不增加治理 repo；domain 细节与测试由各 owner 仓库维护。其他仓引用这套文档的明确版本，不复制维护整份总纲。
+**本版细化：**总体边界及跨仓契约索引统一存放于 `axiom-docs/docs/design/`，不增加治理框架；domain 细节与测试由各 owner 仓库维护。其他仓引用[§2 模块边界表](#module-boundaries)及这套文档的明确版本，不复制维护整份总纲。
 
 每个仓库的 `AGENTS.md` 只做简短导航，指向模块合同、UC、公用命令和适用测试。skills 描述何时使用/不使用，不充当第二份业务真相。
 
