@@ -325,6 +325,44 @@ episode_metrics 保存 closed_count、eligible_closed_count、open_count、left_
 
 EX 不晚于期末的经济事件必须与原账户一致；补充只允许当时已知且 record≤end、EX>end 的 pending 检查，不倒改旧净值或重复确认收入。缺 scope 时 `dividend_scope_status=COVERAGE_UNKNOWN`，不能确定的 pending_dividend_minor 为 null；已知 pending 保留，income_pending_count 只表示已知 pending 段数，不能把未知总量当成已排除的 0。缺 scope 不阻止正常已观测闭合段的净盈亏及统计，但须显式限制范围。有 scope 时标 OBSERVED_RECORDS_ONLY，仍不保证供应源完整；结束后披露的公告不成为当时已知。
 
+<a id="long-history-evaluation"></a>
+### 11.2 多年保存账户的有界年化评价
+
+状态：`accepted`（2026-10-04，主协调确认最小方案）；实现待本节固定提交后的 Engine 小增量 PR。只对完整冻结 BacktestRun 的保存观测增加账户与沪深300 CAGR，以及账户同区间既有最大回撤；不运行账户、不重算行情/成交/费用/分红，不扩为通用指标平台。旧 65 日 P10 保存结果、`daily_evaluation_spec()` 和 v1 schema 保持不变。
+
+新工厂 `long_history_evaluation_spec()` 返回 `evaluation_spec_v2`，完整复制 §11.1 spec，只改变 contract_version 及下列 annualization；其余依赖、月边界、持仓段、分红观察与缺失规则不变：
+
+```json
+{"contract_version":"evaluation_spec_v2","annualization":{"method":"geometric_cagr","day_count":"actual_actual_calendar_year_split","interval":"start_inclusive_end_exclusive","start_anchor":"previous_session_initial_nav","end_anchor":"last_saved_nav_session","minimum_year_fraction":"1"}}
+```
+
+**时钟与公式。** anchor 为冻结交易日历中第一条账户 NAV session 的严格前一 session，使用账户原 `initial_nav_minor`；这是本 profile 对初始财富的归属时钟，不伪造该 session 曾有一条 NAV 观测。end 为最后保存 NAV 的 session；账户和基准使用相同 anchor/end。按日期区间 `[anchor,end)` 将实际自然日逐日历年拆分，保存 elapsed_calendar_days 及 year_segments。每段的 year_days 为该日历年的 365 或 366，`Y=sum(days/year_days)`，`CAGR=(end_value/start_value)^(1/Y)-1`。包含周末与休市，不以交易 session 数或 252 代替年跨度。区间及源日历必须来自该保存结果的冻结闭包，不能用 current 或工作日猜测。
+
+`evaluation_report_v2` 保留 v1 的所有 sections、引用及完整来源，唯一新增顶层 `period_metrics={window,account,benchmark}`。准确字段为：
+
+```text
+window = {anchor_session, end_session, elapsed_calendar_days, day_count,
+          year_segments:[{year,days,year_days}], year_fraction}
+account = {cagr_status, cagr, cagr_reason, initial_nav_minor, final_nav_minor,
+           total_return, max_drawdown}
+benchmark = {cagr_status, cagr, cagr_reason, anchor_close, end_close,
+             total_return, max_drawdown}
+```
+
+session 使用原市场日期；elapsed_calendar_days 和 year_segments 的三个值为整数，day_count 固定为 actual_actual_calendar_year_split，year_fraction 为 decimal 字符串。金额仍为 CNY 分整数，基准原生 close 与收益/回撤比例为 decimal 字符串；缺值为 null。计算采用独立 Decimal context（precision=40、ROUND_HALF_UP），包括年分数和分数次幂；调用方全局精度不得改变保存值。UI 只格式化 owner 保存值，不计算年化或区间指标。
+
+v2 限制文案需反映已提供 CAGR，不能继续携带旧“无年化”描述；原数据、执行与分红等实质限制仍全部保留。
+
+两条腿各自保存 `cagr_status`，只允许 AVAILABLE / INSUFFICIENT_SPAN / MISSING_BOUNDARY；AVAILABLE 的 cagr 为有限 decimal 字符串、cagr_reason=null，其他状态 cagr=null、cagr_reason 为明确原因。先对负 NAV、外部现金流或非法财富拒绝评价；其余输入中，缺起点或终点优先于短跨度标 MISSING_BOUNDARY；合法端点齐全但 Y<1 标 INSUFFICIENT_SPAN，累计收益与既有回撤仍按其自身缺失规则保存。账户初始 NAV 必须大于 0、终值不得小于 0；外部入出金、负财富或非法值明确拒绝，不回退 IRR。年跨度满足门槛时，终值为 0 的账户 CAGR=-1（显示 -100%）。基准沿用原生正 close 的资格；缺 anchor/end close 时 CAGR 与相关 total_return 为 null，不以前/后值填边界。
+
+账户 max_drawdown 取既有 series.drawdown 的最小值（前高已包括 initial NAV），与同一 anchor/end 对齐，不能年化回撤。基准 max_drawdown 复用原 benchmark 的保存计算规则；中间缺价即使两个端点齐全、端点 CAGR 可用，峰值历史不完整时最大回撤仍为 null，原 PARTIAL 与限制保留。CAGR 可用性独立于 monthly_returns 是否 COMPLETE、持仓段是否 eligible 和报告顶层 status：只检查完整保存账户/NAV、合法端点和年跨度，不能因首尾局部月禁用 CAGR。CAGR 字段状态不替换报告顶层既有状态。账户含费用与 EX 已确认收入/应收，沪深300仍是价格指数、不含分红；源/PIT、执行近似、陈旧估值及有界分红观察的全部原限制保留。未确认未来 EX 不补入旧 NAV 或 CAGR；模拟年化结果不解释为预测收益。
+
+新报告的 evaluation_version 固定为 `axiom.evaluation/2`；evaluation_ref 仍绑定 input_run_ref、spec_ref、benchmark_ref、dividend_scope_ref（含 null）、evaluation_version、implementation_ref，content_digest 覆盖除自身之外的全部输出。新 spec/版本/实现产生独立身份和新保存路径，不能改写原 v1 文件。`load_backtest_evaluation` 同入口兼容 v1/v2，只校验合同、身份与内容并加载保存值，不查询 Data、不执行评价。loader 依据保存件配对验证 spec/report/evaluation 版本（v1/v1/axiom.evaluation/1 或 v2/v2/axiom.evaluation/2）及 hash/ref，不因当前实现版本变化拒绝旧 v1，也不补写 period_metrics。Research 仍关联原账户三元引用；换评价只新增登记历史，不增加回测次数。
+
+**定向验收。** 合成 2020-01-01→2022-01-01 的区间必须保存 731 天、两段 `{year:2020,days:366,year_days:366}` 与 `{year:2021,days:365,year_days:365}`，Y=2；财富 100→121、100→64、100→100、100→0 分别得到 0.1、-0.2、0、-1。严格按 Y<1 判断短跨度，不能改为 365 天或自然周年：2020-07-01→2021-07-01 虽跨自然周年，Y=184/366+181/365<1，仍为 INSUFFICIENT_SPAN，终 NAV 为 0 时也保持 cagr=null。另验首尾月不完整但 Y≥1 的 CAGR 可用、端点缺失/中间缺价、外部现金流拒绝、全局 Decimal context 不变、保存复用与只读 loader。只读消费原 65 日账户验证新 profile 的年化不可用，并核对旧 v1 文件 hash/mtime 不变；无需重跑账户或等待新的长历史采集。
+
+来源核对（2026-10-04）：[GIPS Handbook for Firms](https://www.gipsstandards.org/standards/gips-standards-for-firms/gips-standards-handbook-for-firms/) §2.A.12 与 §8.C.1 discussion 支持几何复利年化及不足一年不年化。Actual/Actual 按日历年拆分与初始财富归属是本 profile 的明确约定，不称 GIPS 合规。本轮不增加波动率或 Sharpe。
+
 ## 12. 公共入口与只读接口
 
 日级 P10 的有界公共入口如下；评估是显式离线写入步骤，UI/Research 只调用保存结果的 loader：
@@ -348,6 +386,17 @@ save_backtest_evaluation(report, report_path)
 # 只读消费者：校验保存内容，不 run_backtest/evaluate_backtest。
 saved = load_backtest_evaluation(report_path)
 payload = saved.to_dict()
+```
+
+§11.2 的已确认增量入口待 Engine 实现；复用上述评价、保存和只读加载函数，仅增加固定工厂，不另建账户路径：
+
+```python
+# 待实现合同示意，未执行；保留旧报告，写入独立的新路径。
+from axiom_engine.runtime import long_history_evaluation_spec
+report = evaluate_backtest(run, benchmark=benchmark,
+    spec=long_history_evaluation_spec(), dividend_scope=scope)
+save_backtest_evaluation(report, new_report_path)
+# UI/Research 继续仅 load_backtest_evaluation(new_report_path)。
 ```
 
 以下为其余通用目标接口，不因上面的有界 profile 而宣称全部实现：
