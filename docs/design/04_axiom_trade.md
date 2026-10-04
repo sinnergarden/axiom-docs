@@ -247,51 +247,113 @@ Data 提供事件事实及日期；Trade 按账户实际权益登记处理。至
 另设持有 100 股、每股 1 元现金股息：确认权益时应收 100，到账时现金加 100/应收减 100，不得净资产再增加一次。送股/转增夹具核对数量、成本基准、可卖日期；未知税费或精度不能用这些简化示例替代真实 profile。
 
 <a id="etf-unit-split-application-proposal"></a>
-### 9.2 两笔 ETF 份额折算的账户应用提案
+### 9.2 ETF 份额拆分的有界账户合同
 
-状态：2026-10-04 设计草案，未实现、未解锁全段回放。事实范围与时钟见
-[Data §6.2](02_axiom_data.md#etf-unit-split-proposal)。现有 Runtime 只有现金事件；本提案仅
-支持该节两笔折算，其他送转、拆分、合并、现金补偿或退市类型仍明确 unsupported。
+状态：2026-10-04 语义边界与下列最小保存合同已裁决，供 Engine 实施；
+未实现、未解锁全段回放。事实见 [Data §6.2](02_axiom_data.md#etf-unit-split-proposal)。
+首轮只验收该节两笔事件；实现匹配明确比例、阶段与取整规则的 ETF 份额拆分合同，
+未来同语义事实可追加，不写证券/日期特判。其他未支持行动继续阻断。
 
-Engine 从固定公共事件输入，在声明的登记基准冻结账户实际权益，在生效阶段一次应用
-份额折算。同步持仓总数量、可卖数量与未结算批次，保持原批次到期边界，不提前变为可卖。
-登记至生效期间发生买卖或其他数量变化，使当前数量与登记权益不一致时，本有界方案阻断；
-不能覆盖当前持仓或默认按生效时数量折算，后续规则须另经 owner/协调方裁决。
-510500 首版将一个模拟账户声明为一个登记持有人；对其合计权益乘 `114539/100000`，再
-向上取整一次，不能各批次分别 ceil。多个账户或通道归同一持有人的合并不在本轮支持范围。
-总成本（整数分）保持不变，平均成本随新数量派生；事件不是 fill、手续费或现金股息，
-不生成买卖盈亏、外部现金流或应收。无权益账户保存已处理状态，不凭行情跳变新建持仓。
+#### 首版权益与时钟边界
 
-数量与估值尺度必须一起应用。513100 在 01-13 停牌日发生五倍数量变化时，将登记基准的
-最后有效原市场价按同一官方比例除以 5，形成带事件来源的估值桥接；保留原报价 session、
-原价及 stale 原因，不填 01-13 行情。01-14 的真实新尺度报价替换桥接值。510500 在
-08-26 收市后阶段使用旧尺度收盘价完成相应阶段，再同步数量及 `旧价/1.14539` 的估值尺度；
-08-29 读取真实新尺度开收盘价。桥接只用于账户估值，不成为成交价格或 Research 输入。
-缺少可追溯旧尺度估值或无法判定尺度时阻断，不能猜价。向上取整导致的份额尾差及其估值
-影响单独留证，不能要求该笔净值恰好不变或伪造现金抵消。
+Engine 从同一固定 Snapshot、声明 cutoff 的 `fund_share_conversions` 公共事件输入，
+在登记基准冻结实际权益。首版仅支持折算权益全部已结算、单账户对应单登记持有人、
+无冻结权益/挂单、登记与应用数量一致。混合未结算批次、跨账户持有人合并及登记至生效
+发生买卖等数量变化均 unsupported，应用前阻断，不覆盖当前持仓、不实现逐批次 ceil。
 
-订单复用现有规则：买入仍按 100 份；容量、可卖数量足够时，清仓可卖出全部整数份额，
-包括折算产生的零股。容量不足的部分成交按整手处理并保留尾仓；不可卖或部分成交不足一手不成交，
-不丢弃余量，不新增费用或放宽执行 profile。生效时存在挂单/冻结权益而尚无确定处理规则时阻断。
+已结算单位替换不再次 T+1；首个新单位允许执行 session 关联 Data 的 `new_price_basis_session`，仍受
+原执行准入、容量、行情、价格限制与事件禁止条件约束。这是 Engine 明示回测约定，
+不作为官方可卖规则认证。本轮 513100 的该 session 为 01-14，510500 为 08-29。
+原始 Data 状态 UNKNOWN 保留；可见官方全天停牌事件额外禁止成交并保存其具体依据，
+不能由 observed 日线 profile 绕过，也不能修改 Data 状态。
 
-保存事件身份/修订、登记权益、应用阶段、水位、前后数量/可卖量/未结算批次/总成本/估值，
-精确比例、尾差与 source refs。按账户与固定事件应用身份幂等；重复不变、冲突修订拒绝，
-不得部分更新后继续。份额折算不结束 `0→非0→0` 的持仓段；P10/P10 v2 必须消费同一保存
-事件流水更新段内数量，不能伪造买入/卖出或重复确认收入。旧账户、评价与保存合同保持原件；
-新增回放/流水的确切版本与只读 loader 兼容方式须在编码前冻结并纳入运行身份。
+计划/结果分开：本轮两份计划已披露各自精确比例，按各自 best-effort next-open 时钟，
+在登记/生效时可见。Engine 可以使用 `process_status='planned'` 的完整已公告安排；不以
+未来结果 `implemented` 作为准入前提。513100 于 01-13 应用、01-14 复牌时仍只能使用
+计划修订；510500 于 08-26 应用、08-29 新单位开盘时同样只用计划。结果分别至 01-17、
+08-30 09:30 才可见，用作独立核对，保存来源与核对状态，不改过去决策或重复应用。
+未来同语义计划缺少必要比例等字段时仍阻断，不借后来结果补齐。
 
-待冻结的真实边界：Data 的原件证据/字段与 PIT 可见时钟；513100 的日内阶段与两事件可卖
-边界；合计取整后的整数尾差如何分配到可卖/未结算批次（保持到期，不逐批 ceil）。如本轮
-仅支持全部已结算且无冻结权益的账户，必须由协调方明确裁决；混合批次继续 preflight 阻断，
-不能声称已支持。精确比例不能直接充当因子跳变阈值；两事件与供应商新价格尺度的可验映射
-由 Data/Engine owner 固定，未解释变化仍阻断。
+#### 数量、估值与 Core 前收参考价
 
-验收先做有界合成手算：100 份、10 元按 1:5 变为 500 份、2 元，总成本与现金不变且停牌
-无成交；510500 合计 100 份变为 115（拆为两批各 50 份仍须合计 115，不能变 116）；重复
-应用/冲突、未到可知时钟、到期数量、零股清仓/容量不足尾仓、stale 桥接与持仓段连续性均
-独立核对。随后只读取新固定 Snapshot 的两事件窗口验收来源与映射；通过审阅后再授权一次
-全段运行；已完成起点预检保留，不重复其同输入构建。新 Snapshot 只核对所复用分区与来源
-闭包，新增事件仍须取得独立证据；不回写旧输入或复用旧身份冒充新证据。
+数量按登记持有人合计乘官方精确分数。`quantity_rounding=not_stated` 只在精确结果已为
+整数、不需要尾差处理时接受；不得自行选择分数取整。510500 按已声明规则 ceil 一次，合计
+100 份变为 115，不能两批各 50 分别 ceil 得到 116。新数量与可卖数量一致，受影响未结算
+批次必须为空。总成本（整数分）不变，平均成本随新数量派生。事件不是 fill、手续费或
+现金股息，不生成买卖盈亏、外部现金流或应收；零权益保存已处理状态，不新建持仓。
+
+Engine 按 `effective_date` 与明示的模型应用阶段处理：513100 官方
+`effective_phase=not_stated`，本模型约定于 01-13 日终，数量乘 5，
+将最后有效旧尺度参考价除以 5，再提交 NAV；停牌日原行情缺行保留。510500 于 08-26
+读取旧尺度真实 close 后，数量合计 ceil，并将该 close 除以 `1.14539`，再提交 NAV。
+这些是本轮时钟验收用例；程序按合同阶段及比例执行，不按代码/日期分支。
+
+桥接同时用于账户估值与随后 Core 决策的前收参考价单位归一化，包含零持仓候选；否则
+08-29 sizing 会混用旧单位。保留原价格、原 session、stale 原因、固定事件/修订来源及
+桥接后的尺度。Core 所用桥接价同时绑定原报价与事件修订的可见时钟，按当前决策 cutoff
+校验；不能只继承较早原价的时间戳而提前使用后来比例。新尺度真实报价到达后替换参考价，
+不重复折算。不填停牌行情，桥接不成为成交价格或 Research 输入。所需旧尺度参考价缺少可追溯来源或尺度不明时阻断，不猜价。
+向上取整的数量尾差及其估值影响留证，不强求 NAV 恰好不变、不伪造现金抵消。
+
+订单复用现有规则：买入仍按 100 份；容量与可卖数量足够时，清仓可卖出全部整数份额，
+包括零股。容量不足的部分成交按整手并保留尾仓；不可卖或部分成交不足一手不成交，
+不丢弃余量、不新增费用或放宽执行 profile，当日到期订单不变为跨日挂单。
+
+#### 保存与评价消费
+
+保存固定事件与计划修订来源、登记权益、应用阶段、水位、前后总数量/可卖数量/总成本，
+精确比例、取整尾差、原参考价/session 与桥接价/事件 ref、停牌禁止证据、结果核对记录。
+账户与固定事件应用身份幂等，重复不变、冲突修订拒绝，不得部分更新后继续。确切字段
+shape、合同/实现版本与 loader 兼容规则冻结如下，纳入既有运行身份；
+旧账户、评价与保存合同保持原件，不能按当前实现补写旧文件。
+
+- Request 为 `backtest_request_v2`，新增 `unit_split_policy='etf_settled_holder_eod_v1'`；
+  MarketReplay 为 `market_replay_v2`，BacktestRun 为 `backtest_run_v2`，Runtime 为
+  `axiom.backtest/2`。原 `daily_open_profile_v1`/profile_ref、`signal_frame_v1`、
+  `axiom.rotation/1` 与 evaluation spec/report v1/v2 不变。
+- MarketReplay 新增 `unit_splits:[{event,available_at,source_refs}]`：`event` 原样保存
+  Data §6.2 的 27 个原生字段，包含计划状态、修订序号、not_stated/null 与真实收据时钟；
+  `available_at` 为所需经济事实的原生 UTC usable_from，source_refs 为固定公共 batch digest。
+  每事件在 record session 20:30 Asia/Shanghai，以同 Snapshot 的公共 EventQuery、
+  `time_field='effective_date'`、`purpose='market_replay'` 选择当时可见修订后再日期过滤，
+  不加 implemented-only 条件。完整 query/field_meta/batch 复用 market.source_evidence。
+  本样本选中计划 revision_sequence=1 是历史输入事实；程序按可见修订选择，不能硬编码 1。
+- Run 新增 `unit_split_applications`。每项字段为 `event_id,security_id,session,phase,
+  sequence,status,record_sequence,record_quantity,before_quantity,after_quantity,
+  before_sellable_quantity,after_sellable_quantity,cost_minor,rounding_extra_fraction,
+  original_quote,normalized_quote,before_market_value_minor,after_market_value_minor,
+  rounding_value_minor,source_refs`。phase 固定 `EOD_AFTER_CLOSE_BEFORE_NAV`，status 为
+  `APPLIED|NO_ENTITLEMENT`；sequence 与同次 position ledger 行一致且先于 NAV 提交。
+  `rounding_extra_fraction={numerator:new_qty*d-old_qty*n,denominator:d}`，比例为 n/d；
+  rounding_value_minor=after_market_value_minor−before_market_value_minor，不补现金。
+  两个 quote 均复用 `{price,session,available_at,source_refs}`；normalized price 为
+  original×d/n，Decimal 精度 40、HALF_UP，availability 取原价、事件 usable_from、模型
+  EOD cutoff 的最大值。零权益也保存应用与零增量，但不创建持仓。
+- Position ledger 复用原行 shape：`reason='UNIT_SPLIT'`，source_event_id 为原生 event_id，
+  quantity_delta/sellable_delta 为各自 after−before，`cost_delta_minor=0`。
+  positions 新增 `mark_basis_event_id`（桥接为 event_id，原生 close 为 null），保留
+  mark_session/stale。decisions 新增 `reference_prices`，保存实际传给 Core 的既有 quote map，
+  包括零持仓候选。orders 新增 `announced_suspension_event_ids`（无则空列表）；可见
+  full_session 事实先以 `ANNOUNCED_SUSPENSION` 阻断，原 market_state/state_reason 保留。
+- 复用 request/market/run/content digest，不新增 policy_ref、basis_ref、event_revision_ref
+  或 application_id。run 内原生 event_id+UNIT_SPLIT phase 幂等；同 payload 重复无变化，
+  冲突先拒绝后不修改。content_digest 闭合上述保存输出。公共 save/load 路径按保存 v1/v2
+  分派，仅验证与载入，不执行、读 Data 或要求当前实现相同；旧文件字节不变。
+
+首轮 admission 只接受两笔已核实披露对各自 first-new-price-session 因子转换的解释；
+原生因子证据与官方比例分别保留，不推导/替换因子。此数据范围门禁不成为证券日期特判，
+其他未解释转换继续阻断。纯单位替换不产生 cash/fill 行，真实新尺度 close 替换桥接。
+
+份额拆分不结束 `0→非0→0` 持仓段；P10/P10 v2 消费同一保存事件流水更新段内数量，
+不伪造买入/卖出或重复确认收入，不改变成本分母与现金分红规则。UI 只读 owner 产物，
+Research 不应用账户事件或另写撮合器。
+
+验收先做有界合成手算：1:5 数量与参考价同步，总成本/现金不变、停牌无成交；持有人
+合计 ceil；零持仓候选 Core 参考价归一化；全已结算/登记一致边界与混合权益拒绝；
+幂等/冲突、计划可见性与后来结果不前移、零股清仓/容量尾仓、桥接仅应用一次、NAV 与
+持仓段连续性均独立核对。再只读新固定 Snapshot 两事件窗口验证字段与证据映射；通过
+审阅后再授权一次全段运行。已完成起点预检保留，不重复同输入构建；新 Snapshot 核对
+复用分区/source 闭包并取得新增事件证据，不回写旧输入或冒用旧身份。
 
 ## 10. 恢复、对账、备份与部署
 
