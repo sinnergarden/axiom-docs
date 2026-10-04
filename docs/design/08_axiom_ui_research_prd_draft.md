@@ -101,7 +101,7 @@
 
 ## 7 边界与未来部署约束
 
-模块职责、输入、输出、消费者与不负责范围统一引用[总纲唯一模块边界表](01_axiom_overview.md#module-boundaries)。本 PRD 的功能输入与验收说明仅应用该分工，不另维护一份边界规范，也不新增接口或计算职责。
+模块职责、输入、输出、消费者与不负责范围统一引用[总纲唯一模块边界表](https://github.com/sinnergarden/axiom-docs/blob/0acdcd1017e5c36b24e7332220751d863cd9012c/docs/design/01_axiom_overview.md#module-boundaries)。本 PRD 的功能输入与验收说明仅应用该分工，不另维护一份边界规范，也不新增接口或计算职责。
 
 **已确认的部署方向，尚未授权执行：**后台计算与存储在用户回测云；前端优先 Sites，若公开资格不支持则用 GitHub Pages 平台域名，无自有域名也可。第一版只读保存产物；后续再接 HTTPS 只读 API 和鉴权，密钥不放前端。公开 demo 与私有研究隔离，公开示例不携带私有结果。
 
