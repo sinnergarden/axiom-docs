@@ -48,7 +48,7 @@ Data 只提供可信事实与稳定派生；Research 不直接读 raw 或未登�
 
 Model/Feature 插件发布为独立、冻结的轻量运行包，生产不 import mutable Research 源码树。Research 可调用 Trade 的离线公共 API，Trade 不依赖 Research 训练主包，避免循环依赖。
 
-2026-10-04 当前有界实现：Research 0.1.2 延续 0.1.1 的联合输入与持久复用，增加固定 ETF 确定性 Feature/Signal 实验；Engine 已有消费冻结信号的离线账户路径，UI 已有保存结果的静态展示。分支源码、实际验收与限制见 [当前交付](../current-delivery.md)；正文中的通用模型/OOS/插件平台仍是目标。
+2026-10-04 当前有界实现：Research 0.2.1 保留联合输入、固定 ETF Feature/Signal 与持久复用，增加固定六特征/五 session 归一化 target/单 fold 股票模型及独立保存阶段投影。Engine 已消费冻结 ETF 信号和股票预测生成有界离线账户/评价，Research 只读登记原 owner 结果；UI 保存件工作台与股票消费源码已亲审合并交付，owner QA、root 亲看像素和用户验收另记。固定源码、实际范围与限制见 [当前交付](../current-delivery.md)；正文中的通用模型/OOS/插件平台仍是目标。
 
 ## 3. 核心产物合同（P01、P05、P06）
 
@@ -306,10 +306,10 @@ Lookback counts the current feature session. Inputs use a visible common anchor;
 <a id="stock-saved-stage-report-proposal"></a>
 ### 4.6 保存股票研究阶段信息的最小投影
 
-状态：`frozen_for_bounded_implementation`（2026-10-04）；只补 UI 缺少的实际成熟训练窗口、阶段测量与信号汇总。
+状态：`implemented_bounded_saved_projection`（2026-10-04）；Research 0.2.1 经 [PR #3](https://github.com/sinnergarden/axiom-research/pull/3) 亲审后合并为 `3a7451e`，只补实际成熟训练窗口、阶段测量与信号汇总。
 现有 StockMLExperiment 公共输出已有配置/预测/逐日 evidence，ModelRelease 已有 fit cutoff、
 参数和 Feature schema；实际训练键在已验证 dataset.json，测量在 owner 单独保存的验收
-receipt。这些内容尚未全部由公共 Reader 输出，不让 UI 越过 owner 读取内部文件或自行统计。
+receipt。本轮由独立 stock_stage_report 公共 Reader 输出这些保存值；UI 不越过 owner 读取内部文件或自行统计。
 
 公共入口 `axiom_research.export_stock_stage_report(experiment_path, *,
 timing_receipts=(), destination)` 只从公共 loader 已验证的保存件生成独立
@@ -338,9 +338,18 @@ measurements 只接受调用方明确提供、可绑定当前实验或其已声�
 receipt 中跳过阶段的 0 当作冷构建耗时。原生 total/build seconds 分别保留，不用分阶段之和
 补总耗时；当前训练/预测、旧来源同 feature_ref 的冷 Feature、缓存加载分别显示来源和模式。
 输入相同的 Feature 历史测量不能冒充当前模型冷训练，也不能拼接成一次实测总耗时。
+当前/继承 receipt 的 build metrics.cache_hit=true 不能提供冷构建或 saved-input build 测量；
+缓存加载只从独立 cache_reuse 字段读取。解析与 receipt digest 绑定同一字节快照。
 真实测量可辅助同配方/环境的更长范围估算，但必须说明规模、缓存、I/O 与观察点不足，
 不提供未经执行的吞吐保证。首版验收只读/hash、输入引用、训练键范围、null/非 null 汇总、
 测量归属及缺测量；原保存件 hash/mtime 保持不变，不为展示重跑。
+
+保存股票账户完成后，Research 只在原模型版本追加 Engine observed/strict 账户与评价登记，
+精确绑定 run_id/content_digest/committed_sequence 和评价 input_run_ref，并关联原模型/阶段报告。
+旧 model manifest 及旧登记当时的 BLOCKED_PENDING_STOCK_RUNTIME_ADMISSION 原样保留；
+新记录反映后续账户完成，不倒写原研究历史。UI 读取当前 owner 登记与保存 run/evaluation，
+图表复用同 Snapshot 的完整 native market-replay DataBatch；本轮已有 OHLCV/amount，
+无需新 Data 查询，volume_shares 单位为股，所有共同字段、逐键 metadata 与 Query 绑定原 ref。
 
 ## 5. SignalRun、表达式与评估（P06/P10）
 
