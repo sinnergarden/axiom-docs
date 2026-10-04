@@ -241,6 +241,18 @@ booster、列顺序、训练键/成熟 cutoff、输入与实现/环境 refs，�
 IC/RankIC 仍与保存的原始五 session 收益按日联合有效成员计算（n≥20，
 常量/不足为 null），保存覆盖数、排除原因及成熟标签 refs，不当作账户收益。
 
+Research 公开保存件为 `stock_prediction_run_v1`，顶层含 `signal_run_ref`（除自身之外全部
+文档的固定 digest）、`signal_stage=prediction_raw`、上述 `score_semantics`、
+`score_unit=dimensionless`、`model_ref`、`feature_ref`、有序固定 `universe`、`rows` 和来源限制。
+每行 `{security_id, session, knowledge_cutoff, available_at, score, valid, invalid_reason,
+member, source_refs}`；键 security_id+session 唯一，所有日期保留完整历史 union。`member`
+是该 feature session 的历史可见成员布尔值；池外为 member=false、valid=false、score=null、
+invalid_reason=NOT_MEMBER。成员内缺 Feature 也保留 invalid/null；不会移除 union 行或补零。
+有效 score 必须有限且 available_at≤knowledge_cutoff，来源 refs 绑定 FeatureBuild、ModelRelease、
+catalog 和固定 Qlib view。Engine 从这一已冻结原始预测构建中立 ML 输入，保留 signal/model/
+feature 原 refs、完整 union/member/validity 和原截面时钟；不冒用 ETF momentum frame，也不
+在 Research 重建排名或 target_weight。
+
 每周首个真实交易 session 使用严格前一 session 预测，降序稳定 security_id tie-break、
 Top5 等权，不加正值门槛；不足五个有效成员为 NO_DECISION。Core/Runtime owner 需冻结
 中立 ML 信号与动态候选合同；旧 momentum `signal_frame_v1`/Top1 不改名冒用。Research
