@@ -351,6 +351,122 @@ receipt 中跳过阶段的 0 当作冷构建耗时。原生 total/build seconds 
 图表复用同 Snapshot 的完整 native market-replay DataBatch；本轮已有 OHLCV/amount，
 无需新 Data 查询，volume_shares 单位为股，所有共同字段、逐键 metadata 与 Query 绑定原 ref。
 
+<a id="stock-saved-fold-clock-contract"></a>
+### 4.7 保存输入的有界滑动 fold 与独立时钟
+
+状态：**最小合同待父任务时钟审阅，业务执行未开始**（2026-10-05）。本轮只补两个
+真正滑动的 weekly fold；旧固定日期试点及其失败/通过证据保留，全年/多年仍暂停。
+不建设通用 schedule、自动搜参、多年缓存或平台。现有 Data Reader/价格调整、Research
+Label/归一化和原生 LightGBM 后端继续复用，不新增 Feature 执行器或账户路径。
+
+**当前约束与最小解法。** 旧 Research `_validate_config` 要求
+`fit_cutoff < cutoff_by_session[prediction_session]`；同一映射又用于 Feature 查询/构建，
+预测行直接复制 Feature 的 knowledge_cutoff。`build_stock_ml_from_saved_features`
+继承原配置，拒绝更换配置，不能把旧 20:30 字符串改成 21:00 后假称原输入。
+旧 Engine `validate_stock_predictions` 对 `stock_prediction_run_v1` 还硬要求
+`knowledge_cutoff == session + 20:30 +08`，并校验精确字段集合。
+同一 Core portfolio `_plan` 也把严格前一 session 的决策 context cutoff 固定为20:30。
+本增量保留这些旧规则，用独立 fold 入口和新预测版本表达不同阶段的时钟；
+当前 Engine v1 消费不会自动支持新版本，不能转换回 20:30 或放宽旧准入。
+
+**最小公开入口与返回件：**
+
+```python
+from axiom_research import build_stock_ml_fold_from_saved_inputs, load_stock_ml_fold
+
+fold = build_stock_ml_fold_from_saved_inputs(
+    input_manifest, fold_spec=fold_spec, destination=new_destination, metrics=metrics)
+saved = load_stock_ml_fold(fold.path)
+saved.identity       # fold_ref，固定 definition 与输出引用的身份
+saved.to_dict()      # stock_ml_fold_v1；含 content_digest
+saved.predictions()  # stock_prediction_run_v2；完整 union/validity
+saved.model()        # stock_model_release_v2 元数据
+saved.evidence()     # 原 stock_signal_evidence_v1，OOS 原始标签 IC/RankIC
+```
+
+入口只读取显式保存输入、训练/推理和发布新的不可变 fold，不隐式调用 Data/Qlib/Feature。
+旧同配置 helper 不放宽。新 fold loader 只读/hash/ref/时钟及关联校验，不导入
+Data/Core/LightGBM、不计算预测或统计；损坏、缺父件、配置/时钟不匹配均失败。
+模型元数据 loader/独立 predict 兼容新 model v2，旧 v1 读取行为不变。
+
+`input_manifest` 固定为 `stock_ml_saved_inputs_v1`：绑定原 Data.plan_scope 文件/ref、
+Snapshot/PIT、完整实际 calendar/有序 union、catalog/selection/列序，完整 Feature parents
+的 features 与 input-evidence 文件/hash/ref，以及各 raw/normalized Label 父件的文件/hash/ref、
+cutoff 和完整日期投影。旧归一化父件须核验保存 Core plan/facts/context/frame 关联，且
+raw_label_ref 必须对应已保存 raw 父件的准确日期投影，不只校验一个人工摘要。
+每日期选择完整证券截面，不拼成假的 `stock_feature_build_v1`；原父件/证明原样保存，
+每次调用重验，证明解析对象校验后释放。本轮保留显式固定父件位置，不宣称通用存储迁移。
+
+`fold_spec` 固定为 `stock_ml_fold_spec_v1`，准确字段为
+`training_window={unit:'feature_sessions',length:65,end:'previous_fit_session'}`、
+`fit_session`、`fit_cutoff`、`simulated_model_available_at`、`oos_trade_sessions`、
+`inference_cutoff_by_session`（键为由 OOS 严格前一实际 session 推导的 Feature 日期）和
+`evaluation_cutoff`。length 为正 exact int，拒绝 bool；所有日期来自冻结真实 calendar。
+窗口取 fit 前 65 个实际 Feature 日期，各折独立移动；先保留完整训练 grid，再按原成员、
+Feature validity/有限值及原始 label_available_at/end_session 判断成熟，不缩窗凑样本。
+`input_manifest_ref` 和 `fold_spec_ref` 均为外置引用：分别对完整 manifest/spec 的
+UTF-8 canonical JSON 取 SHA-256，key 排序、无额外空白、ensure_ascii=false、
+allow_nan=false；文档本体不包含自身 ref，避免循环身份。所有后续内容 digest 同规则。
+
+| fit / 训练知识截止 | 声明训练 Feature 首末（各65日） | 理论最后成熟日 | 实际训练键预测 |
+|---|---|---|---|
+| 2024-02-02 20:30 +08 | 2023-11-02—2024-02-01 | 2024-01-26 | 18,300，保存键已证 |
+| 2024-02-08 20:30 +08 | 2023-11-08—2024-02-07 | 2024-02-01 | 18,000已证＋02-01新核有效键；预计18,300 |
+
+两折分别 OOS 02-05—02-08 / 02-19—02-23，完整预测 grid 1,256 / 1,570 行，
+沿原 Feature validity 的有效数为 1,200 / 1,500。第二折新增日期的有效 label 数必须实测，
+不强填300、不使用02-29事后标签替代 fit 标签。
+
+**模拟时钟闭包：** 两折训练事实选择截止均为 fit 日 **20:30 +08**；显式声明模型
+模拟可用时刻 **20:45 +08**，对应每个预测 Feature session 的推理截止 **21:00 +08**，
+下一实际交易 session 执行。必须满足 `fit_cutoff < simulated_model_available_at <
+inference_cutoff`、Feature 原 knowledge_cutoff/依赖 availability 均不晚于推理时钟，
+训练 Feature 的原 knowledge_cutoff/依赖 availability 均不晚于 fit_cutoff。
+入模行的原始及归一化训练标签 availability/end_session 必须在 fit 时钟已成熟；归一化父件
+cutoff 必须与本折 fit_cutoff 为同一时刻；各日期 section_ref 定义绑定的归一化父件
+feature_ref 必须等于该日期在 Feature slice 中选用的准确原 parent ref，
+不能借较晚归一化或不同父件标签，不给旧 sections[] 虚构独立 feature_ref 字段。
+仍使用 Feature 原 **20:30** knowledge_cutoff/refs，
+不重新查询21:00事实、不改父件时钟；使用此前已知事实是允许的。
+这些时刻属于显式历史模拟场景；实际 wall time 只作性能测量，不证明模型曾在2024当天
+20:45真实完成。新模型/预测明确 `clock_basis=declared_simulation`，原事实时钟依据不改。
+
+输出 `stock_feature_slice_v1` 保存准确日期→原 Feature parent/ref、完整 union、列序及
+原 cutoff/availability 绑定；其身份为 `feature_ref`，类型明确为 slice，不冒充重新执行的
+FeatureBuild。`stock_fold_label_slice_v1` 保存原 raw/normalized parents、cutoff、实际日期/
+eligible keys 与排除证据。`stock_fold_dataset_v1` 绑定上述 refs、fold_spec、实际训练键/
+training_rows_ref、原 target/normalization 及完整排除原因。
+`stock_model_release_v2` 绑定 dataset_ref、feature_ref、label_ref、raw_label_refs、fit_cutoff、
+simulated_available_at、clock_basis、原列序/catalog/selection、固定参数/环境/实现及原生
+booster_digest；不调参，原100 trees/seed42/单线程不变。
+
+`stock_prediction_run_v2` 保留 v1 顶层 signal_run_ref/signal_stage/score_semantics/score_unit/
+feature_ref/model_ref/limitations/universe/rows，新增 fold_spec_ref 与 clock_basis。
+行保留原字段，另存 `feature_knowledge_cutoff`、`feature_available_at`、
+`simulated_model_available_at`；前两项从原 Feature 保存行得到，不修改原来源。
+`feature_available_at` 取原行 `availability` 数组中所有非 null 时刻的最大值；
+全 null 时保存 null 并将预测行标 invalid，不伪造 Feature 发布时间。
+行 `knowledge_cutoff=available_at=inference_cutoff` 明确为模拟推理/信号发布时钟，
+score 仍为有限 float 或 null、无量纲 prediction_raw，所有日期完整保留 union/member/invalid。
+source_refs 包含准确 Feature slice、原 Feature parent/Qlib、ModelRelease/catalog refs。
+输出 v2 身份绑定全部时钟和来源；旧 v1 不改，Engine v2 时钟消费须单独协调准入，
+本轮不执行账户、不假称新预测已经获得 Runtime 准入。
+
+`stock_ml_fold_v1` 顶层保存 definition、definition_ref、fold_ref、content_digest、status=COMPLETE，
+以及 feature_ref/label_ref/dataset_ref/model_ref/signal_run_ref/evidence_ref。
+definition 绑定 input_manifest_ref、fold_spec、所有准确输入文件/内容 refs、固定参数/catalog、
+实现和环境；definition_ref 为其固定 digest。fold_ref 为 definition_ref 与六个输出 refs
+的固定 digest；content_digest 为顶层除自身外全部内容的固定 digest。manifest 绑定全部
+新文件的字节 hash，显式引用旧父件且不复制/删减旧 proof。临时目录完成校验后原子发布，
+同 definition 的完整保存件才 HIT；HIT 不查询/训练/推理，失败临时件不是 HIT，不覆盖旧结果。
+SignalEvidence 只消费原02-29 20:30 OOS raw Label，账户/收益准入与此证据分开。
+
+新增准备最多两次公共查询：同固定 Snapshot/02-08 20:30 cutoff/purpose=label_outcomes，
+读取02-02/05/06/07/08的 market_daily(open,close) 与 adjustment_factors(factor)，原 Data
+common-anchor=02-08，补02-01 raw label并调用原公开归一化一次。fold入口只消费保存结果；
+供应商/Feature/账户为0，两fold fit/predict各2。单重进程、5.5 GiB停止/6 GiB硬上限、
+每阶段120秒/新增总480秒/新文件100 MiB；合同核过前不运行业务。
+
 ## 5. SignalRun、表达式与评估（P06/P10）
 
 本轮 ETF 导出 Core 中立 `signal_frame_v1`：顶层固定 `signal_run_ref`、`signal_stage=final`、`score_semantics=momentum_20d` 与完整 `universe`；行包含 `security_id/session/knowledge_cutoff/available_at/score/valid/invalid_reason/source_refs`，score 为有限 float 或 null，键唯一。warmup/缺数保留 invalid，不把缺信号变成零。source refs 固定 FeatureBuild 和逻辑 Data Views；账户消费采用严格前一交易日信号。该确定性配方尚无 IC/标签/OOS 评估结论。
