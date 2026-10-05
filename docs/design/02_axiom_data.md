@@ -591,7 +591,8 @@ Data 不读取账本来裁决成交，UI 不临时把成交标记挪到蜡烛上
 
 状态：2026-10-05 补充草案；Data显示导出实现见
 [PR40](https://github.com/sinnergarden/axiom-data/pull/40)，临时 synthetic Snapshot 的公共
-Reader集成等16项检查已通过；实际本轮run窗口、保存文件、Engine/UI消费和生产覆盖
+Reader集成等18项检查已通过，含名称/两类事件保存后加载、原始单位和缺失/非法因子原因；
+loader禁查询/禁变换检查通过。实际本轮run窗口、保存文件、Engine/UI消费和生产覆盖
 尚未验收。主设计的亲审不替代这些检查，新增来源也未因此获准接入。
 
 公共入口为 `Data.export_review_display(snapshot=..., price_query=..., factor_query=...,
