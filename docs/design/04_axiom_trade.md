@@ -871,12 +871,42 @@ save_backtest_evaluation(report, new_report_path)
 这两个增量入口在 Engine 源码/定向验收完成前均为设计状态。
 
 Data 显示投影消费另走 `build_fill_display(run, *, display)` 与独立保存/加载入口，
-消费需求为：固定 `display_ref`、完整显示跨度与末日锚点 A、共同 cutoff C、每个
-security/session 的 Decimal multiplier、原单位/目标单位与来源 refs；只接受实际
-fill.session 同时钟且原单位一致的映射。缺因子/单位不符或未证实 new_price_basis_session
-时坐标 null 并保留原因。该报告身份绑定 run 三元组与 Data display_ref/实现版本，
-不修改 run、原 fill.price/fee/cash/positions/NAV 或其身份。Data 的精确 wire shape
-交接前不猜字段名或新单位生效 session，暂不宣称显示接口可用。
+消费 Data §7.3.5 的固定 `review_display_v1`，准确入口如下（本段仍为待源码验收设计）：
+
+```python
+display = read_review_display(directory, *, manifest_sha256=receipt_hash)
+report = build_fill_display(run, *, display=display)
+save_fill_display(report, new_path)
+report = load_fill_display(new_path)
+```
+
+`read_review_display` 仅委托 Data 公共 `load_review_display` 检查 manifest 与其所列
+文件的原字节 SHA/长度，返回 Engine 的 `SavedReviewDisplay`；不调用 Reader、供应商
+或 transform。`display_ref=sha256:<manifest 原字节 SHA>`，manifest 原 UTF-8 文本与
+文件 refs 保留为绑定证据。build 使用 `ohlcv.records` 的唯一 `(security_id, session)`、
+`native_open` 与 `display_scale`，并消费 `field_meta.native_open.unit`、
+`field_meta.open.unit`、`field_meta.display_scale.by_key` 的原因和原生 provenance。
+完整跨度与末日 A 来自 `context.derivation.price_query.sessions` 与
+`context.anchor_session`；共同 C 为 `context.knowledge_cutoff`，用途必须为
+`retrospective_review`，原价基准为 `unadjusted`，显示基准为
+`common_anchor_adjusted_v1`。Data context 固定 Snapshot；不能以当前默认 Snapshot 替代。
+
+Data 实际 multiplier 保存为 float64；Engine 将这一**已保存标量**用
+`Decimal(str(display_scale))` 编码，40 位 ROUND_HALF_UP 下乘实际 `fill.price`，
+不重新求 `factor(t)/factor(A)`。`CNY/share` 或 `CNY/fund unit` 分别须与保存账户的
+股票或 ETF 单位合同一致，且 `native_open` 与原 `fill.reference_open` 一致；不一致
+时坐标 null，保留缺行、缺因子、单位不符、原价不符等明确原因。对已知单位替换，
+仅使用 Data 保存 `fund_share_conversions` 和账户原事件的显式
+`new_price_basis_session`；缺失或不一致时相关新单位坐标 null，不从价格、effective_date
+或下一交易日推断。
+
+独立结果合同 `fill_display_report_v1`/`axiom.fill_display/1` 的身份绑定
+run 三元组、Data display_ref、消费事实 ref、实现版本；内容保存 manifest 原字节文本、
+完整原 fill、对应行的原生 open/scale/单位/provenance 与显式单位事件证据，以及
+`display_price`、Decimal multiplier、status/reason。仅保存所消费的行事实，完整 OHLCV
+仍由 manifest 文件 ref 绑定，不重复内嵌到结果。save 拒绝冲突覆盖；loader 仅校验
+合同、ref/hash、链接与保存字段，不读 Data 或重算坐标。原 run、fill.price/fee/cash/
+positions/NAV 及身份保持不变，显示不能成为决策或模型输入。
 
 以下为其余通用目标接口，不因上面的有界 profile 而宣称全部实现：
 
