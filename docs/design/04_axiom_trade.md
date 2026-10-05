@@ -871,7 +871,9 @@ save_backtest_evaluation(report, new_report_path)
 这两个增量入口在 Engine 源码/定向验收完成前均为设计状态。
 
 Data 显示投影消费另走 `build_fill_display(run, *, display)` 与独立保存/加载入口，
-消费 Data §7.3.5 的固定 `review_display_v1`，准确入口如下（本段仍为待源码验收设计）：
+消费 [Data §7.3.5 固定设计](https://github.com/sinnergarden/axiom-docs/blob/b36f6a75e0a55c1c407026e38f3704485a22d1fb/docs/design/02_axiom_data.md) 的
+`review_display_v1`；对应章节合入 main 后归回相对入口。准确入口如下
+（本段仍为待源码验收设计）：
 
 ```python
 display = read_review_display(directory, *, manifest_sha256=receipt_hash)
