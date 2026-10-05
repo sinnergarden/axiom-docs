@@ -9,6 +9,14 @@
 2026-09-28 Data 接口实证：Research 所有的 adapter 已将真实月末 DataBatch/成员结果映射为 FactBatch、ExecutionContext 和 FeaturePlan，并执行 identity/lag/return；这不是全部策略或决策算子的真实验收。
 见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
 
+2026-10-05 当前边界：共享 FeaturePlan 执行与股票中立预测验证、固定 Top5 决策已有有界实现；
+LightGBM fit/inference 仍在 Research。正文中的通用 ModelHandle、SignalPlan/组合参数与正式
+rolling 恢复不因固定样本通过而成为已实现 ABI。TopK 合同已由 Docs PR17 审准且 Engine
+PR8 已合：显式正整数 top_k 使用 Core /2；省略参数仍解释旧 /1 Top5。准确工厂、版本
+与边界见 [Trade §6.1](04_axiom_trade.md#61-有界股票日线-top5)。
+不同组合须保存独立账户，不能用改资金代替。
+已实现/规划图及教学顺序见 [ML 工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)。
+
 ## 1. 一句话定义
 
 Core 是一套可被 Research 和 Trade 调用的**共享计算与投资决策库**。同样的已知事实、信号、账户、策略状态、参数与时间，应该得到同样的目标仓位和订单意图。
@@ -128,6 +136,38 @@ Strategy runtime package
 发布包不得 import 训练工作区、联网、读取系统 current/latest、使用未固定全局随机状态或直接写文件。禁止 I/O 是合同、依赖检查和隔离测试要求，不声称普通 Python 类型系统能自动提供安全沙箱。仅加载受信任、已审查的发布包，拒绝外部不可信模型序列化文件。
 
 可后端下推的 Qlib/向量化计算由调用方 adapter 执行，需与基准算子 golden case 等价。性能优化必须报告主键、NaN、dtype、误差和排名边界影响，不只比较相关系数。预测数值在容差内但 TopK、意图或约束结果翻转，仍属于行为变化，不能用数值容差掩盖；需要固定 tie-break/稳定计算或单独批准语义变更。
+
+<a id="signal-statistics-proposal"></a>
+### 4.4 保存信号评价的纯统计增量：待主协调与Engine亲审
+
+Research管理[独立信号评价定义与保存](05_axiom_research.md#saved-signal-quality-proposal)，
+Core提供相关与序列统计的共享纯计算。当前股票IC/RankIC由Research现有helper计算；
+新增算子经审准后，该编排调用Core，不在Research保留另一份数值实现。
+
+候选公共函数为 `evaluate_signal_statistics(input, *, spec)`。input固定
+`contract_version='signal_statistics_input_v1'`、有序 `sessions/signal_keys` 和 `pairs`；
+每个pair是 `{signal_key,security_id,session,score,outcome}`，由Research选好共同评价范围、
+成员和成熟标签后传入。score/outcome均为有限无量纲数，三字段键唯一；没有有效配对的
+日期仍在sessions内。signal_key绑定一份Signal或不重叠weekly Signal列表的准确refs。
+pair输入可以乱序，Core先按signal_key/session/security_id稳定排序，再绑定input_ref；
+重复键报错，不能由后写行覆盖前行。
+来源闭包、未来标签可用时间和资格检查由Research负责，Core不读取文件、查询事实、
+加载模型或执行账户。
+
+首版spec固定 `minimum_pairs=20,rank_ties='average',std_ddof=1,
+time_weighting='equal_valid_sessions',annualization='none'`。Core按日期计算Pearson和
+Spearman，并对有效日序列计算均值、样本标准差及mean/std。输出
+`contract_version='signal_statistics_v1'`、`input_ref/spec_ref/statistics_ref`、
+`series=[{signal_key,session,valid_pair_count,ic,rank_ic,reason}]` 和
+`summary=[{signal_key,valid_ic_session_count,mean_ic,ic_std,icir,icir_reason,
+valid_rank_ic_session_count,mean_rank_ic,rank_ic_std,rank_icir,rank_icir_reason}]`。
+输入和spec使用既有规范JSON身份；statistics_ref绑定除自身外全部统计输出。
+
+不足20对、常量截面和非有限相关值给null与原因；不足2个有效日或std为0时IR为null。
+Pearson/Spearman使用同一批配对，ties取平均秩，日权重一致。DuckDB等批量后端只能
+执行同一算子语义，经键/null/计数精确一致及相关值绝对误差≤1e-12的golden核对后采用。
+最低验收包含乱序、重复键、单日错位、ties、常量、缺失日及多Signal共同样本。
+本节是有界纯函数候选，不改变当前FeaturePlan执行器或Engine账户评价。
 
 ## 5. 信号与策略协议
 

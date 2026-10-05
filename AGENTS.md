@@ -8,3 +8,5 @@ The two notebook sources own their prose, code and saved outputs; HTML is genera
 Prose/link/comment changes do not trigger supplier collection, rebuilds or a full test suite.
 Changed executable teaching needs only the affected cells and their prerequisites.
 No credentials, production data or local supplier logs belong in this repository.
+
+Write designs, tutorials and delivery notes in complete, natural sentences that explain who does what, why and what results. Keep technical details that help the reader understand or decide, explain them with concrete examples, and place material risks and limits beside the claims they affect. Before submitting prose, read it for a connected argument and replace repeated contrastive sentences, vague slash-separated phrases and compressed lists of abstract nouns.

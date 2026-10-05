@@ -1,12 +1,11 @@
-# axiom-ui 初版设计：只读证据控制台与图表联动
+# axiom-ui：只读研究工作台与图表联动
 
-> 文档编号：AX-UI · 专项初版 v0.1 · 所属设计包 v0.2 · 2026-09-05。\
-> 状态：实施参考草案；页面、查询和交互为目标设计，不代表现有 UI 已实现。\
+> 文档编号：AX-UI · 2026-10-05 用户验收整改设计。\
+> 状态：当前线上版本用户验收未通过；本轮集中设计供主协调亲审，随后实施并在同一 Pages 地址重新验收。下述新增交互与 Owner 补充产物尚未交付。\
 > 上位边界：[总体设计](01_axiom_overview.md)。关联：[Data](02_axiom_data.md)、[Research](05_axiom_research.md)、[Trade](04_axiom_trade.md)、[Core](03_axiom_core.md)。\
-> 延续 Evidence Console、Operation First、下钻而不堆信息；新增明确的跨模块 ChartContext/ChartLayer 合同。
+> 延续 Evidence Console、Operation First、下钻而不堆信息；P12 约束继续适用。产品流程与验收见 [研究工作台 PRD](08_axiom_ui_research_prd_draft.md)，读取方式见 [应用页](../ui-workbench-read-contract.md)。
 
-2026-09-28 Data 接口实证：真实 DataBatch 已投影为 P12 ChartContext/ChartLayer，保留来源、单位和查询 refs；本次没有部署 BFF/浏览器 UI，也没有虚构成交、账户图层。
-见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
+2026-09-28 DataBatch→P12 的教学实证见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。它是历史教学证据，不替代当前工作台或本轮交互验收。
 
 ## 1. 定位与三个用户问题
 
@@ -22,7 +21,9 @@ UI 的只读不是“不能记住页面偏好”：主题、筛选条件、图�
 
 ## 2. 结构与数据来源
 
-2026-10-04 本轮实现是 `axiom-ui` 新 Git 仓中的只读静态报告/CLI：经 `axiom_engine.runtime.load_backtest_run` 验证 owner 保存的 `backtest_run_v1`，显示固定 refs、implementation/profile、逐日 committed watermark、现金/持仓/NAV、decision/order/fill/ledger 及 owner 指标；缺值显示 unavailable。没有 Data 读取、Core/回测调用、owner save 或指标重算。显式日线近似与 UNKNOWN 原因继续展示，UI 不选择执行政策。代码、独立复核和 Library 交付状态见 [当前交付](../current-delivery.md)。下文 BFF/交互控制台仍是目标；原本地非 Git UI 目录保留旧副本，待导航迁移，不成为另一个可编辑事实源。
+2026-10-05 现有 `axiom-ui` 已通过公共 Reader 绑定保存账户、评价和 Research 登记，生成静态交互页面，并在 [GitHub Pages](https://sinnergarden.github.io/axiom-ui/) 交付用户明确授权公开的精选结果。当前有收益风险、K 线与交易、月收益与持仓段三视图；软件只读校验和上线成功不代表用户产品验收通过。本轮保持当前线上提交，先集中修订设计，再以新 PR 交主协调亲审代码和实际页面，通过后更新同一地址。
+
+当前实施优先保留 Python 公共 Reader→经过校验的 UI 显示投影→静态浏览器页面，无后台账户计算。下图 BFF 是后续远程读取的可选结构，不是本轮引入服务器、鉴权平台或 React 工程的要求。业务状态、指标、复权语义及来源仍由各 Owner 保存；UI 不选择执行政策，显式日线近似与 UNKNOWN 原因继续展示。
 
 ```text
 Browser
@@ -36,12 +37,7 @@ Browser
 
 不要求四个物理 repo 各自启动 HTTP 服务。单机可由 UI BFF 调用 owner 的无副作用 Reader 包；后续远程化再包装 HTTP。不得 import 会启动 Broker、创建业务目录、自动构建 Feature 的 owner application。
 
-| 生产方 | UI 消费内容 | 用例 |
-|---|---|---|
-| Data | snapshot/quality/drift、行情/量额、财务/股东原值、公告/公司行动、PIT membership | 数据质量、K 线、事实与可知时间下钻 |
-| Research | FeatureRelease/Build、各 stage、模型/SignalRun、研究评估、发布证据 | Feature/预测叠加、对照、候选复盘 |
-| Trade | Plan/Run、DecisionTrace、意图/委托/成交、流水/持仓/净值、标准账户评估 | 运行监控、买卖原因、账户与恢复 |
-| Core | 与所选版本匹配的 reason/schema 定义 | 解释 trace，不在 UI 实时调用 Core 生成另一份答案 |
+模块分工只引用[总纲唯一模块边界表](https://github.com/sinnergarden/axiom-docs/blob/c22f49342b415290abc7d45d438e4d58013a1c45/docs/design/01_axiom_overview.md#module-boundaries)。具体消费方式分别引用 Data、Research 和 Trade 主章，不在 UI 维护另一张职责表或业务字段表。Core 的结构化依据由运行方随 run 保存，浏览页面不实时调用 Core 生成答案。
 
 某次 Trade 运行自身生成的 FeatureBuild/SignalRun 从 Trade artifact 空间读，其合同仍是 Research 定义；不能只搜索 Research 文件夹导致“生产没有 Feature”。
 
@@ -199,20 +195,73 @@ Portfolio 同屏的现金、持仓、冻结和净值使用同一只读事务/水
 
 只读服务异常不回滚成交，不使数据发布失效。Owner 不可用时展示明确缓存截止点，不把昨天成功页面冒充今天已运行。
 
-## 8. 最小交互与视觉规范
+## 8. 本轮整页交互与视觉规范
 
-保留深色优先、高信息密度、弱边框、状态 badge、图表/表格与下钻，少动画。红绿市场涨跌配色与系统健康色含义分开，避免用户把数据错误当股票下跌。
+采用清晰、干净、留白克制的三视图；配色、灰字和成交量对比度统一，少动画。旧版“深色优先、高信息密度”不作为本轮默认要求。红绿市场涨跌配色与系统健康色含义分开，避免用户把数据错误当股票下跌。用户认为清晰的月收益热力图保留。
 
 ```text
-顶部：上下文 browse/run、snapshot/run/strategy、日期、symbol、价格口径
-中部：K 线与事件；Feature/score 使用独立 y 轴/子图，同步十字线
-右栏：点值、stage、模型/版本、cutoff、PIT/缺失、source evidence
-底部：同日候选排名、Target/Intent/Order/Fill、账户影响与原因
+左栏（可收起）：研究问题 → 版本 → 保存回测；登记历史另开
+顶栏：运行名称/日期 · 对照/基准 · 三视图切换
+主视图：短摘要/限制 → 收益风险图 + 同步回撤 → 历史概览/日期窗口
+交易视图：名称+代码/价格口径 → K 线/事件/B-S → 年/月/批次/证券链
+统计视图：现有月热力图 → 持仓段百分比分布/胜率 → 中文段详情
+侧栏：hover 预览；点击锁定日/成交，展示保存原因/目标/订单/成交
+次级入口：更多 Owner 分析 · 短来源详情 · 当前对象原始记录
 ```
 
 默认不把不同单位的十条曲线挤在一根轴上；用户可开关图层、锁定上下文、导出当前查询数据及其 refs。切证券/日期不会改变已锁定 run 的版本。
 
-原 UI 规格列过 React/TypeScript、表格/查询和图表组件候选；本版不要求同时安装全部库。优先复用现有可靠依赖，至少支持 K 线、事件点、同步坐标与表格。具体技术版本另行核对，不以换框架作为验收。
+### 8.1 页面层次与阅读顺序
+
+左栏为可收起的 idea/实验导航，保留 Research 的稳定回测分组和登记历史；运行主标签用保存的自然名称、版本和日期，完整 hash 留在详情。顶部只保留当前运行、对照、基准、日期窗口与三视图切换。运行切换使所有面板一起更新；切视图、收起左栏和查看来源不丢失日期、证券、锁定点或对照。
+
+第一屏先看账户表现和主要限制，再沿异常日期、月份或持仓段进入交易复盘。原两块长 JSON 改为“本轮检验什么、实际改了什么”和“输入与执行条件”自然摘要、Research 的真实变动清单及短详情；不重复左栏问题/版本/运行树。未保存说明显示未提供，不据 hash、收益或参数猜研究意图。原始 JSON 仅在独立“原始记录”入口按所选对象打开，保留来源身份和复制原值能力。
+
+### 8.2 同日悬停与点击锁定
+
+收益/净值与回撤共用保存 session 轴。指针在整个绘图区移动即吸附最近一个保存日期，显示贯穿关联图的十字线，悬浮卡跟随指针且保持在可视区域；无需命中细线、点或 B/S 标记。卡片同屏列出该日策略、已选基准和回撤原值、单位及缺失原因。另一个市场该日没有保存点时显示缺失，不插值、前向填充或取邻日冒充同日。
+
+悬停仅预览，不重写已锁定侧栏；点击绘图区锁定日期并更新侧栏/交易入口，点击 B/S 优先锁定该真实 fill。再次显式选择或取消锁定才改变锁定点。拖拽和平移不触发点选。手机点按完成预览/锁定，图外垂直滚动正常；键盘可选择保存日期并打开相同详情。切 run 清除旧锁定，缺失图层不沿用上一运行值。
+
+### 8.3 坐标轴、时间窗口与回撤定位
+
+收益轴按 Owner 保存收益序列显示百分比；只有 nav_index 的旧报告明确标“净值指数”，不能由 UI 补成收益序列。回撤轴为%，K 线为元/股或元/份、成交量为股或份。每轴有足够的主要刻度和零线，时间刻度随窗口自适应到年、月或日；弱网格默认克制，可开关，不用密集背景线覆盖数据。
+
+图内支持水平拖拽平移和缩放，底部保留完整历史概览及可拖动窗口/两端手柄；精确起止日期、3/6 个月与全区间为辅助入口。窗口变化同步收益、回撤、K 线和所选交易范围，保留可见的窗口状态；只控制保存点展示和高亮，指标卡仍标原报告评价区间，不生成区间收益或重新归一化曲线。
+
+最大回撤卡显示 Owner 保存的峰值日期、谷底日期及区间，并在收益/回撤图高亮；“定位最大回撤”将窗口移到该区间并锁定谷底。恢复日/未恢复只有 Owner 保存才显示。旧报告仅有数值时明确“日期区间未提供”，UI 不扫描 NAV 推断峰谷；本轮完整验收需要 Engine 补齐这份保存依据。
+
+### 8.4 K 线、复权与证券身份
+
+证券选择器、图标题、交易链与持仓段统一显示 Data 保存的中文名称+代码。无名称时保留代码并提示名称未提供，不从网上临时拼身份。
+
+默认请求固定 Data 薄投影提供的调整后视觉 K 线，并提供未复权切换；口径、锚点、knowledge cutoff 和来源在短详情可查。分红/拆分等事件与真实 B/S 用同一固定显示映射定位，悬浮卡同时列出原成交价、量、费用与展示口径。调整只影响图形，不更改原行情、成交、数量或账户账本；后验显示锚点不代表历史决策当时可知。缺合格投影/映射时明示默认调整后视图不可用，可查看有明确标签的未复权图，不能用 UI 私有公式或双重因子处理绕过缺口。
+
+### 8.5 交易复盘层次
+
+列表按年→月折叠定位，再展开保存的调仓批次摘要，最后到单证券“决策→意图→委托→成交”链。调仓摘要列出保存目标、原因和执行状态；单项详情分列 Core 已保存目标/买卖原因、Runtime 委托数量/拒单依据、成交数量/原价/费用及相关事件。DECISION_COMPLETE 说明决策已产生，不能标成已成交。无因果 ID 的同日记录只能并列为同日记录，不靠日期或排序造批次关联；缺目标、原因或数量逐项标未保存。
+
+搜索及日期/证券/状态筛选后，按固定顺序分页或按需展开；不向 DOM 平铺整段历史。点击 K 线/B/S/月份/持仓段可直接打开关联链，筛选、列表位置与图中锁定点保持一致。完整/开放持仓段用中文解释进入/退出、未闭合、左截断和待确认收入，不把单笔卖出叫完整交易。特征、模型输入及更深候选 debug 留作低优先级，不阻碍已有目标/订单/成交链的清晰展示。
+
+### 8.6 统计、基准与缺失
+
+月收益热力图保持当前清晰布局，保留完整月/局部月/null 的独立表达和点击定位。持仓段主分布改为 Owner 保存的净收益率百分比分布，采用更细的保存桶、窄柱和明确零轴；尾桶用“低于/不低于”有限阈值短句，不显示 inf。Engine 冻结桶边界、计数、纳入范围与不足样本状态后 UI 才渲染；旧金额分布只能在历史口径详情中另列，不能改单位冒充百分比分布。金额盈亏与平均段净收益率继续按保存值展示。
+
+默认沪深300，可选上证指数与纳斯达克100；已保存参考才可选，缺产物显示未提供。名称、来源、价格/全收益口径、币种与交易日历同时披露，跨市场同日缺值不拼接或换汇。新增 Sharpe、Calmar 及有用风险分析读取 Engine 保存值及适用范围/null 原因，不复制 Qlib 公式或补算短样本。
+
+### 8.7 图表组件选择
+
+本轮拟采用 **Apache ECharts 6.1.0**，固定官方 tag commit `c5a48f5f97d23e5379720870b8444cd05b50ffb4`、Apache-2.0；实施时将官方浏览器分发文件和 LICENSE/NOTICE 随静态资产保存并登记文件 SHA256，不用漂移 CDN。版本/许可核验见[固定 package](https://github.com/apache/echarts/blob/c5a48f5f97d23e5379720870b8444cd05b50ffb4/package.json)、[LICENSE](https://github.com/apache/echarts/blob/c5a48f5f97d23e5379720870b8444cd05b50ffb4/LICENSE)与[NOTICE](https://github.com/apache/echarts/blob/c5a48f5f97d23e5379720870b8444cd05b50ffb4/NOTICE)。本次只评估并记录，尚未下载组件或改变实现。
+
+采用它的轴指针联动、axis tooltip、inside/slider dataZoom 和 K 线能力替换当前手写 SVG 的命中、缩放与刻度部分，保留现有 Python Reader、静态投影、导航和月热力图。依据分别见固定版 [axisPointer](https://github.com/apache/echarts/blob/c5a48f5f97d23e5379720870b8444cd05b50ffb4/src/component/axisPointer/AxisPointerModel.ts)、[tooltip](https://github.com/apache/echarts/blob/c5a48f5f97d23e5379720870b8444cd05b50ffb4/src/component/tooltip/TooltipModel.ts)、[inside](https://github.com/apache/echarts/blob/c5a48f5f97d23e5379720870b8444cd05b50ffb4/src/component/dataZoom/InsideZoomModel.ts)及 [slider](https://github.com/apache/echarts/blob/c5a48f5f97d23e5379720870b8444cd05b50ffb4/src/component/dataZoom/SliderZoomModel.ts)。组件处理几何和事件，业务指标、分桶和复权仍来自 Owner。Canvas 绘图同时保留可访问的点值/表格与键盘入口，tooltip 内容按文本转义。
+
+已比较 [Lightweight Charts 的时间轴 API](https://tradingview.github.io/lightweight-charts/docs/api/interfaces/ITimeScaleApi)与[图表选项](https://tradingview.github.io/lightweight-charts/docs/api/interfaces/ChartOptionsBase)：它适合金融 K 线和平移缩放。本轮同时需要多图轴指针、概览滑块、回撤区间和分布图，采用 ECharts 可减少自建交互；这是本轮工程选择，不引入 TradingView 服务、账户或付费部署。实际包体、离线加载与长 ETF 交互性能在实施验收登记，不以库名代替体验检查。
+
+### 8.8 本轮实施与重新验收
+
+完整需求已经由用户授权修正，不再次让用户选择同一功能。先把本章/PRD/应用页的整页方案交主协调亲审；Data/Research/Engine 所缺产物在对应主章冻结并以新身份保存，UI 不抢写 Owner 合同。通过后在 UI 独立分支集中实现，先复用固定小样本和现有显示投影，再检查已保存长 ETF；不为页面改动重跑账户、训练、采集或 bulk。
+
+新 PR 必须同时给出需求逐项结果、实际浏览器页面与截图、固定版本及许可、Owner 原值绑定/缺失检查和交付清理检查。主协调亲审设计、代码和实际页面后方可合并更新；最终用户仍在同一 [Pages 地址](https://sinnergarden.github.io/axiom-ui/) 重新验收。当前线上保持，代码检查或截图通过不能把用户“未通过”改成通过；未补齐需求应单独列明，不用降级页面宣称全项完成。
 
 ## 9. 安全与性能
 
@@ -258,6 +307,12 @@ UI 可缓存 query-context-bound 结果，不能用 security+date 两个字段�
 | U15 | 图表降采样与点查 | 显示规则有标识；点查恢复原始精度和值，不回写业务 |
 | U16 | Owner 暂时不可用、读取旧缓存 | 显示缓存截止点/失败，不冒充最新成功 |
 | U17 | 查看 UI 后比对业务文件/服务调用 | 无 Data collect/build、Research train、Trade send/promote 调用 |
+| U18 | 指针在远离曲线的绘图区、随后点击和拖动 | 同日十字线/悬浮卡可用，hover 不改锁定详情，拖动不误锁定 |
+| U19 | 平移/缩放/概览窗口/精确日期/月份定位 | 图与交易范围一致；轴刻度自适应，原报告指标和身份不变 |
+| U20 | 最大回撤定位与旧报告缺日期 | 用保存峰谷区间高亮/定位；旧报告不由 UI 推算日期 |
+| U21 | 长 ETF 年/月/批次/证券链筛选分页 | 真实 ID 连链，不平铺全历史，不编理由/量；返回保留位置 |
+| U22 | 百分比分布、跨币种基准和不足指标 | 单位/零轴/尾桶清晰，按 Owner 保存状态；无 FX 不算人民币超额 |
+| U23 | 已审精选公开页面与当前线上比较 | 清理后的静态字节和绑定身份通过；新 PR 亲审后更新同一 URL |
 
 验收需至少一个包含公司行动、缺价、Feature/信号、未成交和实际成交的跨仓 fixture；纯 mock 页面不能证明上下文和 lineage 正确。
 
