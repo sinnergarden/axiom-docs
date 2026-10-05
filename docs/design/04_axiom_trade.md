@@ -221,7 +221,7 @@ Engine 不导入训练库，不从 model_ref 猜训练时间。
 
 本阶段仅解锁中立验证，`plan_stock_portfolio` 与 `validate_stock_request` 明确只账户
 消费 v1；v2 在规划/启动 ledger 前以“账户时钟消费尚未准入”拒绝，现有账户与保存件
-不变，新增账户执行为0。v2 账户消费增量提案见 §6.2，尚未批准或实现：复用唯一 Core planner/Runtime，
+不变，新增账户执行为0。v2 账户消费合同见 §6.2，主线设计已审、待交接 ACK 和实现：复用唯一 Core planner/Runtime，
 决策准入使用推理/发布时间，前收/member/Feature 仍受原 feature_knowledge_cutoff
 约束，不把 Data 查询提升到推理时钟，不新增执行器或账户路径。
 
@@ -389,9 +389,10 @@ SZSE [2023 交易规则](https://www.szse.cn/lawrules/rule/repeal/rules/t2023021
 过户费双边 0.00001 的完整深圳原文未取得，始终标研究费用假设。
 
 <a id="stock-v2-runtime-clock-proposal"></a>
-### 6.2 保存预测 v2 接入同一股票账户（2026-10-05，待主协调亲审）
+### 6.2 保存预测 v2 接入同一股票账户（2026-10-05，主线设计已审、待实现）
 
-本节是本轮第一优先级的**设计提案**，不代表账户准入已经实现。Research 负责先保存
+主协调已亲审固定源码 `019f9824` 的本节主线合同；待 Research getter 交接 ACK 后实现，
+先做合成/轻量验收，真实账户等待统一窗口。本节不代表账户准入已经实现。Research 负责先保存
 3–4 个真实连续周的 rolling fold：每折过去两年训练、下周预测、标签在 fit cutoff
 前成熟。两年范围、标签成熟、训练键、参数及同批一次 load/validate 由 Research
 主章定义；Engine 不改成 65 session，也不导入 Qlib/LightGBM 或另建执行器。
