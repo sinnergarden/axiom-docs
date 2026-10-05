@@ -10,15 +10,19 @@
       "version": "0.3.5",
       "wheel_sha256": "1773c1e588b1802d976c7766e80854060875e767bbb869bd5eae93bdae9bb75f",
       "latest_verified_source": {
-        "commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c",
+        "commit": "06b4bd562398fa433d26708586a7d00309bb1910",
         "version": "0.3.8",
-        "scope": "reviewed official fund_share_conversions and new fixed Snapshot; previous calendar audit retained; bounded frozen consumers accepted with original limitations",
+        "scope": "PR38 verified manifest reuse and PR39 one freshly verified Reader per Qlib export; previous fixed Snapshot/source and original bulk/package bindings retained",
         "review_status": "parent_review_passed",
         "package_status": "original installed and bulk builder identities retained",
-        "merge_commit": "44bad96924e83bc0d34048a3a6aa2452ed40ce79",
-        "pull_request": "https://github.com/sinnergarden/axiom-data/pull/37",
-        "source_tree": "ca36b4f14b9058d912620e57eb6759c61f924d6e",
-        "source_tree_unchanged_after_merge": true
+        "merge_commit": "1bb85e354b70200946049b937ba023f60e5fe310",
+        "pull_request": "https://github.com/sinnergarden/axiom-data/pull/39",
+        "source_tree": "2ceadc1776f9168594573fbadb36a6f75234b9e7",
+        "source_tree_unchanged_after_merge": true,
+        "pull_requests": [
+          "https://github.com/sinnergarden/axiom-data/pull/38",
+          "https://github.com/sinnergarden/axiom-data/pull/39"
+        ]
       },
       "previous_event_source": {
         "commit": "54e98c62cb594da2e4bd83d71b1167d4ba1877bf",
@@ -35,10 +39,21 @@
         "merge_commit": "93872ac3f75889ed99b90daa6cc15e18dac1b32a",
         "pull_request": "https://github.com/sinnergarden/axiom-data/pull/36",
         "source_tree_unchanged_after_merge": true
+      },
+      "previous_official_fund_conversion_source": {
+        "commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c",
+        "version": "0.3.8",
+        "scope": "reviewed official fund_share_conversions and new fixed Snapshot; previous calendar audit retained; bounded frozen consumers accepted with original limitations",
+        "review_status": "parent_review_passed",
+        "package_status": "original installed and bulk builder identities retained",
+        "merge_commit": "44bad96924e83bc0d34048a3a6aa2452ed40ce79",
+        "pull_request": "https://github.com/sinnergarden/axiom-data/pull/37",
+        "source_tree": "ca36b4f14b9058d912620e57eb6759c61f924d6e",
+        "source_tree_unchanged_after_merge": true
       }
     },
     "axiom-research": {
-      "commit": "3a7451ebea8a2109e58c0e5be4c551655a7ae023",
+      "commit": "57359a82220418ecbf12befac909f23933021494",
       "version": "0.2.1",
       "branch": "main",
       "status": "merged_via_parent_reviewed_pr",
@@ -57,8 +72,8 @@
         "version": "0.1.3",
         "full_suite_passed": 32
       },
-      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/3",
-      "source_commit": "a8f30d421c7fca3ca32ac22c0efe3d4d72935343",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/4",
+      "source_commit": "90b378a6e7d8283b0b021c537a95c5468b9161bc",
       "source_tree_unchanged_after_merge": true,
       "remote_ci": "no_check_runs",
       "previous_saved_run_source": {
@@ -67,13 +82,14 @@
         "source_commit": "59c45a18ec5e1b4d69e7ccffd13b750d450463ea",
         "pull_request": "https://github.com/sinnergarden/axiom-research/pull/1"
       },
-      "source_tree": "e299c463809f399fa7c1c831cd32ada0bdd4c64e",
+      "source_tree": "8ae4a69269594c99e42289c5757cffda6aae8ad9",
       "pull_requests": [
         "https://github.com/sinnergarden/axiom-research/pull/1",
         "https://github.com/sinnergarden/axiom-research/pull/2",
-        "https://github.com/sinnergarden/axiom-research/pull/3"
+        "https://github.com/sinnergarden/axiom-research/pull/3",
+        "https://github.com/sinnergarden/axiom-research/pull/4"
       ],
-      "scope": "fixed ETF signals, bounded six-feature normalized stock model and saved stage projections; readonly owner-account registration",
+      "scope": "fixed ETF signals, bounded six-feature stock model and saved stages; invocation-local input/identity reuse and bounded two-fold performance acceptance; private partial March OOS",
       "previous_stock_model_source": {
         "commit": "091189e9d2bf9e666d9083ea63568e2238264cfa",
         "merge_commit": "fec92704dc334bd3c8e3ab2ba24a5060bb9f10cd",
@@ -82,7 +98,7 @@
       }
     },
     "axiom-engine": {
-      "commit": "9d0b52ca05f62ca76546d285f75b20e73cafa1a0",
+      "commit": "d6655c70088073367b6bf4231bdf484c3acb20d7",
       "version": "0.2.1",
       "branch": "main",
       "status": "merged_via_parent_reviewed_prs",
@@ -92,13 +108,14 @@
         "commit": "381fe6c2d5e9024a3a62832c6e479b4ff04e2fc6",
         "branch": "engine/etf-account-backtest"
       },
-      "source_commit": "cb94d7aad0ef9b1a5e8f5e885c1aed6f28fa3310",
+      "source_commit": "93de8f7f0a944e8b2ccb9b048feb588e74bffc3e",
       "pull_requests": [
         "https://github.com/sinnergarden/axiom-engine/pull/2",
         "https://github.com/sinnergarden/axiom-engine/pull/3",
         "https://github.com/sinnergarden/axiom-engine/pull/4",
         "https://github.com/sinnergarden/axiom-engine/pull/5",
-        "https://github.com/sinnergarden/axiom-engine/pull/6"
+        "https://github.com/sinnergarden/axiom-engine/pull/6",
+        "https://github.com/sinnergarden/axiom-engine/pull/7"
       ],
       "source_tree_unchanged_after_merge": true,
       "previous_evaluation_source": {
@@ -106,8 +123,8 @@
         "merge_commit": "ef2f693e4861482753893a99852de46232aea9c6",
         "contract_version": "evaluation_report_v1"
       },
-      "source_tree": "601fd0c23c640d81096d8940346fc81613d00e7b",
-      "scope": "saved ETF account/evaluation with unit splits and bounded SZSE Top5 stock account/evaluation; explicit strict and observed policies",
+      "source_tree": "c51ed0c7d46ef122e150cf5b751496608e02eb8a",
+      "scope": "saved ETF/stock account/evaluation with original execution/statistical limits; invocation-local reuse of verified saved Reader coverage bytes",
       "previous_long_evaluation_source": {
         "source_commit": "88769468644c709197b3ee6ca7d751b47032013b",
         "merge_commit": "f0fd9776bfaf4fbb2291a44b225fe9a5e4b13079",
@@ -378,14 +395,14 @@
   "limits": [
     "no complete twelve-year use-coverage acceptance; frozen seven-ETF 2019-07-01 through 2026-09-30 scope and bounded 2024-01 stock scope have owner engineering acceptance with original missing/PIT/execution limits",
     "no multi-year stock feature/model/account scale benchmark or one-day guarantee; saved stock decoding retains measured time and memory cost",
-    "bounded deterministic ETF recipe and six-feature five-session normalized stock fixed fold only; no arbitrary FeaturePlans, derived TTM projection or general model selection/OOS platform",
+    "bounded deterministic ETF recipe, fixed stock model and two-fold performance acceptance only; no arbitrary FeaturePlans, derived TTM projection or general model selection/OOS platform",
     "UNKNOWN retained; ETF/stock observed daily execution is explicit approximation and strict controls retained; not live rules",
     "no live Broker, SQLite crash recovery, complete stock quantity-action/delisting support or complete BFF/browser product; final UI visual/user acceptance pending"
   ],
-  "as_of": "2026-10-04",
+  "as_of": "2026-10-05",
   "pending_implementations": {
     "axiom-data": {
-      "source_commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c",
+      "source_commit": "06b4bd562398fa433d26708586a7d00309bb1910",
       "status": "frozen_daily_inputs_consumed_in_bounded_ETF_and_stock_scope; complete_twelve_year_use_coverage_not_claimed",
       "evidence": "parent-confirmed final fixed owner account/evaluation handoffs; original builder bindings retained",
       "long_history_limit_probe": {
@@ -417,9 +434,10 @@
         "bounded_research_preflight": "previous fixed-Snapshot start-only preflight retained as historical; final fixed-Snapshot signal/account result is separate"
       },
       "calendar_audit_status": "e62774c_parent_review_passed_corrected_report_completed",
-      "merge_commit": "44bad96924e83bc0d34048a3a6aa2452ed40ce79",
-      "pull_request": "https://github.com/sinnergarden/axiom-data/pull/37",
-      "official_fund_share_conversions": "reviewed source and new fixed Snapshot; PR37 parent reviewed and merged"
+      "merge_commit": "1bb85e354b70200946049b937ba023f60e5fe310",
+      "pull_request": "https://github.com/sinnergarden/axiom-data/pull/39",
+      "official_fund_share_conversions": "reviewed source and new fixed Snapshot; PR37 parent reviewed and merged",
+      "fixed_daily_snapshot_source_commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c"
     },
     "axiom-ui": {
       "source_commit": "bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4",
