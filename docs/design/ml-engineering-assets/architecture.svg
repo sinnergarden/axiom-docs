@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1520" height="975" viewBox="0 0 1520 975" role="img" aria-labelledby="title desc">
+<title id="title">Axiom 已实现 ML 工程链与尚未实现边界</title><desc id="desc">实线为固定样本及两折saved-fold已实现链路；虚线为规划中的通用推理、组合接口与滚动恢复。推理目前归 Research，账户只由 Engine Runtime 计算。</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#465a72"/></marker></defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;fill:#203047}.title{font-size:32px;font-weight:700}.sub{font-size:17px;fill:#53667c}.owner{font-size:16px;font-weight:650}.name{font-size:24px;font-weight:650}.line{font-size:18px}.edge{font-size:15px;fill:#465a72}.rail{fill:none;stroke:#465a72;stroke-width:2;marker-end:url(#arrow)}.plan{fill:#f9fafc;stroke:#8492a6;stroke-width:2;stroke-dasharray:7 5}.small{font-size:16px}</style>
+<rect width="1520" height="975" fill="#f5f7fb"/>
+<text x="48" y="51" class="title">先固定事实与计算，再消费保存信号</text>
+<text x="48" y="83" class="sub">工程架构 · 2026-10-05 · 实线：固定样本已实现   虚线：目标合同待完成</text>
+<text x="48" y="112" class="sub">实际试点：真实65-session滑动两折 · 三阶段时钟 · 旧v1 Signal Top3/Top5；固定来源见版本表</text>
+<rect x="48" y="145" width="280" height="138" rx="14" fill="white" stroke="#0c7c74" stroke-width="2"/>
+<rect x="48" y="145" width="280" height="7" rx="3" fill="#0c7c74"/>
+<text x="66" y="176" class="owner" style="fill:#0c7c74">DATA</text>
+<text x="66" y="211" class="name">Raw 响应</text>
+<text x="66" y="240" class="line">原响应与实际 receipt</text>
+<text x="66" y="265" class="line">首次准备；不重复供应商采集</text>
+<rect x="414" y="145" width="280" height="138" rx="14" fill="white" stroke="#0c7c74" stroke-width="2"/>
+<rect x="414" y="145" width="280" height="7" rx="3" fill="#0c7c74"/>
+<text x="432" y="176" class="owner" style="fill:#0c7c74">DATA</text>
+<text x="432" y="211" class="name">Canonical / Snapshot</text>
+<text x="432" y="240" class="line">经济键、revision、单位 / 身份</text>
+<text x="432" y="265" class="line">不可变版本与可见性</text>
+<rect x="780" y="145" width="280" height="138" rx="14" fill="white" stroke="#0c7c74" stroke-width="2"/>
+<rect x="780" y="145" width="280" height="7" rx="3" fill="#0c7c74"/>
+<text x="798" y="176" class="owner" style="fill:#0c7c74">DATA</text>
+<text x="798" y="211" class="name">固定 cutoff 事实</text>
+<text x="798" y="240" class="line">QuerySpec → DataBatch</text>
+<text x="798" y="265" class="line">含成员 / 日历 / 行情 / 行动</text>
+<rect x="1146" y="145" width="280" height="138" rx="14" fill="white" stroke="#0c7c74" stroke-width="2"/>
+<rect x="1146" y="145" width="280" height="7" rx="3" fill="#0c7c74"/>
+<text x="1164" y="176" class="owner" style="fill:#0c7c74">DATA</text>
+<text x="1164" y="211" class="name">Qlib 导出</text>
+<text x="1164" y="240" class="line">固定 bin + manifest / 来源</text>
+<text x="1164" y="265" class="line">格式适配；不计算预测特征</text>
+<path class="rail" d="M328 212 H414"/><text x="371" y="131" text-anchor="middle" class="edge">Data：响应 → 规范事实</text>
+<path class="rail" d="M694 212 H780"/><text x="737" y="131" text-anchor="middle" class="edge">Data：Snapshot + Query</text>
+<path class="rail" d="M1060 212 H1146"/><text x="1103" y="131" text-anchor="middle" class="edge">Data：DataBatch → bin</text>
+<rect x="48" y="380" width="280" height="138" rx="14" fill="white" stroke="#3166bd" stroke-width="2"/>
+<rect x="48" y="380" width="280" height="7" rx="3" fill="#3166bd"/>
+<text x="66" y="411" class="owner" style="fill:#3166bd">RESEARCH + CORE</text>
+<text x="66" y="446" class="name">FeatureBuild</text>
+<text x="66" y="475" class="line">catalog ID / 依赖 → FeaturePlan</text>
+<text x="66" y="500" class="line">Research 编排；Core 共享执行</text>
+<rect x="414" y="380" width="280" height="138" rx="14" fill="white" stroke="#3166bd" stroke-width="2"/>
+<rect x="414" y="380" width="280" height="7" rx="3" fill="#3166bd"/>
+<text x="432" y="411" class="owner" style="fill:#3166bd">RESEARCH + CORE</text>
+<text x="432" y="446" class="name">成熟 Label / Dataset</text>
+<text x="432" y="475" class="line">实际 f+1 open → f+5 close</text>
+<text x="432" y="500" class="line">成熟门槛 / 截面 norm / 训练键</text>
+<rect x="780" y="380" width="280" height="138" rx="14" fill="white" stroke="#3166bd" stroke-width="2"/>
+<rect x="780" y="380" width="280" height="7" rx="3" fill="#3166bd"/>
+<text x="798" y="411" class="owner" style="fill:#3166bd">RESEARCH</text>
+<text x="798" y="446" class="name">LightGBM / Model</text>
+<text x="798" y="475" class="line">固定矩阵 → 原生 booster</text>
+<text x="798" y="500" class="line">fit / inference 当前在 Research</text>
+<rect x="1146" y="380" width="280" height="138" rx="14" fill="white" stroke="#3166bd" stroke-width="2"/>
+<rect x="1146" y="380" width="280" height="7" rx="3" fill="#3166bd"/>
+<text x="1164" y="411" class="owner" style="fill:#3166bd">RESEARCH</text>
+<text x="1164" y="446" class="name">保存 Signal</text>
+<text x="1164" y="475" class="line">v1账户准入 / v2中立验证</text>
+<text x="1164" y="500" class="line">完整键 / member / validity / 时钟</text>
+<path class="rail" d="M1286 283 V332 H188 V380"/><text x="754" y="355" text-anchor="middle" class="edge">Data → Research：Qlib 数值 + 固定事实 / cutoff / 历史成员</text>
+<path class="rail" d="M920 283 V319 H554 V380"/><text x="696" y="299" text-anchor="middle" class="edge">Data → Label：原生价格 / 因子 / 实际日历</text>
+<path class="rail" d="M328 449 H414"/><text x="371" y="542" text-anchor="middle" class="edge">Research：Feature + Label</text>
+<path class="rail" d="M694 449 H780"/><text x="737" y="542" text-anchor="middle" class="edge">Research：矩阵 / 成熟键</text>
+<path class="rail" d="M1060 449 H1146"/><text x="1103" y="542" text-anchor="middle" class="edge">Research：booster + Feature</text>
+<rect x="48" y="645" width="280" height="138" rx="14" fill="white" stroke="#7856b8" stroke-width="2"/>
+<rect x="48" y="645" width="280" height="7" rx="3" fill="#7856b8"/>
+<text x="66" y="676" class="owner" style="fill:#7856b8">ENGINE · CORE</text>
+<text x="66" y="711" class="name">TopK 决策 /2</text>
+<text x="66" y="740" class="line">冻结预测 + 当前账户 / 时钟</text>
+<text x="66" y="765" class="line">稳定 tie-break → 目标 / 意图</text>
+<rect x="414" y="645" width="280" height="138" rx="14" fill="white" stroke="#375267" stroke-width="2"/>
+<rect x="414" y="645" width="280" height="7" rx="3" fill="#375267"/>
+<text x="432" y="676" class="owner" style="fill:#375267">ENGINE · RUNTIME</text>
+<text x="432" y="711" class="name">唯一账户 Runtime</text>
+<text x="432" y="740" class="line">MarketReplay + 意图 → fills</text>
+<text x="432" y="765" class="line">现金 / 持仓 / 费用 / NAV</text>
+<rect x="780" y="645" width="280" height="138" rx="14" fill="white" stroke="#0c7c74" stroke-width="2"/>
+<rect x="780" y="645" width="280" height="7" rx="3" fill="#0c7c74"/>
+<text x="798" y="676" class="owner" style="fill:#0c7c74">ENGINE · EVALUATION</text>
+<text x="798" y="711" class="name">保存 Evaluation</text>
+<text x="798" y="740" class="line">保存 run + 基准 / 行动 / spec</text>
+<text x="798" y="765" class="line">不重新拟合或生成预测</text>
+<rect x="1146" y="645" width="280" height="138" rx="14" fill="white" stroke="#aa7420" stroke-width="2"/>
+<rect x="1146" y="645" width="280" height="7" rx="3" fill="#aa7420"/>
+<text x="1164" y="676" class="owner" style="fill:#aa7420">UI</text>
+<text x="1164" y="711" class="name">只读 UI / Pages</text>
+<text x="1164" y="740" class="line">公共 Reader → 展示投影</text>
+<text x="1164" y="765" class="line">HTML 打开 / 切页不跑业务</text>
+<path class="rail" d="M1426 459 H1482 V594 H188 V645"/><text x="804" y="581" text-anchor="middle" class="edge">Research → Core：仅v1进入账户；v2仅中立验证</text>
+<path class="rail" d="M780 270 H20 V720 H414"/><text x="217" y="623" text-anchor="middle" class="edge">Data → Runtime：冻结 MarketReplay</text>
+<path class="rail" d="M1060 270 H1088 V618 H920 V645"/><text x="1270" y="619" text-anchor="middle" class="edge">Data → Evaluation：基准 / 分红范围</text>
+<path class="rail" d="M328 717 H414"/><text x="371" y="809" text-anchor="middle" class="edge">Core → Runtime：意图</text>
+<path class="rail" d="M694 717 H780"/><text x="737" y="809" text-anchor="middle" class="edge">Runtime → Eval：saved run</text>
+<path class="rail" d="M1060 717 H1146"/><text x="1103" y="809" text-anchor="middle" class="edge">Owners → UI：saved refs</text>
+<rect class="plan" x="48" y="845" width="688" height="82" rx="12"/><text x="66" y="877" class="owner">规划：Core ModelHandle / 通用 SignalPlan</text><text x="66" y="906" class="line">通用推理 ABI 未成；TopK决策/2 已合；同 Signal 对照通过</text>
+<rect class="plan" x="766" y="845" width="660" height="82" rx="12"/><text x="784" y="877" class="owner">规划：通用schedule / 分片 / checkpoint恢复</text><text x="784" y="906" class="line">公开saved-fold已实现；通用streaming恢复未成</text>
+<path d="M832 518 V559 H720 V844" fill="none" stroke="#8492a6" stroke-width="2" stroke-dasharray="7 5"/><text x="48" y="958" class="small">缓存不是免校验：保存件仍解析 / 核验完整证明；信号复用仅适用于无账户依赖预测，不跨账本缓存策略状态。</text></svg>
