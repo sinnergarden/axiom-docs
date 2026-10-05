@@ -47,7 +47,7 @@ Engine [PR #4](https://github.com/sinnergarden/axiom-engine/pull/4) 将 [有界�
 
 ### 已合软件性能与验证范围（2026-10-05）
 
-上述三个软件性能 PR 均经独立 review 与父任务亲审后通过 PR 合并；原 hash、时间、成员、来源及输入绑定检查保留，新安装包没有验收声明。Engine 的 **45.5% 耗时下降**是同一保存件的单 Reader 有界实测，不能称为完整 UI 导出提速。Data PR #38 复用一次验证的 manifest 与选定分区，PR #39 在同次 Qlib 导出中复用 freshly verified Reader：冷导出 manifest 加载 **5→1 次**，warm 导出仍重新验证一次；这不是 5 倍实测提速，也没有该新版 exporter 的生产 RSS/耗时验收。
+上述三个软件性能 PR 均经独立 review 与父任务亲审后通过 PR 合并；原 hash、时间、成员、来源及输入绑定检查保留，新安装包没有验收声明。Engine 的 **45.5% 耗时下降**是同一保存账户与评价的一组完整加载有界实测，不能称为完整 UI 导出提速。Data PR #38 复用一次验证的 manifest，PR #39 在同次 Qlib 导出中复用 freshly verified Reader：冷导出 manifest 加载 **5→1 次**，warm 导出仍重新验证一次；这不是 5 倍实测提速，也没有该新版 exporter 的生产 RSS/耗时验收。
 
 Research 保持原固定 314 股票控制集、六特征、五个实际 session label 与模型参数；共享日期只准备一次，各折仍使用独立 fit/outcome cutoff、成熟标签、当日可见成员及逐日截面归一化。February 完整 **15 个 OOS sessions**、March 仅 **3/21 个 OOS sessions**，均完成真实 fit/predict、同矩阵复现、保存模型预测复现及保存证据独立复审，无效行保留。本次复用已准备 Native 的两折主进程约 **282.34 秒、主进程峰值 4.09 GiB**，包含约 65.62 秒额外原 adapter 正确性对照；不含单独 Qlib 准备及先前未完成尝试，OS 页缓存未清理。私人模型、预测、账户结果与完整 benchmark 日志仍只在本地；该验收没有生成新的多年账户。
 

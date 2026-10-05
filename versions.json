@@ -12,7 +12,7 @@
       "latest_verified_source": {
         "commit": "06b4bd562398fa433d26708586a7d00309bb1910",
         "version": "0.3.8",
-        "scope": "PR38 verified manifest/selected-partition reuse and PR39 one freshly verified Reader per Qlib export; previous fixed Snapshot/source and original bulk/package bindings retained",
+        "scope": "PR38 verified manifest reuse and PR39 one freshly verified Reader per Qlib export; previous fixed Snapshot/source and original bulk/package bindings retained",
         "review_status": "parent_review_passed",
         "package_status": "original installed and bulk builder identities retained",
         "merge_commit": "1bb85e354b70200946049b937ba023f60e5fe310",
