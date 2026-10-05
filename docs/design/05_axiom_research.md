@@ -607,6 +607,10 @@ SignalExpression 固定 inputs、join keys、算术/条件操作、归一化截�
 `stock_signal_evidence_v1` 已保存逐日IC/RankIC、有效配对数、Signal/Raw Label refs和
 评价cutoff。候选实现沿用该文件和身份机制，提供独立公开评价、保存、载入入口及ICIR
 汇总。已验证旧v1、分阶段时钟v2和compact fold v2的来源闭包；真实两年规模尚未验收。
+Research包依赖下限为 `axiom-engine>=0.3.0`；Engine PR15的准确源码
+`e1fbef2c57ce337a3ca3d90ac3136bfb943798fd` 以0.3.0公开统计和schedule入口。
+Research PR7后续单行依赖修订 `220d46cccb897fb77ce9125ec95acfd1dd6087b4` 已通过
+版本元数据及公开import核验；本轮沿用源码锁定，不等待wheel发布。
 
 Research定义评价范围和标签版本，按 `(security_id,feature_session)` 拼接保存预测与
 成熟Raw Label。同次批量评价共用已选定的Raw Label表；公共owner loader仍逐份验证
