@@ -1,4 +1,8 @@
-"""Two-date-window teaching orchestration, not a public rolling artifact API.
+"""HISTORICAL FIXED-DATE CONTROL: Nov1-Jan31 teaching orchestration.
+
+This retained control is not the new 65-session sliding entry point. Use
+axiom_research.build_stock_ml_fold_from_saved_inputs for the saved moving fold.
+No second training backend is introduced here.
 
 Inputs are caller-owned frozen Feature parents and public Data scope evidence.
 Feature execution, supplier collection and account execution are absent. All

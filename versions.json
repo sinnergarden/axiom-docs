@@ -196,10 +196,10 @@
       "git_commit": "969145dcff6685116623d61bcf77b151f49dae4c",
       "version": "0.2.0",
       "branch": "publish/ui-readonly",
-      "status": "software_merged_parent_source_review_passed; parent_pixel_review_performed; user_product_acceptance_FAILED; remediation_in_progress",
+      "status": "remediated_version_published_2026_10_05; parent_review_and_owner_online_QA_passed; user_retest_pending; historical_user_product_acceptance_FAILED",
       "wheel_status": "owner final local wheel assets independently verified; no installed or distributed wheel claim",
       "legacy_local_directory": "old_non_git_copy_retained_pending_navigation_migration",
-      "screenshot_qa": "owner browser QA passed; parent reviewed actual visual scope; user explicitly rejected product; remediation pending",
+      "screenshot_qa": "remediated version published 2026-10-05; parent review and owner online QA passed; user retest pending",
       "previous_daily_source": {
         "git_commit": "d5f097e46580b2794d08ececddccb123d292d3ea",
         "version": "0.1.0",
@@ -225,7 +225,7 @@
         "https://github.com/sinnergarden/axiom-ui/pull/6"
       ],
       "parent_pixel_review": "performed_for_actual_reviewed_scope",
-      "user_acceptance": "FAILED",
+      "user_acceptance": "PENDING_RETEST",
       "previous_local_stage_wheel": {
         "wheel_sha256": "6a7e196369a61e886ca9f860075c7f8198b1e540af409085002475498f5f8007",
         "scope": "owner-reported local stage consumer build; asset bytes equal source; no environment install",
@@ -250,23 +250,29 @@
         "local_Mac_files": "available_to_open",
         "success_receipt": null
       },
-      "scope": "saved v3 analysis/public selected report projections; product user acceptance FAILED remains; new ML notebook publishing belongs to UI owner",
+      "scope": "saved v3 analysis/public selected report projections; remediated version deployed; historical user FAILED retained; new ML tutorial candidate belongs to original UI owner",
       "public_pages_source": {
-        "source_commit": "0260cb35a8d02d57170ee58fc4b9504edcc39ca5",
-        "merge_commit": "f0e913bfaa01dee7903a7f397d17a96c7634f8fb",
-        "source_tree": "3d9f70c40259aa8d4708df3ab11605c3193bde80",
-        "notebook_status": "new ML saved-sliding tutorial read-only finalization in Docs PR16; original UI owner publication pending",
+        "source_commit": "4bdd8f0316d58b28cad6fe63bc399c73a15cd562",
+        "merge_commit": "969145dcff6685116623d61bcf77b151f49dae4c",
+        "source_tree": "67ab4b55dac5907f521da54e101e735079474840",
+        "gh_pages_commit": "8ec244d45ead4843bf8eaae6255d6d12547a167a",
+        "publication_file_sha256": "e787a5d1ce493ddccd09270104931dbc9d79d657ad5a401e389c57316eb928d2",
+        "deployed_on": "2026-10-05",
+        "status": "PUBLISHED; parent live HTTP/source review and owner online QA passed; user retest pending",
+        "notebook_status": "new ML saved-sliding tutorial in Docs PR16; original UI owner may prepare sanitized candidate from sole Notebook; parent review before publication",
         "evidence_reports": [
-          "reports/public-pages-acceptance.json",
-          "reports/public-pages-browser-acceptance.json"
-        ]
+          "reports/public-site-final-candidate-20261005.json"
+        ],
+        "evidence_source": "Parent live HTTP verification; UI owner saved candidate acceptance; not a new Research browser QA"
       },
       "previous_public_site_delivery": {
         "git_commit": "f0e913bfaa01dee7903a7f397d17a96c7634f8fb",
         "source_commit": "0260cb35a8d02d57170ee58fc4b9504edcc39ca5",
         "source_tree": "3d9f70c40259aa8d4708df3ab11605c3193bde80",
-        "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/4"
-      }
+        "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/4",
+        "status": "HISTORICAL_PR4_PUBLICATION; superseded by current public_pages_source"
+      },
+      "previous_user_acceptance": "FAILED"
     }
   },
   "validation": {
@@ -449,7 +455,8 @@
       "protected_owner_files": "hash/mtime unchanged in owner acceptance",
       "private_outputs": "local only; current private Library transfer blocked, no public upload",
       "merge_reruns": 0,
-      "product_remediation": "in_progress; prior owner QA retained separately"
+      "product_remediation": "in_progress; prior owner QA retained separately",
+      "record_status": "HISTORICAL_PR3_ROUND; current published remediation is implementations.axiom-ui.public_pages_source"
     },
     "ml_engineering_teaching_round": {
       "fixed_config": "PASS: actual first build then HIT, 1 fit/infer and second 0; no Data/Feature execution",
@@ -559,7 +566,7 @@
     "no multi-year stock feature/model/account scale benchmark or one-day guarantee; saved stock decoding retains measured time and memory cost",
     "bounded deterministic ETF recipe, fixed stock model and two-fold performance acceptance only; no arbitrary FeaturePlans, derived TTM projection or general model selection/OOS platform",
     "UNKNOWN retained; ETF/stock observed daily execution is explicit approximation and strict controls retained; not live rules",
-    "no live Broker, SQLite crash recovery, complete stock quantity-action/delisting support or complete BFF/browser product; parent visual review performed; user UI product acceptance FAILED, remediation pending"
+    "no live Broker, SQLite crash recovery, complete stock quantity-action/delisting support or complete BFF/browser product; parent visual review performed; historical user UI product acceptance FAILED; remediated version published 2026-10-05 and parent/owner online QA passed; user retest pending"
   ],
   "as_of": "2026-10-05",
   "pending_implementations": {
@@ -602,22 +609,36 @@
       "fixed_daily_snapshot_source_commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c"
     },
     "axiom-ui": {
-      "source_commit": "bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4",
-      "merge_commit": "05a1dd8acccf472b36ba6fba4a360c35824bc26d",
-      "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/3",
-      "status": "software_merged_parent_source_review_passed; parent_pixel_review_performed; user_product_acceptance_FAILED; remediation_in_progress",
+      "source_commit": "4bdd8f0316d58b28cad6fe63bc399c73a15cd562",
+      "merge_commit": "969145dcff6685116623d61bcf77b151f49dae4c",
+      "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/6",
+      "status": "remediated_version_published_2026_10_05; parent_review_and_owner_online_QA_passed; user_retest_pending; historical_user_product_acceptance_FAILED",
       "final_product_acceptance": false,
       "parent_source_review": "passed",
-      "parent_pixel_review": "performed_for_actual_reviewed_scope",
-      "user_acceptance": "FAILED",
-      "owner_browser_QA": "reported PASS for final bounded v3 source; 35 tests and default Chrome/wheel independent review",
-      "library_delivery": "BLOCKED: Library prepare_uploads is not available; 0 files written, no file IDs; Mac local files available"
+      "parent_online_review": "passed_for_remediated_published_version",
+      "owner_online_QA": "PASS",
+      "user_acceptance": "PENDING_RETEST",
+      "previous_user_acceptance": "FAILED",
+      "previous_unremediated_source": {
+        "source_commit": "bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4",
+        "merge_commit": "05a1dd8acccf472b36ba6fba4a360c35824bc26d",
+        "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/3",
+        "status": "software_merged_parent_source_review_passed; parent_pixel_review_performed; user_product_acceptance_FAILED; remediation_in_progress",
+        "final_product_acceptance": false,
+        "parent_source_review": "passed",
+        "parent_pixel_review": "performed_for_actual_reviewed_scope",
+        "user_acceptance": "FAILED",
+        "owner_browser_QA": "reported PASS for final bounded v3 source; 35 tests and default Chrome/wheel independent review",
+        "library_delivery": "BLOCKED: Library prepare_uploads is not available; 0 files written, no file IDs; Mac local files available",
+        "record_status": "HISTORICAL_PR3_REMEDIATION_STATE; superseded by current published PR6 source"
+      },
+      "new_ML_teaching_publication": "candidate only until parent review; original UI owner"
     }
   },
   "pending_Data_approvals": {
     "pull_requests": [
-      "https://github.com/sinnergarden/axiom-data/pull/15",
-      "https://github.com/sinnergarden/axiom-data/pull/18",
+      "https://github.com/sinnergarden/axiom-docs/pull/15",
+      "https://github.com/sinnergarden/axiom-docs/pull/18",
       "https://github.com/sinnergarden/axiom-data/pull/40"
     ],
     "approval_status": "unresolved_per_parent_instruction_2026_10_05",

@@ -3,7 +3,9 @@
 [ML 工程 Notebook](ml_engineering_tutorial.ipynb)及[生成 HTML](ml_engineering_tutorial.html)：
 先看整体 owner 图、固定真实短样本、registry、成熟 label/Dataset/model、保存 Signal、
 Engine 唯一账户、UI 与缓存边界。真实65-session滑动两折已通过；旧固定配置/成熟控制保留历史；Notebook 默认只读本地保存回执，
-全年/多年 ML 暂停。详细合同仍链接统一设计正文，HTML 从 Notebook 生成，不独立编辑。
+第3/6节展示公共catalog及真实滑动builder用法，Markdown代码默认不执行；全年/多年 ML 暂停。
+[`weekly_ml_pilot.py`](../examples/weekly_ml_pilot.py)仅为原Nov1—Jan31固定窗历史控制，新入口是
+`axiom_research.build_stock_ml_fold_from_saved_inputs`。详细合同仍链接统一设计正文，HTML 从 Notebook 生成，不独立编辑。
 
 Data两种路线的唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
 
