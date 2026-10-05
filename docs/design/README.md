@@ -15,5 +15,5 @@
 当前实现、测量和未完成事项见 [本轮交付](../current-delivery.md)，适用代码版本见 [versions.json](../../versions.json)。
 
 新增 [ML 工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)作为工程教学入口：
-实线已实现/虚线规划图、自动 registry 表、成熟与重跑边界，以及待审 weekly 小样本预算。
-本稿未执行，先审整体设计及小流程，再讨论全年/多年 ML；不取代本目录规范正文。
+实线已实现/虚线规划图、自动 registry 表、成熟与重跑边界，以及已批准 weekly 小样本预算。
+固定配置/两周控制试点已运行，全年/多年 ML 暂停；不取代本目录规范正文。

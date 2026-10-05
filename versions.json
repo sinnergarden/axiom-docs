@@ -134,6 +134,14 @@
         "source_commit": "59a4e1c7827f241c407e4dce7cd490806560c4ce",
         "merge_commit": "1df81dc484bcf5eebb0fc4a75357614ba12225ae",
         "contract_version": "backtest_run_v2"
+      },
+      "latest_topk_source": {
+        "source_commit": "f6d93a138dfac6e61cc65dba976d0c9d1c8c2f85",
+        "merge_commit": "ea9d1785eb1a9321634c06d648058a5cf7dd36ea",
+        "source_tree": "260c31e3f3e9e66631f9f41099a74bc388ae894f",
+        "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/8",
+        "status": "parent_review_passed_merged",
+        "contract": "explicit positive integer TopK uses core /2; legacy /1 Top5 retained"
       }
     },
     "axiom-ui": {
@@ -141,10 +149,10 @@
       "git_commit": "f0e913bfaa01dee7903a7f397d17a96c7634f8fb",
       "version": "0.2.0",
       "branch": "publish/ui-readonly",
-      "status": "merged_parent_source_reviewed_bounded_stock_v3_consumer; owner_QA_passed; root_pixel_and_user_acceptance_pending",
+      "status": "software_merged_parent_source_review_passed; parent_pixel_review_performed; user_product_acceptance_FAILED; remediation_in_progress",
       "wheel_status": "owner final local wheel assets independently verified; no installed or distributed wheel claim",
       "legacy_local_directory": "old_non_git_copy_retained_pending_navigation_migration",
-      "screenshot_qa": "owner default Chrome desktop/mobile QA passed; root final screenshot review not performed; user acceptance pending",
+      "screenshot_qa": "owner browser QA passed; parent reviewed actual visual scope; user explicitly rejected product; remediation pending",
       "previous_daily_source": {
         "git_commit": "d5f097e46580b2794d08ececddccb123d292d3ea",
         "version": "0.1.0",
@@ -167,8 +175,8 @@
         "https://github.com/sinnergarden/axiom-ui/pull/3",
         "https://github.com/sinnergarden/axiom-ui/pull/4"
       ],
-      "parent_pixel_review": "not_performed",
-      "user_acceptance": "not_completed",
+      "parent_pixel_review": "performed_for_actual_reviewed_scope",
+      "user_acceptance": "FAILED",
       "previous_local_stage_wheel": {
         "wheel_sha256": "6a7e196369a61e886ca9f860075c7f8198b1e540af409085002475498f5f8007",
         "scope": "owner-reported local stage consumer build; asset bytes equal source; no environment install",
@@ -193,7 +201,7 @@
         "local_Mac_files": "available_to_open",
         "success_receipt": null
       },
-      "scope": "saved account/model/stage Reader and selected static public Pages; engineering notebook remains unexecuted design draft",
+      "scope": "saved account/model/stage Reader; UI product remediation pending; bounded ML teaching execution measured separately",
       "public_pages_source": {
         "source_commit": "0260cb35a8d02d57170ee58fc4b9504edcc39ca5",
         "merge_commit": "f0e913bfaa01dee7903a7f397d17a96c7634f8fb",
@@ -379,13 +387,24 @@
       "scope": "explicit saved stock v3 account/evaluation v2, original Research registration/model/stage bindings, native thin OHLCV projection and units/tax/null restrictions",
       "owner_browser_QA": "installed Chrome default security and sandbox; desktop 1440x1100 and mobile 390x844; no document overflow",
       "owner_wheel_asset_check": "byte equal source; local only, no environment installation or public distribution",
-      "root_pixel_review": "not_performed",
-      "user_acceptance": "not_completed",
+      "root_pixel_review": "performed_for_actual_reviewed_scope",
+      "user_acceptance": "FAILED",
       "library_delivery": "BLOCKED: Library prepare_uploads is not available; 0 files written, no file IDs; user Mac local files available",
       "data_account_train_query_save_calls": 0,
       "protected_owner_files": "hash/mtime unchanged in owner acceptance",
       "private_outputs": "local only; current private Library transfer blocked, no public upload",
-      "merge_reruns": 0
+      "merge_reruns": 0,
+      "product_remediation": "in_progress; prior owner QA retained separately"
+    },
+    "ml_engineering_teaching_round": {
+      "fixed_config": "PASS: actual first build then HIT, 1 fit/infer and second 0; no Data/Feature execution",
+      "weekly": "PASS: two fixed-date training controls with weekly maturity cutoffs, 2 fit/infer; not complete sliding window",
+      "weekly_cumulative_Data_reads_including_failed_attempts": 8,
+      "topk": "BLOCKED_RESOURCE_BUDGET: Top5 account saved, incomplete evaluation, Top3 not started",
+      "topk_observed_peak_rss_bytes": 6246055936,
+      "private_artifacts": "local only; failed attempts and original saved artifacts retained",
+      "public_source_notebook_outputs": "not committed; readonly private execution receipt separate",
+      "streaming_loader_proven": false
     }
   },
   "bulk": {
@@ -409,7 +428,7 @@
     "no multi-year stock feature/model/account scale benchmark or one-day guarantee; saved stock decoding retains measured time and memory cost",
     "bounded deterministic ETF recipe, fixed stock model and two-fold performance acceptance only; no arbitrary FeaturePlans, derived TTM projection or general model selection/OOS platform",
     "UNKNOWN retained; ETF/stock observed daily execution is explicit approximation and strict controls retained; not live rules",
-    "no live Broker, SQLite crash recovery, complete stock quantity-action/delisting support or complete BFF/browser product; final UI visual/user acceptance pending"
+    "no live Broker, SQLite crash recovery, complete stock quantity-action/delisting support or complete BFF/browser product; parent visual review performed; user UI product acceptance FAILED, remediation pending"
   ],
   "as_of": "2026-10-05",
   "pending_implementations": {
@@ -455,11 +474,11 @@
       "source_commit": "bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4",
       "merge_commit": "05a1dd8acccf472b36ba6fba4a360c35824bc26d",
       "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/3",
-      "status": "software_merged_parent_source_review_passed; root_pixel_review_user_acceptance_pending; private_Library_delivery_BLOCKED",
+      "status": "software_merged_parent_source_review_passed; parent_pixel_review_performed; user_product_acceptance_FAILED; remediation_in_progress",
       "final_product_acceptance": false,
       "parent_source_review": "passed",
-      "parent_pixel_review": "not_performed",
-      "user_acceptance": "not_completed",
+      "parent_pixel_review": "performed_for_actual_reviewed_scope",
+      "user_acceptance": "FAILED",
       "owner_browser_QA": "reported PASS for final bounded v3 source; 35 tests and default Chrome/wheel independent review",
       "library_delivery": "BLOCKED: Library prepare_uploads is not available; 0 files written, no file IDs; Mac local files available"
     }

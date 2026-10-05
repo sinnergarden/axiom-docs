@@ -11,8 +11,10 @@
 
 2026-10-05 当前边界：共享 FeaturePlan 执行与股票中立预测验证、固定 Top5 决策已有有界实现；
 LightGBM fit/inference 仍在 Research。正文中的通用 ModelHandle、SignalPlan/组合参数与正式
-rolling 恢复不因固定样本通过而成为已实现 ABI。当前股票决策 context 无 TopK 参数，Runtime
-只接受 top_k=5；不同 TopK 的公共对照需要先审合同增量，不能用改资金代替。
+rolling 恢复不因固定样本通过而成为已实现 ABI。TopK 合同已由 Docs PR17 审准且 Engine
+PR8 已合：显式正整数 top_k 使用 Core /2；省略参数仍解释旧 /1 Top5。准确工厂、版本
+与边界见 [Trade §6.1](04_axiom_trade.md#61-有界股票日线-top5)。
+不同组合须保存独立账户，不能用改资金代替。
 已实现/规划图及教学顺序见 [ML 工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)。
 
 ## 1. 一句话定义

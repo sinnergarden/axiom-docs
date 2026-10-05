@@ -65,7 +65,7 @@
 <rect x="48" y="645" width="280" height="138" rx="14" fill="white" stroke="#7856b8" stroke-width="2"/>
 <rect x="48" y="645" width="280" height="7" rx="3" fill="#7856b8"/>
 <text x="66" y="676" class="owner" style="fill:#7856b8">ENGINE · CORE</text>
-<text x="66" y="711" class="name">Top5 决策</text>
+<text x="66" y="711" class="name">TopK 决策 /2</text>
 <text x="66" y="740" class="line">冻结预测 + 当前账户 / 时钟</text>
 <text x="66" y="765" class="line">稳定 tie-break → 目标 / 意图</text>
 <rect x="414" y="645" width="280" height="138" rx="14" fill="white" stroke="#375267" stroke-width="2"/>
@@ -86,12 +86,12 @@
 <text x="1164" y="711" class="name">只读 UI / Pages</text>
 <text x="1164" y="740" class="line">公共 Reader → 展示投影</text>
 <text x="1164" y="765" class="line">HTML 打开 / 切页不跑业务</text>
-<path class="rail" d="M1426 459 H1482 V594 H188 V645"/><text x="804" y="581" text-anchor="middle" class="edge">Research → Core：冻结 Signal；当前只支持固定 Top5</text>
+<path class="rail" d="M1426 459 H1482 V594 H188 V645"/><text x="804" y="581" text-anchor="middle" class="edge">Research → Core：冻结 Signal；显式 TopK 已合，旧 /1 Top5 保留</text>
 <path class="rail" d="M780 270 H20 V720 H414"/><text x="217" y="623" text-anchor="middle" class="edge">Data → Runtime：冻结 MarketReplay</text>
 <path class="rail" d="M1060 270 H1088 V618 H920 V645"/><text x="1270" y="619" text-anchor="middle" class="edge">Data → Evaluation：基准 / 分红范围</text>
 <path class="rail" d="M328 717 H414"/><text x="371" y="809" text-anchor="middle" class="edge">Core → Runtime：意图</text>
 <path class="rail" d="M694 717 H780"/><text x="737" y="809" text-anchor="middle" class="edge">Runtime → Eval：saved run</text>
 <path class="rail" d="M1060 717 H1146"/><text x="1103" y="809" text-anchor="middle" class="edge">Owners → UI：saved refs</text>
-<rect class="plan" x="48" y="845" width="688" height="82" rx="12"/><text x="66" y="877" class="owner">规划：Core ModelHandle / 通用 SignalPlan / 组合参数</text><text x="66" y="906" class="line">通用推理 ABI 未成；TopK v2 API 待 owner</text>
+<rect class="plan" x="48" y="845" width="688" height="82" rx="12"/><text x="66" y="877" class="owner">规划：Core ModelHandle / 通用 SignalPlan</text><text x="66" y="906" class="line">通用推理 ABI 未成；TopK v2 已合；对照单列验收</text>
 <rect class="plan" x="766" y="845" width="660" height="82" rx="12"/><text x="784" y="877" class="owner">规划：公开 rolling / 日期分片 / checkpoint 恢复</text><text x="784" y="906" class="line">本轮跨 fold 编排 ≠ 通用平台；不启动全年 / 多年</text>
 <path d="M832 518 V559 H720 V844" fill="none" stroke="#8492a6" stroke-width="2" stroke-dasharray="7 5"/><text x="48" y="958" class="small">缓存不是免校验：保存件仍解析 / 核验完整证明；信号复用仅适用于无账户依赖预测，不跨账本缓存策略状态。</text></svg>

@@ -2,7 +2,7 @@
 
 新增 [ML 工程 Notebook 初稿](ml_engineering_tutorial.ipynb)及[生成 HTML](ml_engineering_tutorial.html)：
 先看整体 owner 图、固定真实短样本、registry、成熟 label/Dataset/model、保存 Signal、
-Engine 唯一账户、UI 与缓存边界。当前仅叙事/预算初稿，未执行；父任务先审设计后再跑小例，
+Engine 唯一账户、UI 与缓存边界。固定配置与两周控制试点已有实际证据；Notebook 默认只读本地保存回执，
 全年/多年 ML 暂停。详细合同仍链接统一设计正文，HTML 从 Notebook 生成，不独立编辑。
 
 唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
@@ -70,3 +70,10 @@ python examples/build_library_tutorials.py --source-ref <已提交的教程版�
 合并器核对本地 HTML 与声明的 commit 一致，保留全部代码和输出文本，将文档链接固定到该版本。它不执行 notebook，也不访问数据源。
 
 上述关键章节已用现有 Mac Chrome 实际查看折叠前后展示，记录见 [Chrome 抽查](../reports/tutorial-chrome-review.json)。宽表会提示横向滚动，也可聚焦后用方向键浏览完整列。
+
+
+ML 工程页从 Docs 仓库根目录打开。默认四个代码单元只读取本地已保存教学回执；
+设置 `AXIOM_ML_TEACHING_RECEIPT` 为 owner 提供的回执文件，
+`AXIOM_ML_TEACHING_RECEIPT_REF` 为其完整 `sha256:` 文件引用。
+重建、weekly 和账户函数只定义，不由页面隐式调用；新运行必须使用新的受控目标。
+本轮固定配置/weekly 已通过，TopK 对照因 RSS guard 阻塞；执行输出仅在本地副本保存。

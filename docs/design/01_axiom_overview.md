@@ -33,11 +33,12 @@
 **2026-10-05 ML 工程的实际边界。** 固定 Data 事实/Qlib 格式准备、Research catalog→共享
 Core Feature 执行、成熟 Label/Dataset、Research LightGBM fit/inference、保存 Signal、
 Engine 唯一账户与 Evaluation、UI 保存件消费已有有界实现。通用 Core ModelHandle/SignalPlan、
-组合参数与正式公开 rolling 恢复仍未全部完成；当前股票公共策略严格固定 Top5。
+正式公开 rolling 恢复仍未全部完成；显式 TopK 是已审合并的最小组合参数增量。
 [工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)用实线/虚线图展开此边界，
-其业务代码未执行，静态 HTML 检查不构成工程验收。[四项具体待审提案](05_axiom_research.md#ml-engineering-review-proposals)
-分别约定缓存失效、proof 有界加载、weekly 小例与 Engine TopK 增量；后者由 Engine owner
-维护 Trade 主章。先由协调任务审设计与预算，再跑教学小例；未开始的全年/五年 ML 暂停。
+固定配置首建与真实 HIT 已完成有界验收；这不是 Data 冷准备或多年规模证明。
+[四项工程边界](05_axiom_research.md#ml-engineering-review-proposals)约定缓存失效、proof
+有界加载、weekly 小例与 TopK 增量。Weekly 试点与预算已批准；TopK 合同已由 Docs PR17
+审准，Engine PR8 已合。Trade 主章由 Engine owner 维护，全年/五年 ML 仍暂停。
 
 ## 1. 系统目标与基本原则
 
