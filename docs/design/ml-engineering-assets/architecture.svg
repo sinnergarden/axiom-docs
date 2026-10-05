@@ -92,6 +92,6 @@
 <path class="rail" d="M328 717 H414"/><text x="371" y="809" text-anchor="middle" class="edge">Core → Runtime：意图</text>
 <path class="rail" d="M694 717 H780"/><text x="737" y="809" text-anchor="middle" class="edge">Runtime → Eval：saved run</text>
 <path class="rail" d="M1060 717 H1146"/><text x="1103" y="809" text-anchor="middle" class="edge">Owners → UI：saved refs</text>
-<rect class="plan" x="48" y="845" width="688" height="82" rx="12"/><text x="66" y="877" class="owner">规划：Core ModelHandle / 通用 SignalPlan / 组合参数</text><text x="66" y="906" class="line">通用推理 ABI 未成；TopK 公共增量需父任务裁决</text>
+<rect class="plan" x="48" y="845" width="688" height="82" rx="12"/><text x="66" y="877" class="owner">规划：Core ModelHandle / 通用 SignalPlan / 组合参数</text><text x="66" y="906" class="line">通用推理 ABI 未成；TopK v2 API 待 owner</text>
 <rect class="plan" x="766" y="845" width="660" height="82" rx="12"/><text x="784" y="877" class="owner">规划：公开 rolling / 日期分片 / checkpoint 恢复</text><text x="784" y="906" class="line">本轮跨 fold 编排 ≠ 通用平台；不启动全年 / 多年</text>
 <path d="M832 518 V559 H720 V844" fill="none" stroke="#8492a6" stroke-width="2" stroke-dasharray="7 5"/><text x="48" y="958" class="small">缓存不是免校验：保存件仍解析 / 核验完整证明；信号复用仅适用于无账户依赖预测，不跨账本缓存策略状态。</text></svg>

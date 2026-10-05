@@ -587,15 +587,17 @@ OHLC/amount/factor 及成员/日历证据，原 Feature 复用需完整 parent �
 准备先引用既有实测并明确“历史证据”，不冒称本次新冷跑。五年 weekly fold 数从真实日历
 枚举，估计按唯一日期冷准备与各实际 weekly 成本分开汇总；旧 monthly 3–6 小时不适用。
 
-**D. Engine TopK 最小接口提案（交 Engine owner 汇合）。** 当前 Runtime 只接受
+**D. Engine TopK 目标已裁决，准确 API 待 owner 汇合。** 当前已合 Runtime 只接受
 `portfolio_policy.top_k=5`，Core 固定 [:5]、budget/5，公共 context 无此参数。
-候选保留 `BacktestRequest.from_dict` / `run_backtest` 路径及原 Signal 合同，只将
-portfolio_policy 的 top_k 校验扩至首版 **{3,5}**；旧显式 5 请求继续有效。
-建议 Core 公开函数增量 `plan_stock_portfolio(frame, *, account, context, top_k=5)`，
-Runtime 把 plan 中 K 显式传入，保持原 context ABI；K 必须 exact int，拒绝 bool/float。
+协调任务已将目标裁决为 **统一新配置 v2 + 通用正整数 k**，旧 v1 保留原固定 5；
+不再采用候选中的仅 {3,5} 限制。K 必须 exact int 且 >0，拒绝 bool/float/零/负值；
+不因为 K 大于候选数而悄悄缩成另一组合，不足 K 沿用 NO_DECISION。
+原 Signal 合同、`BacktestRequest.from_dict` / `run_backtest` 唯一账户方向保持，
+新配置的字段名、构造入口、版本配对、Core 传参与 trace 的准确 ABI 由新 Engine owner
+冻结；本 Notebook 收到该 ABI 再接入，不将此前示意函数签名当成已生效 API。
 足够有效成员时按原 score 降序/security_id 升序取 K，等权预算/K；不足 K 为 NO_DECISION。
 价格/现金/lot/T+1/费用/Unknown/admission/执行池/周首调仓政策均不改，不加分数正值门槛。
-K 进入 plan/run 与 Core 决策/意图身份和 trace；保存 Signal 的 bytes/ref 保持原值。
+K 进入新配置、plan/run 与 Core 决策/意图身份和 trace；保存 Signal 的 bytes/ref 保持原值。
 旧保存 run/evaluation 不重写，loader 继续按其存储版本/hash 验证；Core 策略版本与新 trace
 由 Engine 冻结，不能假称旧文档已支持。对照固定同一 January Signal/market/初始账户/profile，
 实际跑 K5 与 K3 并证明至少一个目标组合不同；探针须记录 Data/supplier/Feature/fit/predict=0，
