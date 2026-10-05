@@ -506,7 +506,7 @@ batch_field 来源标识仅按完整 field/batch_ref/qualification/basis 键复�
 <a id="ml-engineering-current-boundary"></a>
 **2026-10-05 当前工程边界与有界验收。** 本文规定 owner 与合同；
 [ML 工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)沿固定真实短样本解释输入、
-准备、成熟、训练、保存 Signal、唯一账户、评估与展示，不另建一份规范正文。固定配置首建/HIT 与两周控制试点已实际通过，
+准备、成熟、训练、保存 Signal、唯一账户、评估与展示，不另建一份规范正文。固定配置首建/HIT、两周控制试点与同 Signal Top3/Top5 对照已实际通过，
 用户功能确认与源码实现、教学运行验收分开登记。后续先审整体设计及小流程；所有未开始的
 全年/多年 ML 构建暂停，不能沿此前条件计划先跑。
 
@@ -528,16 +528,18 @@ Signal 的组合，应仅执行 Core 组合/Runtime/Evaluation；TopK 合同已�
 二是将长历史 Feature/proof 按完整日期截面持久化、逐片校验并释放，冻结多 parent 与原子
 checkpoint/resume 边界。两折通过尚未证明长历史常驻内存有界；教程不据此大重构生产代码。
 
-用户新增五年 **weekly retrain** 规模问题，实际 fold 数由真实日历确定，约 260 只是参考。
-旧 monthly 两折与 3–6 小时情景不作为 weekly 估计。先拟两个代表性真实 weekly folds，
-分冷准备、已有 Feature 复用、每周成熟 label/Dataset/norm/fit/infer 与证明 I/O；教学范围/执行预算已批准，先跑通小例，全年/五年仍不启动。代码读取实际 catalog 自动成表，不手写
+用户新增五年 **weekly retrain** 规模问题：保存日历的 2021-01-01—2025-12-31 有 1,212 个实际 session、256 个有交易日的 ISO 周。
+这只证明日历数量，不证明五年股票源/成员覆盖。已测两周保持 **2023-11-01—2024-01-31** 的 65 个训练日期不变，
+成熟日期分别为 62/65，预测为 4/5 日；固定规模、已准备 Feature、相同暖源与 proof 体积的条件外推为 65.15–66.87 分钟，
+不是五年滑动训练实测或总耗时上界。总计划还须加唯一冷准备、五年账户/评价、导出展示三个未测项；不能给有限总上界。
+逐项公式与假设见 [Notebook §12](../../notebooks/ml_engineering_tutorial.html#section-12)，旧 monthly 3–6 小时不适用，全年/五年仍不启动。代码读取实际 catalog 自动成表，不手写
 另一份 Feature 事实源；模型无量纲分数、账户状态缓存、来源限制均保持原合同。
 
 <a id="ml-engineering-review-proposals"></a>
 ### 8.4.1 四项工程边界与状态
 
 缓存 key/有界 loader 的准确新增合同仍是候选，不改变当前 builder 或旧保存件 loader。
-Weekly 有界试点已批准并通过；TopK 合同已审准且 Engine PR8 已合。全年/五年仍暂停。
+Weekly 有界试点与同 Signal Top3/Top5 对照已通过；TopK 合同已审准且 Engine PR8 已合。全年/五年仍暂停。
 
 **A. 失效身份与复用边界。** 建议把阶段 recipe/cache identity 与完整实现审计 receipt 分开，
 在新版本命名空间试验，旧保存件和其身份不覆盖。Feature key 绑定实际输入 batch/view refs、
@@ -594,7 +596,8 @@ OHLC/amount/factor 及成员/日历证据，原 Feature 复用需完整 parent �
 完整来源读取/归一化，不供任一训练时钟使用。两周是教学/测量样本，不是全年模型或账户收益证据。
 批准上限：1 次同配置 saved-Feature 首建 fit/infer + 实际第二次 HIT；两 weekly folds 各
 1 次业务 fit/infer，最多 8 次公共 Data label-outcome 查询、供应商 0；不同组合最多 2 次
-账户/评价且须等 D 接口。一个重进程，RSS 硬上限 6 GiB、外部 own-PID guard 在 5.5 GiB
+账户。初次评价停止后，已批准仅补缺少阶段的分进程恢复，累计 3 次评价尝试（含失败）、2 份完整评价；
+已完成 Top5 账户不重跑，失败记录保留，额外恢复共用 480 s 时钟。一个重进程，RSS 硬上限 6 GiB、外部 own-PID guard 在 5.5 GiB
 停止；每阶段 120 s、总业务 480 s、累计新产物 1 GiB，超限保存证据停止，不自动扩预算。
 保存件解析、norm/Dataset、fit/infer、proof/hash、序列化/文件字节分别计时；冷 Data/Qlib
 准备先引用既有实测并明确“历史证据”，不冒称本次新冷跑。五年 weekly fold 数从真实日历
@@ -613,9 +616,13 @@ portfolio_policy，替换此字段后沿 `BacktestRequest.from_dict` / `run_back
 周首调仓政策不改。保存 Signal 的 bytes/ref 及旧 run/evaluation 不重写。
 对照固定同一 January 输入实际跑 K5/K3，须有不同目标组合并记录 Data/supplier/Feature/
 fit/predict=0；仅 Core 组合/Runtime/Evaluation 有调用。改资金、复制 JSON 或只写断言不算通过。
-本轮 Top5 账户已保存；评价触发自有 PID RSS 停止阈值（采样峰值 5.82 GiB，低于
-6 GiB 硬上限），Top3 未开始，因此两组合对照尚未通过。现场保留，不扩大预算或重复
-已完成账户；分进程恢复方案须先审阅。本 PR 不编辑 Trade §04，主章继续由 Engine owner 维护。
+本轮同 Signal Top3/Top5 账户与原 v2 评价均已保存通过：五个 January 调仓日均有不同目标，
+Data/supplier/Feature/fit/predict 全为 0，完整输入与评价引用由 owner 回执逐项核对。
+初次评价因旧账户/评价与新账户对象生命周期重叠触发 RSS guard（峰值 5.82 GiB），失败现场保留。
+已审恢复按独立进程执行 Top5 保存件核验、Top5 评价、Top3 账户、Top3 评价；核验后释放旧报告对象，
+只保留当前阶段所需输入，不删 proof、不重跑 Top5。恢复总计 106.65 s、峰值 4.78 GiB，全部子进程退出。
+这证明本样本的生命周期峰值处理，不证明通用 streaming/多年 loader 已实现。
+本 PR 不编辑 Trade §04，主章继续由 Engine owner 维护。
 
 | 变更 | 最先失效的阶段 | 可复用部分 |
 |---|---|---|

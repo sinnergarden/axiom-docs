@@ -13,8 +13,8 @@ details{border-top:1px solid #e4e9ef;padding-top:12px;margin-top:18px} summary{c
 .wide-table-note{font-size:12px;color:#577087;margin:14px 0 0}.table-scroll:focus-visible{outline:2px solid #328778;outline-offset:3px}
 @media(max-width:980px){.layout{display:block;padding:14px}nav{position:static;height:auto;max-height:220px;margin-bottom:18px}section{padding:18px}h1{font-size:26px}}
 @media print{nav,details{display:none}.layout{display:block}body{background:white}section{break-inside:auto;border:0}pre{white-space:pre-wrap}.table-scroll{overflow:visible}}
-</style></head><body><header><b>Axiom · ML 工程验收</b><p>固定配置与两周控制试点 · 保存回执只读演示 · 全年/多年暂停</p><a style="color:#c5e8ff" href="researcher_tutorial.html">已有 Data / Researcher 教程</a></header><div class="layout"><nav><a href="#section-1">1. 数据与计算走哪条路</a><a href="#section-2">2. 固定真实短样本：先知道正在读什么</a><a href="#section-3">3. Feature ID 与依赖：表从 registry 自动生成</a><a href="#section-4">4. Data / Qlib / FeatureBuild：准备一次，校验后复用</a><a href="#section-5">5. 五 session label：成熟之后才能进入训练</a><a href="#section-6">6. Dataset 与模型：实际首建，然后实际 HIT</a><a href="#section-7">7. 保存 Signal：分数与账户目标分开</a><a href="#section-8">8. Engine 唯一账户 / Evaluation：同 Signal 换组合</a><a href="#section-9">9. UI：保存值进入同一个网页入口</a><a href="#section-10">10. 重跑边界与已有测量：每种成本分开看</a><a href="#section-11">11. 每周训练控制试点：训练时钟改变，日期保持固定</a><a href="#section-12">12. 工程附录：预算、失败和候选合同</a></nav><main><section id="section-1" class="markdown"><h1>ML 工程：一次准备，保存信号，多次账户消费</h1>
-<p>从固定真实样本出发，这一页沿输入、Feature、成熟标签、模型、保存 Signal、账户和展示走完一条短流程。固定配置首建/HIT 与两周控制试点已有实际执行证据；全年和五年尚未运行。收益和参数优劣不作为工程通过条件。</p>
+</style></head><body><header><b>Axiom · ML 工程验收</b><p>首建/HIT · 两周控制 · 同 Signal 两策略 · 五年条件预算</p><a style="color:#c5e8ff" href="researcher_tutorial.html">已有 Data / Researcher 教程</a></header><div class="layout"><nav><a href="#section-1">1. 数据与计算走哪条路</a><a href="#section-2">2. 固定真实短样本：先知道正在读什么</a><a href="#section-3">3. Feature ID 与依赖：表从 registry 自动生成</a><a href="#section-4">4. Data / Qlib / FeatureBuild：准备一次，校验后复用</a><a href="#section-5">5. 五 session label：成熟之后才能进入训练</a><a href="#section-6">6. Dataset 与模型：实际首建，然后实际 HIT</a><a href="#section-7">7. 保存 Signal：分数与账户目标分开</a><a href="#section-8">8. Engine 唯一账户 / Evaluation：同 Signal 换组合</a><a href="#section-9">9. UI：保存值进入同一个网页入口</a><a href="#section-10">10. 重跑边界与已有测量：每种成本分开看</a><a href="#section-11">11. 每周训练控制试点：训练时钟改变，日期保持固定</a><a href="#section-12">12. 五年计划：固定规模条件估算与未测成本</a><a href="#section-13">13. 工程附录：预算、失败和候选合同</a></nav><main><section id="section-1" class="markdown"><h1>ML 工程：一次准备，保存信号，多次账户消费</h1>
+<p>从固定真实样本出发，这一页沿输入、Feature、成熟标签、模型、保存 Signal、账户和展示走完一条短流程。固定配置首建/HIT、两周控制试点与同 Signal Top3/Top5 对照已通过；全年和五年尚未运行。收益和参数优劣不作为工程通过条件。</p>
 <p>正文合同归 <a href="../docs/design/05_axiom_research.md">Research</a>、<a href="../docs/design/03_axiom_core.md">Core</a>、<a href="../docs/design/04_axiom_trade.md">Trade</a>。本教程展示如何消费这些合同。</p>
 <h2>1. 数据与计算走哪条路</h2>
 <p><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTIwIiBoZWlnaHQ9Ijk3NSIgdmlld0JveD0iMCAwIDE1MjAgOTc1IiByb2xlPSJpbWciIGFyaWEtbGFiZWxsZWRieT0idGl0bGUgZGVzYyI+Cjx0aXRsZSBpZD0idGl0bGUiPkF4aW9tIOW3suWunueOsCBNTCDlt6XnqIvpk77kuI7lsJrmnKrlrp7njrDovrnnlYw8L3RpdGxlPjxkZXNjIGlkPSJkZXNjIj7lrp7nur/kuLrlm7rlrprmoLfmnKzlt7Llrp7njrDpk77ot6/vvJvomZrnur/kuLrop4TliJLkuK3nmoTpgJrnlKjmjqjnkIbjgIHnu4TlkIjmjqXlj6PkuI7mu5rliqjmgaLlpI3jgILmjqjnkIbnm67liY3lvZIgUmVzZWFyY2jvvIzotKbmiLflj6rnlLEgRW5naW5lIFJ1bnRpbWUg6K6h566X44CCPC9kZXNjPgo8ZGVmcz48bWFya2VyIGlkPSJhcnJvdyIgbWFya2VyV2lkdGg9IjgiIG1hcmtlckhlaWdodD0iOCIgcmVmWD0iNyIgcmVmWT0iNCIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNMCwwIEw4LDQgTDAsOCBaIiBmaWxsPSIjNDY1YTcyIi8+PC9tYXJrZXI+PC9kZWZzPgo8c3R5bGU+dGV4dHtmb250LWZhbWlseTotYXBwbGUtc3lzdGVtLEJsaW5rTWFjU3lzdGVtRm9udCwnUGluZ0ZhbmcgU0MnLCdNaWNyb3NvZnQgWWFIZWknLHNhbnMtc2VyaWY7ZmlsbDojMjAzMDQ3fS50aXRsZXtmb250LXNpemU6MzJweDtmb250LXdlaWdodDo3MDB9LnN1Yntmb250LXNpemU6MTdweDtmaWxsOiM1MzY2N2N9Lm93bmVye2ZvbnQtc2l6ZToxNnB4O2ZvbnQtd2VpZ2h0OjY1MH0ubmFtZXtmb250LXNpemU6MjRweDtmb250LXdlaWdodDo2NTB9LmxpbmV7Zm9udC1zaXplOjE4cHh9LmVkZ2V7Zm9udC1zaXplOjE1cHg7ZmlsbDojNDY1YTcyfS5yYWlse2ZpbGw6bm9uZTtzdHJva2U6IzQ2NWE3MjtzdHJva2Utd2lkdGg6MjttYXJrZXItZW5kOnVybCgjYXJyb3cpfS5wbGFue2ZpbGw6I2Y5ZmFmYztzdHJva2U6Izg0OTJhNjtzdHJva2Utd2lkdGg6MjtzdHJva2UtZGFzaGFycmF5OjcgNX0uc21hbGx7Zm9udC1zaXplOjE2cHh9PC9zdHlsZT4KPHJlY3Qgd2lkdGg9IjE1MjAiIGhlaWdodD0iOTc1IiBmaWxsPSIjZjVmN2ZiIi8+Cjx0ZXh0IHg9IjQ4IiB5PSI1MSIgY2xhc3M9InRpdGxlIj7lhYjlm7rlrprkuovlrp7kuI7orqHnrpfvvIzlho3mtojotLnkv53lrZjkv6Hlj7c8L3RleHQ+Cjx0ZXh0IHg9IjQ4IiB5PSI4MyIgY2xhc3M9InN1YiI+5bel56iL5p625p6EIMK3IDIwMjYtMTAtMDUgwrcg5a6e57q/77ya5Zu65a6a5qC35pys5bey5a6e546wICAg6Jma57q/77ya55uu5qCH5ZCI5ZCM5b6F5a6M5oiQPC90ZXh0Pgo8dGV4dCB4PSI0OCIgeT0iMTEyIiBjbGFzcz0ic3ViIj5EYXRhIDFiYjg1ZTMgLyBSZXNlYXJjaCA1NzM1OWE4IC8gRW5naW5lIGQ2NjU1YzcgLyBVSSBmMGU5MTNiIMK3IOeUqOaIt+WKn+iDveehruiupCDiiaAg5a6e546w5YWo6KaG55uWPC90ZXh0Pgo8cmVjdCB4PSI0OCIgeT0iMTQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMGM3Yzc0IiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNDgiIHk9IjE0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzBjN2M3NCIvPgo8dGV4dCB4PSI2NiIgeT0iMTc2IiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiMwYzdjNzQiPkRBVEE8L3RleHQ+Cjx0ZXh0IHg9IjY2IiB5PSIyMTEiIGNsYXNzPSJuYW1lIj5SYXcg5ZON5bqUPC90ZXh0Pgo8dGV4dCB4PSI2NiIgeT0iMjQwIiBjbGFzcz0ibGluZSI+5Y6f5ZON5bqU5LiO5a6e6ZmFIHJlY2VpcHQ8L3RleHQ+Cjx0ZXh0IHg9IjY2IiB5PSIyNjUiIGNsYXNzPSJsaW5lIj7pppbmrKHlh4blpIfvvJvkuI3ph43lpI3kvpvlupTllYbph4fpm4Y8L3RleHQ+CjxyZWN0IHg9IjQxNCIgeT0iMTQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMGM3Yzc0IiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNDE0IiB5PSIxNDUiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMwYzdjNzQiLz4KPHRleHQgeD0iNDMyIiB5PSIxNzYiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzBjN2M3NCI+REFUQTwvdGV4dD4KPHRleHQgeD0iNDMyIiB5PSIyMTEiIGNsYXNzPSJuYW1lIj5DYW5vbmljYWwgLyBTbmFwc2hvdDwvdGV4dD4KPHRleHQgeD0iNDMyIiB5PSIyNDAiIGNsYXNzPSJsaW5lIj7nu4/mtY7plK7jgIFyZXZpc2lvbuOAgeWNleS9jSAvIOi6q+S7vTwvdGV4dD4KPHRleHQgeD0iNDMyIiB5PSIyNjUiIGNsYXNzPSJsaW5lIj7kuI3lj6/lj5jniYjmnKzkuI7lj6/op4HmgKc8L3RleHQ+CjxyZWN0IHg9Ijc4MCIgeT0iMTQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMGM3Yzc0IiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNzgwIiB5PSIxNDUiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMwYzdjNzQiLz4KPHRleHQgeD0iNzk4IiB5PSIxNzYiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzBjN2M3NCI+REFUQTwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSIyMTEiIGNsYXNzPSJuYW1lIj7lm7rlrpogY3V0b2ZmIOS6i+WunjwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSIyNDAiIGNsYXNzPSJsaW5lIj5RdWVyeVNwZWMg4oaSIERhdGFCYXRjaDwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSIyNjUiIGNsYXNzPSJsaW5lIj7lkKvmiJDlkZggLyDml6XljoYgLyDooYzmg4UgLyDooYzliqg8L3RleHQ+CjxyZWN0IHg9IjExNDYiIHk9IjE0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzBjN2M3NCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjExNDYiIHk9IjE0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzBjN2M3NCIvPgo8dGV4dCB4PSIxMTY0IiB5PSIxNzYiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzBjN2M3NCI+REFUQTwvdGV4dD4KPHRleHQgeD0iMTE2NCIgeT0iMjExIiBjbGFzcz0ibmFtZSI+UWxpYiDlr7zlh7o8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjI0MCIgY2xhc3M9ImxpbmUiPuWbuuWumiBiaW4gKyBtYW5pZmVzdCAvIOadpea6kDwvdGV4dD4KPHRleHQgeD0iMTE2NCIgeT0iMjY1IiBjbGFzcz0ibGluZSI+5qC85byP6YCC6YWN77yb5LiN6K6h566X6aKE5rWL54m55b6BPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTMyOCAyMTIgSDQxNCIvPjx0ZXh0IHg9IjM3MSIgeT0iMTMxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+RGF0Ye+8muWTjeW6lCDihpIg6KeE6IyD5LqL5a6ePC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTY5NCAyMTIgSDc4MCIvPjx0ZXh0IHg9IjczNyIgeT0iMTMxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+RGF0Ye+8mlNuYXBzaG90ICsgUXVlcnk8L3RleHQ+CjxwYXRoIGNsYXNzPSJyYWlsIiBkPSJNMTA2MCAyMTIgSDExNDYiLz48dGV4dCB4PSIxMTAzIiB5PSIxMzEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5EYXRh77yaRGF0YUJhdGNoIOKGkiBiaW48L3RleHQ+CjxyZWN0IHg9IjQ4IiB5PSIzODAiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMzMTY2YmQiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI0OCIgeT0iMzgwIiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjciIHJ4PSIzIiBmaWxsPSIjMzE2NmJkIi8+Cjx0ZXh0IHg9IjY2IiB5PSI0MTEiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzMxNjZiZCI+UkVTRUFSQ0ggKyBDT1JFPC90ZXh0Pgo8dGV4dCB4PSI2NiIgeT0iNDQ2IiBjbGFzcz0ibmFtZSI+RmVhdHVyZUJ1aWxkPC90ZXh0Pgo8dGV4dCB4PSI2NiIgeT0iNDc1IiBjbGFzcz0ibGluZSI+Y2F0YWxvZyBJRCAvIOS+nei1liDihpIgRmVhdHVyZVBsYW48L3RleHQ+Cjx0ZXh0IHg9IjY2IiB5PSI1MDAiIGNsYXNzPSJsaW5lIj5SZXNlYXJjaCDnvJbmjpLvvJtDb3JlIOWFseS6q+aJp+ihjDwvdGV4dD4KPHJlY3QgeD0iNDE0IiB5PSIzODAiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMzMTY2YmQiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI0MTQiIHk9IjM4MCIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzMxNjZiZCIvPgo8dGV4dCB4PSI0MzIiIHk9IjQxMSIgY2xhc3M9Im93bmVyIiBzdHlsZT0iZmlsbDojMzE2NmJkIj5SRVNFQVJDSCArIENPUkU8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iNDQ2IiBjbGFzcz0ibmFtZSI+5oiQ54afIExhYmVsIC8gRGF0YXNldDwvdGV4dD4KPHRleHQgeD0iNDMyIiB5PSI0NzUiIGNsYXNzPSJsaW5lIj7lrp7pmYUgZisxIG9wZW4g4oaSIGYrNSBjbG9zZTwvdGV4dD4KPHRleHQgeD0iNDMyIiB5PSI1MDAiIGNsYXNzPSJsaW5lIj7miJDnhp/pl6jmp5sgLyDmiKrpnaIgbm9ybSAvIOiuree7g+mUrjwvdGV4dD4KPHJlY3QgeD0iNzgwIiB5PSIzODAiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMzMTY2YmQiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI3ODAiIHk9IjM4MCIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzMxNjZiZCIvPgo8dGV4dCB4PSI3OTgiIHk9IjQxMSIgY2xhc3M9Im93bmVyIiBzdHlsZT0iZmlsbDojMzE2NmJkIj5SRVNFQVJDSDwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSI0NDYiIGNsYXNzPSJuYW1lIj5MaWdodEdCTSAvIE1vZGVsPC90ZXh0Pgo8dGV4dCB4PSI3OTgiIHk9IjQ3NSIgY2xhc3M9ImxpbmUiPuWbuuWumuefqemYtSDihpIg5Y6f55SfIGJvb3N0ZXI8L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iNTAwIiBjbGFzcz0ibGluZSI+Zml0IC8gaW5mZXJlbmNlIOW9k+WJjeWcqCBSZXNlYXJjaDwvdGV4dD4KPHJlY3QgeD0iMTE0NiIgeT0iMzgwIiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMzE2NmJkIiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iMTE0NiIgeT0iMzgwIiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjciIHJ4PSIzIiBmaWxsPSIjMzE2NmJkIi8+Cjx0ZXh0IHg9IjExNjQiIHk9IjQxMSIgY2xhc3M9Im93bmVyIiBzdHlsZT0iZmlsbDojMzE2NmJkIj5SRVNFQVJDSDwvdGV4dD4KPHRleHQgeD0iMTE2NCIgeT0iNDQ2IiBjbGFzcz0ibmFtZSI+5L+d5a2YIFNpZ25hbDwvdGV4dD4KPHRleHQgeD0iMTE2NCIgeT0iNDc1IiBjbGFzcz0ibGluZSI+cHJlZGljdGlvbl9yYXcgLyDml6Dph4/nurI8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjUwMCIgY2xhc3M9ImxpbmUiPuWujOaVtOmUriAvIG1lbWJlciAvIHZhbGlkaXR5IC8g5pe26ZKfPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTEyODYgMjgzIFYzMzIgSDE4OCBWMzgwIi8+PHRleHQgeD0iNzU0IiB5PSIzNTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5EYXRhIOKGkiBSZXNlYXJjaO+8mlFsaWIg5pWw5YC8ICsg5Zu65a6a5LqL5a6eIC8gY3V0b2ZmIC8g5Y6G5Y+y5oiQ5ZGYPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTkyMCAyODMgVjMxOSBINTU0IFYzODAiLz48dGV4dCB4PSI2OTYiIHk9IjI5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPkRhdGEg4oaSIExhYmVs77ya5Y6f55Sf5Lu35qC8IC8g5Zug5a2QIC8g5a6e6ZmF5pel5Y6GPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTMyOCA0NDkgSDQxNCIvPjx0ZXh0IHg9IjM3MSIgeT0iNTQyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+UmVzZWFyY2jvvJpGZWF0dXJlICsgTGFiZWw8L3RleHQ+CjxwYXRoIGNsYXNzPSJyYWlsIiBkPSJNNjk0IDQ0OSBINzgwIi8+PHRleHQgeD0iNzM3IiB5PSI1NDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5SZXNlYXJjaO+8muefqemYtSAvIOaIkOeGn+mUrjwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0xMDYwIDQ0OSBIMTE0NiIvPjx0ZXh0IHg9IjExMDMiIHk9IjU0MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPlJlc2VhcmNo77yaYm9vc3RlciArIEZlYXR1cmU8L3RleHQ+CjxyZWN0IHg9IjQ4IiB5PSI2NDUiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiM3ODU2YjgiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI0OCIgeT0iNjQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjciIHJ4PSIzIiBmaWxsPSIjNzg1NmI4Ii8+Cjx0ZXh0IHg9IjY2IiB5PSI2NzYiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6Izc4NTZiOCI+RU5HSU5FIMK3IENPUkU8L3RleHQ+Cjx0ZXh0IHg9IjY2IiB5PSI3MTEiIGNsYXNzPSJuYW1lIj5Ub3BLIOWGs+etliAvMjwvdGV4dD4KPHRleHQgeD0iNjYiIHk9Ijc0MCIgY2xhc3M9ImxpbmUiPuWGu+e7k+mihOa1iyArIOW9k+WJjei0puaItyAvIOaXtumSnzwvdGV4dD4KPHRleHQgeD0iNjYiIHk9Ijc2NSIgY2xhc3M9ImxpbmUiPueos+WumiB0aWUtYnJlYWsg4oaSIOebruaghyAvIOaEj+WbvjwvdGV4dD4KPHJlY3QgeD0iNDE0IiB5PSI2NDUiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMzNzUyNjciIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI0MTQiIHk9IjY0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzM3NTI2NyIvPgo8dGV4dCB4PSI0MzIiIHk9IjY3NiIgY2xhc3M9Im93bmVyIiBzdHlsZT0iZmlsbDojMzc1MjY3Ij5FTkdJTkUgwrcgUlVOVElNRTwvdGV4dD4KPHRleHQgeD0iNDMyIiB5PSI3MTEiIGNsYXNzPSJuYW1lIj7llK/kuIDotKbmiLcgUnVudGltZTwvdGV4dD4KPHRleHQgeD0iNDMyIiB5PSI3NDAiIGNsYXNzPSJsaW5lIj5NYXJrZXRSZXBsYXkgKyDmhI/lm74g4oaSIGZpbGxzPC90ZXh0Pgo8dGV4dCB4PSI0MzIiIHk9Ijc2NSIgY2xhc3M9ImxpbmUiPueOsOmHkSAvIOaMgeS7kyAvIOi0ueeUqCAvIE5BVjwvdGV4dD4KPHJlY3QgeD0iNzgwIiB5PSI2NDUiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMwYzdjNzQiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI3ODAiIHk9IjY0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzBjN2M3NCIvPgo8dGV4dCB4PSI3OTgiIHk9IjY3NiIgY2xhc3M9Im93bmVyIiBzdHlsZT0iZmlsbDojMGM3Yzc0Ij5FTkdJTkUgwrcgRVZBTFVBVElPTjwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSI3MTEiIGNsYXNzPSJuYW1lIj7kv53lrZggRXZhbHVhdGlvbjwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSI3NDAiIGNsYXNzPSJsaW5lIj7kv53lrZggcnVuICsg5Z+65YeGIC8g6KGM5YqoIC8gc3BlYzwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSI3NjUiIGNsYXNzPSJsaW5lIj7kuI3ph43mlrDmi5/lkIjmiJbnlJ/miJDpooTmtYs8L3RleHQ+CjxyZWN0IHg9IjExNDYiIHk9IjY0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iI2FhNzQyMCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjExNDYiIHk9IjY0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iI2FhNzQyMCIvPgo8dGV4dCB4PSIxMTY0IiB5PSI2NzYiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6I2FhNzQyMCI+VUk8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjcxMSIgY2xhc3M9Im5hbWUiPuWPquivuyBVSSAvIFBhZ2VzPC90ZXh0Pgo8dGV4dCB4PSIxMTY0IiB5PSI3NDAiIGNsYXNzPSJsaW5lIj7lhazlhbEgUmVhZGVyIOKGkiDlsZXnpLrmipXlvbE8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9Ijc2NSIgY2xhc3M9ImxpbmUiPkhUTUwg5omT5byAIC8g5YiH6aG15LiN6LeR5Lia5YqhPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTE0MjYgNDU5IEgxNDgyIFY1OTQgSDE4OCBWNjQ1Ii8+PHRleHQgeD0iODA0IiB5PSI1ODEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5SZXNlYXJjaCDihpIgQ29yZe+8muWGu+e7kyBTaWduYWzvvJvmmL7lvI8gVG9wSyDlt7LlkIjvvIzml6cgLzEgVG9wNSDkv53nlZk8L3RleHQ+CjxwYXRoIGNsYXNzPSJyYWlsIiBkPSJNNzgwIDI3MCBIMjAgVjcyMCBINDE0Ii8+PHRleHQgeD0iMjE3IiB5PSI2MjMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5EYXRhIOKGkiBSdW50aW1l77ya5Ya757uTIE1hcmtldFJlcGxheTwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0xMDYwIDI3MCBIMTA4OCBWNjE4IEg5MjAgVjY0NSIvPjx0ZXh0IHg9IjEyNzAiIHk9IjYxOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPkRhdGEg4oaSIEV2YWx1YXRpb27vvJrln7rlh4YgLyDliIbnuqLojIPlm7Q8L3RleHQ+CjxwYXRoIGNsYXNzPSJyYWlsIiBkPSJNMzI4IDcxNyBINDE0Ii8+PHRleHQgeD0iMzcxIiB5PSI4MDkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5Db3JlIOKGkiBSdW50aW1l77ya5oSP5Zu+PC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTY5NCA3MTcgSDc4MCIvPjx0ZXh0IHg9IjczNyIgeT0iODA5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+UnVudGltZSDihpIgRXZhbO+8mnNhdmVkIHJ1bjwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0xMDYwIDcxNyBIMTE0NiIvPjx0ZXh0IHg9IjExMDMiIHk9IjgwOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPk93bmVycyDihpIgVUnvvJpzYXZlZCByZWZzPC90ZXh0Pgo8cmVjdCBjbGFzcz0icGxhbiIgeD0iNDgiIHk9Ijg0NSIgd2lkdGg9IjY4OCIgaGVpZ2h0PSI4MiIgcng9IjEyIi8+PHRleHQgeD0iNjYiIHk9Ijg3NyIgY2xhc3M9Im93bmVyIj7op4TliJLvvJpDb3JlIE1vZGVsSGFuZGxlIC8g6YCa55SoIFNpZ25hbFBsYW48L3RleHQ+PHRleHQgeD0iNjYiIHk9IjkwNiIgY2xhc3M9ImxpbmUiPumAmueUqOaOqOeQhiBBQkkg5pyq5oiQ77ybVG9wSyB2MiDlt7LlkIjvvJvlr7nnhafljZXliJfpqozmlLY8L3RleHQ+CjxyZWN0IGNsYXNzPSJwbGFuIiB4PSI3NjYiIHk9Ijg0NSIgd2lkdGg9IjY2MCIgaGVpZ2h0PSI4MiIgcng9IjEyIi8+PHRleHQgeD0iNzg0IiB5PSI4NzciIGNsYXNzPSJvd25lciI+6KeE5YiS77ya5YWs5byAIHJvbGxpbmcgLyDml6XmnJ/liIbniYcgLyBjaGVja3BvaW50IOaBouWkjTwvdGV4dD48dGV4dCB4PSI3ODQiIHk9IjkwNiIgY2xhc3M9ImxpbmUiPuacrOi9rui3qCBmb2xkIOe8luaOkiDiiaAg6YCa55So5bmz5Y+w77yb5LiN5ZCv5Yqo5YWo5bm0IC8g5aSa5bm0PC90ZXh0Pgo8cGF0aCBkPSJNODMyIDUxOCBWNTU5IEg3MjAgVjg0NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjODQ5MmE2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1kYXNoYXJyYXk9IjcgNSIvPjx0ZXh0IHg9IjQ4IiB5PSI5NTgiIGNsYXNzPSJzbWFsbCI+57yT5a2Y5LiN5piv5YWN5qCh6aqM77ya5L+d5a2Y5Lu25LuN6Kej5p6QIC8g5qC46aqM5a6M5pW06K+B5piO77yb5L+h5Y+35aSN55So5LuF6YCC55So5LqO5peg6LSm5oi35L6d6LWW6aKE5rWL77yM5LiN6Leo6LSm5pys57yT5a2Y562W55Wl54q25oCB44CCPC90ZXh0Pjwvc3ZnPg==" alt="Axiom ML 架构" /></p>
@@ -162,40 +162,128 @@ for row in receipt[&quot;fixed_config&quot;][&quot;stages&quot;]:
 <p>公开 January Signal 保留 model/Feature 引用、完整键、成员、validity 与模拟可用时点，不保存账户持仓路径或撮合结果。Engine 消费严格前一实际 session 的预测，不能回填未来模型分数。</p>
 <p>纯预测 Signal 可供独立账户复用。新组合生成新的计划和账本；账户路径、退出与风控状态各属自己的账户。两周试点目前是私有 native booster/预测回执，尚非通用公开 ModelRelease/SignalRun，不将它交给账户冒充完整滚动策略。</p>
 </section><section id="section-8" class="markdown"><h2>8. Engine 唯一账户 / Evaluation：同 Signal 换组合</h2>
-<p>TopK 合同已由 Docs PR17 审准，Engine PR8 已合。<code>stock_portfolio_policy(top_k=k, execution_universe=原执行集合)</code> 返回现有请求政策；替换原请求此字段后仍沿 <code>BacktestRequest.from_dict</code> / <code>run_backtest</code>。所有显式 k 使用 Core /2，旧 /1 Top5 保存件仍可读取。</p>
-<p>Top3/Top5 对照固定原 January Signal、MarketReplay、初始资金、profile、费用/T+1/lot/来源限制。不同目标须由两次独立账户产生，不能改变资金冒充策略变化；Data、Feature、fit/predict 应为 0。准确执行与统计定义仍见 <a href="../docs/design/04_axiom_trade.md#61-%E6%9C%89%E7%95%8C%E8%82%A1%E7%A5%A8%E6%97%A5%E7%BA%BF-top5">Trade</a>。</p>
-<p>本轮在 Data 窗口结束后开始对照；Top5 账户已保存，但评价触发自有 PID 内存停止阈值，Top3 未运行。对照尚未通过，保留现场等待分进程恢复方案审阅；评价 v3 尚未交付，本例使用原 v2 输入。</p>
-</section><section class="example" data-cell-id="7ab21038"><div class="example-label">同一 Signal 的两个独立账户</div><pre class="code">def compare_topk(saved_run_path, saved_evaluation_path, new_destination):
+<p><strong>同一保存 Signal 的 Top3/Top5 对照已通过。</strong> 两份新账户与原 v2 评价均已保存，五个调仓日目标均不同。Data、供应商、Feature、fit、predict 调用全部为 0；完整输入与评价引用在本地回执逐项核对。</p>
+<table>
+<thead>
+<tr>
+  <th>实际调仓日</th>
+  <th style="text-align:right">Top5 选中数</th>
+  <th style="text-align:right">Top3 选中数</th>
+  <th>目标组合核对</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>2024-01-02</td>
+  <td style="text-align:right">5</td>
+  <td style="text-align:right">3</td>
+  <td>不同</td>
+</tr>
+<tr>
+  <td>2024-01-08</td>
+  <td style="text-align:right">5</td>
+  <td style="text-align:right">3</td>
+  <td>不同</td>
+</tr>
+<tr>
+  <td>2024-01-15</td>
+  <td style="text-align:right">5</td>
+  <td style="text-align:right">3</td>
+  <td>不同</td>
+</tr>
+<tr>
+  <td>2024-01-22</td>
+  <td style="text-align:right">5</td>
+  <td style="text-align:right">3</td>
+  <td>不同</td>
+</tr>
+<tr>
+  <td>2024-01-29</td>
+  <td style="text-align:right">5</td>
+  <td style="text-align:right">3</td>
+  <td>不同</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+  <th>固定不变</th>
+  <th>实际变化</th>
+  <th>保存结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>原 January Signal / MarketReplay / 初始资金 / profile / 费用 / T+1 / lot / 执行范围与来源限制</td>
+  <td>仅 portfolio_policy.top_k：5 → 3</td>
+  <td>独立 run_id、完整账户与评价；原 Signal 和旧结果不重写</td>
+</tr>
+<tr>
+  <td>Data / 供应商 / Feature / fit / predict</td>
+  <td>均为 0 次</td>
+  <td>上游未导入、未调用；实际 Runtime / Evaluation 输出保留</td>
+</tr>
+</tbody>
+</table>
+<p>TopK 合同已由 Docs PR17 审准，Engine PR8 已合。实际绑定已审源码 <code>f6d93a1</code>；<code>stock_portfolio_policy(top_k=k, execution_universe=原执行集合)</code> 返回现有请求政策，替换此字段后仍沿 <code>BacktestRequest.from_dict</code> / <code>run_backtest</code>。所有显式 k 使用 Core /2，旧 /1 Top5 保存件仍可读取。准确执行与统计定义见 <a href="../docs/design/04_axiom_trade.md#61-%E6%9C%89%E7%95%8C%E8%82%A1%E7%A5%A8%E6%97%A5%E7%BA%BF-top5">Trade</a>。本例沿用固定 v2 Evaluation 输入，未混入后来新增的评价版本。</p>
+<p>首次进程同时保留旧账户/评价、新账户及其展开字典，评价触发 RSS guard，失败记录保留。恢复将账户与评价分为独立进程：先核验已保存 Top5，再仅补 Top5 评价、Top3 账户和 Top3 评价，<strong>没有重复 Top5 账户</strong>。每阶段释放不用的对象并保留完整 proof，恢复 106.65 s、峰值 4.78 GiB，全部进程已退出。这处理本样本的生命周期峰值，尚不能证明多年 loader 内存有界。</p>
+<p>下面两个函数对应已验收的阶段调用；必须在绑定已审 Engine 来源的受控新进程中分别调用。默认只定义函数并读取回执，已完成阶段不重复执行。</p>
+</section><section class="example" data-cell-id="7ab21038"><div class="example-label">同一 Signal 的两个独立账户</div><pre class="code">def make_topk_account(saved_run_path, top_k, new_destination):
+    import gc
+    from axiom_engine.runtime import (load_backtest_run, stock_portfolio_policy,
+        BacktestRequest, run_backtest, save_backtest_run)
+
+    output = Path(new_destination)
+    output.mkdir(parents=True, exist_ok=False)
+    baseline = load_backtest_run(saved_run_path)
+    plan = baseline.to_dict()[&quot;plan&quot;]
+    del baseline
+    gc.collect()
+    plan[&quot;portfolio_policy&quot;] = stock_portfolio_policy(
+        top_k=top_k, execution_universe=plan[&quot;execution_universe&quot;])
+    request = BacktestRequest.from_dict(plan)
+    del plan
+    gc.collect()
+    run = run_backtest(request)
+    del request
+    gc.collect()
+    save_backtest_run(run, output / &quot;backtest.json&quot;)
+    return output / &quot;backtest.json&quot;
+
+
+def evaluate_saved_topk(saved_run_path, saved_reference_evaluation, new_destination):
+    import gc
     from axiom_engine.runtime import (load_backtest_run, load_backtest_evaluation,
-        stock_portfolio_policy, BacktestRequest, run_backtest, save_backtest_run,
         BenchmarkSeries, DividendScope, EvaluationSpec, evaluate_backtest,
         save_backtest_evaluation)
-    source = load_backtest_run(saved_run_path).to_dict()
-    report = load_backtest_evaluation(saved_evaluation_path).to_dict()
+
+    output = Path(new_destination)
+    output.mkdir(parents=True, exist_ok=False)
+    report = load_backtest_evaluation(saved_reference_evaluation).to_dict()
     benchmark = BenchmarkSeries.from_dict(report[&quot;benchmark_input&quot;])
     scope = None if report[&quot;dividend_scope&quot;] is None else DividendScope.from_dict(report[&quot;dividend_scope&quot;])
     spec = EvaluationSpec.from_dict(report[&quot;spec&quot;])
-    for k in (5, 3):
-        plan = dict(source[&quot;plan&quot;])
-        plan[&quot;portfolio_policy&quot;] = stock_portfolio_policy(
-            top_k=k, execution_universe=plan[&quot;execution_universe&quot;])
-        run = run_backtest(BacktestRequest.from_dict(plan))
-        assert run.to_dict()[&quot;signal_ref&quot;] == source[&quot;signal_ref&quot;]
-        output = Path(new_destination) / (&quot;top&quot; + str(k))
-        output.mkdir(parents=True, exist_ok=False)
-        save_backtest_run(run, output / &quot;backtest.json&quot;)
-        evaluation = evaluate_backtest(run, benchmark=benchmark, spec=spec, dividend_scope=scope)
-        save_backtest_evaluation(evaluation, output / &quot;evaluation.json&quot;)
+    del report
+    gc.collect()
+    run = load_backtest_run(saved_run_path)
+    evaluation = evaluate_backtest(run, benchmark=benchmark, spec=spec, dividend_scope=scope)
+    del run, benchmark, scope, spec
+    gc.collect()
+    save_backtest_evaluation(evaluation, output / &quot;evaluation.json&quot;)
+    return output / &quot;evaluation.json&quot;
 
-# 默认只读真实对照回执；本函数留给新的、受控且明确调用的试验。
+
+# 账户和评价各用一个新进程；本页不调用上述业务函数。
 print(&quot;TopK 对照状态：&quot;, receipt[&quot;topk&quot;][&quot;status&quot;])
-if receipt[&quot;topk&quot;][&quot;status&quot;] == &quot;PASS&quot;:
-    for result in receipt[&quot;topk&quot;][&quot;outputs&quot;]:
-        print(&quot;Top&quot;, result[&quot;top_k&quot;], &quot;决策&quot;, result[&quot;decision_count&quot;], &quot;成交&quot;, result[&quot;fills&quot;])
-    print(&quot;改变目标的调仓日数：&quot;, len(receipt[&quot;topk&quot;][&quot;different_target_sessions&quot;]))
-else:
-    print(&quot;Top5 账户已保存；评价内存停止，Top3 未运行；尚未通过两组合验收。&quot;)
-print(&quot;Data/Feature/fit/predict：0；未扩大内存预算或重复已完成账户。&quot;)
+for result in receipt[&quot;topk&quot;][&quot;outputs&quot;]:
+    print(&quot;Top&quot;, result[&quot;top_k&quot;], &quot;决策&quot;, result[&quot;decision_count&quot;], &quot;成交&quot;, result[&quot;fills&quot;])
+print(&quot;目标不同的调仓日：&quot;, &quot;, &quot;.join(receipt[&quot;topk&quot;][&quot;different_target_sessions&quot;]))
+print(&quot;上游实际调用：&quot;, receipt[&quot;topk&quot;][&quot;upstream_calls&quot;])
+print(&quot;账户调用 / 评价尝试 / 完整评价：&quot;,
+      receipt[&quot;cumulative_counts&quot;][&quot;account&quot;],
+      receipt[&quot;cumulative_counts&quot;][&quot;evaluation_attempt&quot;],
+      receipt[&quot;cumulative_counts&quot;][&quot;completed_evaluation&quot;])
 </pre></section><section id="section-9" class="markdown"><h2>9. UI：保存值进入同一个网页入口</h2>
 <p>UI Reader 校验 owner 保存件后生成投影；已导出 HTML 打开和切页不执行 Data、模型或账户。Pages 入口由既有发布流程维护，本教程不部署 UI。</p>
 <p>源码审阅、owner 浏览器 QA 与用户产品验收是不同证据。父任务已查看实际 UI 视觉范围，用户明确未通过产品验收，整改仍在进行；不能把它登记成“尚未验收”或用模型试点通过替代。</p>
@@ -227,7 +315,7 @@ print(&quot;Data/Feature/fit/predict：0；未扩大内存预算或重复已完�
 <tr>
   <td>同一独立预测 Signal 改组合</td>
   <td>Data / Feature / Model / Signal</td>
-  <td>Core 组合 / Runtime / Evaluation；当前 TopK 增量尚缺，不能声称演示已通过</td>
+  <td>Core 组合 / Runtime / Evaluation；同 Signal Top3/Top5 本轮通过，上游 0 次</td>
 </tr>
 <tr>
   <td>改 label / 模型语义</td>
@@ -284,37 +372,39 @@ print(&quot;Data/Feature/fit/predict：0；未扩大内存预算或重复已完�
 </table>
 <p>OS 页缓存未清空，单阶段时间有嵌套，不能相加为另一个总时间；没有全年吞吐保证。</p>
 </section><section id="section-11" class="markdown"><h2>11. 每周训练控制试点：训练时钟改变，日期保持固定</h2>
-<p>两个 OOS 窗口为 02-05—02-08、02-19—02-23，fit 为严格前一实际 session 02-02/02-08 20:30 +08。两周训练日期均固定为 11-01—01-31，只重新筛各周已成熟样本；这不是完整滑动窗口实现。</p>
+<p>两个 OOS 窗口为 <strong>2024-02-05—02-08、2024-02-19—02-23</strong>，fit 为严格前一实际 session <strong>02-02/02-08 20:30 +08</strong>。两周训练 Feature 日期均为 <strong>2023-11-01—2024-01-31</strong>，各 65 个实际日期，只重新筛各周已成熟样本；日期窗口相同，成熟样本数不同。这不是每周移动三个月训练窗口的实测。</p>
 <table>
 <thead>
 <tr>
   <th>fit</th>
   <th>最后成熟 Feature 日</th>
+  <th style="text-align:right">成熟日期 / 声明日期</th>
   <th style="text-align:right">训练行</th>
-  <th style="text-align:right">有效预测</th>
-  <th style="text-align:right">OOS 实际 session</th>
+  <th style="text-align:right">有效预测行</th>
+  <th style="text-align:right">OOS / 预测 Feature 日期数</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td>02-02</td>
-  <td>01-26</td>
+  <td>2024-02-02</td>
+  <td>2024-01-26</td>
+  <td style="text-align:right">62 / 65</td>
   <td style="text-align:right">18,600</td>
   <td style="text-align:right">1,200</td>
-  <td style="text-align:right">4</td>
+  <td style="text-align:right">4 / 4</td>
 </tr>
 <tr>
-  <td>02-08</td>
-  <td>01-31</td>
+  <td>2024-02-08</td>
+  <td>2024-01-31</td>
+  <td style="text-align:right">65 / 65</td>
   <td style="text-align:right">19,500</td>
   <td style="text-align:right">1,500</td>
-  <td style="text-align:right">5</td>
+  <td style="text-align:right">5 / 5</td>
 </tr>
 </tbody>
 </table>
-<p>两折各 fit/infer 一次。事后标签共同在 02-29 20:30 +08 读取，与训练时钟分离；完整日期 parent 保留原 refs，不伪造一个混合的公开 FeatureBuild。</p>
-<p>成功流程 30.94 s、峰值 RSS 4.46 GiB；矩阵分别约 1.05/1.11 MiB。保存 proof 校验阶段采样峰值约 0.68 GiB，Data outcome 与 norm 阶段约 4.46 GiB，fit 阶段 RSS 仍保留之前分配；不能把矩阵小解释为进程内存小。本次不是流式 loader 验收。</p>
-<p>五年约 260 weekly folds 仅是数量参考，须从真实日历枚举。冷准备、各周成熟标签/norm/Dataset、fit/infer、证明 I/O 和保存分别计量；不从这两折或旧 monthly 3–6 小时推出五年耗时。</p>
+<p>第一周预测 Feature 日期为 02-02/02-05/02-06/02-07，第二周为 02-08/02-19/02-20/02-21/02-22；均对应严格前一 session。两折各 fit/infer 一次，事后标签共同在 <strong>02-29 20:30 +08</strong> 读取，与训练时钟分离。完整日期 parent 保留原 refs，不伪造一个混合的公开 FeatureBuild；这些私有教学预测也没有冒充原 January 公共 SignalRun。</p>
+<p>成功流程 <strong>30.94 s、峰值 RSS 4.46 GiB</strong>；矩阵分别约 <strong>1.05/1.11 MiB</strong>。保存 proof 校验阶段采样峰值约 0.68 GiB，Data outcome 与 norm 阶段约 4.46 GiB，fit 阶段 RSS 仍保留之前分配；矩阵小不能解释为进程内存小。本次不是流式 loader 验收。</p>
 </section><section class="example" data-cell-id="3506c4a3"><div class="example-label">两周成熟边界与实际次数</div><pre class="code"># 教学编排调用已有公开 Data/Research/Core，不是另一个特征执行器。
 # 仅新的受控试验调用；默认读取本轮已保存统计，不重复 fit/infer。
 def two_week_control(frozen_input_manifest, new_destination):
@@ -326,12 +416,118 @@ for fold in receipt[&quot;weekly&quot;][&quot;folds&quot;]:
           &quot;最后成熟日&quot;, fold[&quot;last_mature_feature_session&quot;],
           &quot;预测&quot;, fold[&quot;prediction_rows&quot;])
 print(&quot;本轮含失败尝试的 Data 读取：&quot;, receipt[&quot;cumulative_counts&quot;][&quot;Data_reads&quot;])
-</pre></section><section id="section-12" class="markdown"><details><summary>工程附录：预算、失败和候选合同</summary><h2>12. 工程附录：预算、失败和候选合同</h2>
-<p>本轮获准上限为同配置 1 次 fit/infer + 第二次 HIT、两周各 1 次 fit/infer、公共 label outcome 查询最多 8 次、供应商 0。一个重进程，硬 RSS 6 GiB、自有 PID 在 5.5 GiB 停止；每阶段 120 s、总业务 480 s、累计新产物 1 GiB。</p>
-<p>两次失败均发生在查询证据序列化，各只读 1 个价格 batch、未训练。修复后两周共享事后 outcome 来源，成功流程 6 次读取；累计恰好 8，失败目录保留。业务并非一次无错完成，缓存首建和 weekly 也分别计时。</p>
-<p>重进程在 Data 北京 14:15–14:35 预留窗口前退出；TopK 在该窗口结束后只消费保存输入，Top5 评价触发 RSS guard：采样峰值 5.82 GiB，低于 6 GiB 硬上限，进程已终止；Top5 账户保留，Top3 未开始。不得将一次保存账户称为完整两策略通过。冷 Qlib 准备沿用历史证据，未重跑。</p>
-<p>缓存 key 与 proof 有界加载的最小候选见 <a href="../docs/design/05_axiom_research.md#ml-engineering-review-proposals">Research §8.4.1</a>：实际计划决定上下文；两日期 shard 只为本次配置；顶层调用重验、调用内 proof blob 验一次后共享并释放。落盘本身不证明 streaming，正式 rolling/resume 尚未实现。</p>
-</details></section><section id="cell-16" class="markdown"><details><summary>缓存与常驻内存：当前风险</summary><h3>缓存与常驻内存：当前风险</h3>
+</pre></section><section id="section-12" class="markdown"><h2>12. 五年计划：固定规模条件估算与未测成本</h2>
+<p><strong>65.15–66.87 分钟只代表暖流程的固定日期控制情景，不能当五年滑动训练总耗时。</strong> 输入条件是同硬件、314 个固定 ID、六特征、已准备 Feature、固定 65 个训练日期，以及当前短样本的本地源/proof 体积。五年真实移动窗口会改变日期、成员、证明和 I/O；本轮没有启动全年或五年任务。</p>
+<p>从已有保存日历枚举 <strong>2021-01-01—2025-12-31</strong>，实际首日为 2021-01-04，末日为 2025-12-31：共有 <strong>1,212 sessions / 256 个有交易日的 ISO 周</strong>，全周休市不算 fold。平均每周 <strong>4.734375</strong> 日，与两周控制平均 4.5 日不同。此日历只用于计数，不证明五年股票源或历史成员覆盖。</p>
+<p>以下均从同一成功控制流程的保存分阶段回执拆分，单位为秒；没有额外运行。<code>V=2.87385</code> 为公开实验、scope 和三个 parent 的完整核验之和；共享事后 labels 为 <code>9.98296</code>、norm 为 <code>0.90769</code>；两周训练 labels/norm/matrix/fit/infer 各自总和为 <code>7.56586 / 7.96881</code>。</p>
+<table>
+<thead>
+<tr>
+  <th>暖流程分项</th>
+  <th>条件外推公式（分钟）</th>
+  <th style="text-align:right">256 周参考值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>每周训练准备 / norm / matrix / fit / infer</td>
+  <td><code>256 × mean(7.56586, 7.96881) / 60</code></td>
+  <td style="text-align:right">33.14 min</td>
+</tr>
+<tr>
+  <td>共享事后 labels / norm</td>
+  <td><code>256 × (9.98296 + 0.90769) / 2 / 60</code></td>
+  <td style="text-align:right">23.23 min</td>
+</tr>
+<tr>
+  <td>原 parent/proof 核验</td>
+  <td><code>256 × V / 2 / 60</code></td>
+  <td style="text-align:right">6.13 min</td>
+</tr>
+<tr>
+  <td>import、检查、序列化与监控剩余时间</td>
+  <td><code>66.01 − 上述三项</code></td>
+  <td style="text-align:right">3.50 min</td>
+</tr>
+<tr>
+  <td>整个短流程</td>
+  <td><code>256 / 2 × 30.94023 / 60</code></td>
+  <td style="text-align:right"><strong>66.01 min</strong></td>
+</tr>
+</tbody>
+</table>
+<p>fit/infer 已包含在训练分项内；仅这两个阶段的外推合计约 <strong>16.63 秒</strong>，不能再加一次，也不能替代总流程。训练分项取两个观测的最小/最大值、其余三项固定，得到 <strong>[65.15, 66.87] min</strong>。这是两周控制情景区间，不是统计置信界、真实五年滑动运行时或承诺上界。</p>
+<p>完整计划必须写为：</p>
+<p><code>T_total = T_唯一冷准备 + T_暖控制[65.15,66.87] min + T_五年账户及评价 + T_导出展示</code></p>
+<table>
+<thead>
+<tr>
+  <th>总计划成本</th>
+  <th>本轮是否已测</th>
+  <th>估计限制</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>唯一日期的 Data / Qlib / Feature 冷准备</td>
+  <td><strong>未测五年规模</strong></td>
+  <td>旧 314 ID × 56 日 Qlib 的 37.72 s 只说明短样本格式准备，不含全部冷链</td>
+</tr>
+<tr>
+  <td>暖 weekly 控制</td>
+  <td>两周实测，256 周条件外推</td>
+  <td>固定日期与体积；不证明移动训练、五年成员、source proof 增长或流式 loader</td>
+</tr>
+<tr>
+  <td>五年账户及评价</td>
+  <td><strong>未测</strong></td>
+  <td>January TopK 仅证明两策略消费同 Signal；恢复 106.65 s 不能线性承诺五年 Runtime</td>
+</tr>
+<tr>
+  <td>导出展示</td>
+  <td><strong>未测完整流程</strong></td>
+  <td>Reader 小样本加载时间不等于网页导出与浏览器耗时</td>
+</tr>
+</tbody>
+</table>
+<p>因此总计划区间为 <strong>[65.15,66.87] min + 三个未测项</strong>，目前没有可证的有限总上界。模型算术很小，成熟筛选/norm 与源/proof I/O 已占主要成本；历史 union 与 source proof 扩张会增加校验及驻留内存。正式按日期分片加载、阶段缓存与恢复合同仍待实现，不能用短样本准备后速度掩盖冷准备或增长成本。</p>
+</section><section id="section-13" class="markdown"><details><summary>工程附录：预算、失败和候选合同</summary><h2>13. 工程附录：预算、失败和候选合同</h2>
+<p>初始授权为同配置 1 次 fit/infer + 第二次 HIT、两周各 1 次 fit/infer、公共 label outcome 查询最多 8 次、供应商 0；账户最多 2 次。一个重进程，硬 RSS 6 GiB、自有 PID 在 5.5 GiB 停止；每阶段 120 s、业务时钟 480 s、累计新产物 1 GiB。</p>
+<p>两次 weekly 失败均发生在查询证据序列化，各只读 1 个价格 batch、未训练。修复后两周共享事后 outcome 来源，成功流程 6 次读取；累计 8，失败目录保留。业务并非一次无错完成，缓存首建和 weekly 也分别计时。</p>
+<p>TopK 首次评价采样峰值 <strong>5.82 GiB</strong>，触发 own-PID guard 后退出，Top5 账户已完整保存、Top3 尚未开始；该失败记录及产物没有覆盖。审准的恢复仅补缺少阶段，四个独立进程共用额外 480 s，不重跑 Top5，仍沿用相同 RSS/累计文件上限。实际恢复 <strong>106.65 s / 4.78 GiB</strong>，累计文件约 <strong>674 MiB</strong>，全部进程退出。</p>
+<table>
+<thead>
+<tr>
+  <th>累计次数（含失败与恢复）</th>
+  <th style="text-align:right">实际</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Data 读取 / 供应商请求</td>
+  <td style="text-align:right">8 / 0</td>
+</tr>
+<tr>
+  <td>Feature Core 执行</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>固定配置 + weekly fit / predict</td>
+  <td style="text-align:right">3 / 3</td>
+</tr>
+<tr>
+  <td>TopK 独立账户</td>
+  <td style="text-align:right">2</td>
+</tr>
+<tr>
+  <td>TopK 评价尝试 / 完整评价</td>
+  <td style="text-align:right">3 / 2</td>
+</tr>
+</tbody>
+</table>
+<p>仅 TopK 的 Data/供应商/Feature/fit/predict 均为 0；label/norm 使用既有 Core 算子，不能把“Feature Core 0”解释为所有 Core 计算 0。Notebook 当前四个默认代码单元只读取保存回执、定义函数，零业务调用；私有输出副本与全部原输入保留，本公开 source 不包含私人产物。</p>
+<p>缓存 key 与 proof 有界加载的最小候选见 <a href="../docs/design/05_axiom_research.md#ml-engineering-review-proposals">Research §8.4.1</a>：实际计划决定上下文；两日期 shard 只为本次配置；顶层调用重验、调用内 proof blob 验一次后共享并释放。落盘本身不证明 streaming，正式 rolling/resume 尚未实现。冷 Qlib 准备沿用历史证据，未重跑。</p>
+</details></section><section id="cell-17" class="markdown"><details><summary>缓存与常驻内存：当前风险</summary><h3>缓存与常驻内存：当前风险</h3>
 <table>
 <thead>
 <tr>
@@ -355,7 +551,7 @@ print(&quot;本轮含失败尝试的 Data 读取：&quot;, receipt[&quot;cumulat
 </table>
 <p>目标方向已接受，具体最小新 API 仍待冻结；两折不证明完整平台或 streaming 已实现。
 四项候选的准确边界统一见 <a href="../docs/design/05_axiom_research.md#ml-engineering-review-proposals">Research §8.4.1</a>：阶段依赖身份保留实际计算实现与完整审计；首轮按两个完整日期分片、原 proof blob 独立保存并每次核验。它们尚未实施，本教学不先大改缓存或 loader。</p>
-</details></section><section id="cell-17" class="markdown"><details><summary>SysQ：借经验，明确已有差异</summary><h3>SysQ：借经验，明确已有差异</h3>
+</details></section><section id="cell-18" class="markdown"><details><summary>SysQ：借经验，明确已有差异</summary><h3>SysQ：借经验，明确已有差异</h3>
 <table>
 <thead>
 <tr>

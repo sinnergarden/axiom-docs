@@ -400,11 +400,30 @@
       "fixed_config": "PASS: actual first build then HIT, 1 fit/infer and second 0; no Data/Feature execution",
       "weekly": "PASS: two fixed-date training controls with weekly maturity cutoffs, 2 fit/infer; not complete sliding window",
       "weekly_cumulative_Data_reads_including_failed_attempts": 8,
-      "topk": "BLOCKED_RESOURCE_BUDGET: Top5 account saved, incomplete evaluation, Top3 not started",
-      "topk_observed_peak_rss_bytes": 6246055936,
+      "topk": "PASS: same saved Signal/market/profile/initial account; Top5 and Top3 complete accounts and v2 evaluations; five distinct target sessions",
       "private_artifacts": "local only; failed attempts and original saved artifacts retained",
       "public_source_notebook_outputs": "not committed; readonly private execution receipt separate",
-      "streaming_loader_proven": false
+      "streaming_loader_proven": false,
+      "topk_initial_failed_attempt": {
+        "status": "OWN_RSS_STOP",
+        "peak_observed_rss_bytes": 6246055936,
+        "completed_Top5_account_retained": true,
+        "repeated_Top5_account": false
+      },
+      "topk_recovery_elapsed_seconds": 106.652507,
+      "topk_recovery_peak_observed_rss_bytes": 5130354688,
+      "topk_cumulative_account_calls": 2,
+      "topk_cumulative_evaluation_attempts": 3,
+      "topk_completed_evaluations": 2,
+      "topk_upstream_calls": {
+        "Data": 0,
+        "supplier": 0,
+        "Feature": 0,
+        "fit": 0,
+        "predict": 0
+      },
+      "all_business_children_exited": true,
+      "five_year_estimate": "256 actual calendar weeks, 2021-01-01 through 2025-12-31; fixed-date 65-session warm control only; 65.15-66.87 minutes plus unmeasured cold/account/display; no finite total upper bound"
     }
   },
   "bulk": {

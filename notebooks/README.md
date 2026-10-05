@@ -76,4 +76,6 @@ ML 工程页从 Docs 仓库根目录打开。默认四个代码单元只读取�
 设置 `AXIOM_ML_TEACHING_RECEIPT` 为 owner 提供的回执文件，
 `AXIOM_ML_TEACHING_RECEIPT_REF` 为其完整 `sha256:` 文件引用。
 重建、weekly 和账户函数只定义，不由页面隐式调用；新运行必须使用新的受控目标。
-本轮固定配置/weekly 已通过，TopK 对照因 RSS guard 阻塞；执行输出仅在本地副本保存。
+本轮固定配置/weekly 与同 Signal Top3/Top5 对照已通过；TopK 首次 RSS 停止及分进程恢复证据保留。
+执行输出仅在本地副本保存。五年 256 周条件估算使用固定训练日期与已准备 Feature；总计划另加三个未测项，
+详见 [ML 工程 §12](ml_engineering_tutorial.html#section-12)，没有全年/五年实跑或有限总耗时上界。
