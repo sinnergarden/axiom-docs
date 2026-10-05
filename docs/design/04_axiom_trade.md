@@ -12,8 +12,8 @@
 
 2026-10-05 实现状态：保存 Signal 与固定 MarketReplay 已由公共 run_backtest 消费；
 Core 规划组合，Runtime 唯一核算现金/持仓/费用/NAV，Evaluation 消费保存账户，
-Research/UI 不另建账户路径。当前股票公开组合政策只接受 Top5，§6.1 的 Top3
-是待实现增量。无账户依赖的同一保存 Signal 可供多个独立账户/策略消费，但策略与
+Research/UI 不另建账户路径。当前股票公开组合政策只接受 Top5，§6.1 的显式
+TopK 是待实现增量。无账户依赖的同一保存 Signal 可供多个独立账户/策略消费，但策略与
 账户状态各属自己的账本；要展示真实 Top3/Top5 账户结果须分别保存身份，
 不能以变更初始资金冒充策略变化。
 
@@ -222,27 +222,34 @@ budget_basis=available_cash_plus_previous_close_positions_excluding_receivables�
 卖单和买单分别按 security_id 升序执行，现金不足不依同日价格或收益改换次序。
 实际现金、费用、容量及 T+1 可能使成交权重偏离目标，不用当日 open 反算前日目标。
 
-#### 同一冻结预测的 Top3/Top5 策略参数（最小提案，待技术裁决）
+#### 同一冻结预测的显式 TopK 策略参数（父审合同，待实现）
 
 `BacktestRequest_v3` 已有精确 `portfolio_policy.top_k` 字段，但当前校验只接受 5，
 `plan_stock_portfolio` 也把资格门槛、选取数和等权预算写死为 5；仅更改原信号或初始资金
-不能构成另一组合策略。增量允许同一现有请求/执行器中的 `top_k∈{3,5}`，其余
-eligibility_id、每周首个交易日与前一 session PIT、预算基准、冻结信号、市场和执行
-profile 均不变。资格内任一显式 invalid 仍 NO_DECISION；有效合格数不足 k 时
-NO_DECISION。按原分数降序、security_id 升序取前 k，目标预算各为 1/k，目标数量
-仍按前收、100 股整手与原现金/费用/T+1 规则计算；trace 准确写 RAW_TOP3 或
-RAW_TOP5，不把策略目标冒充已成交权重。
+不能构成另一组合策略。增量接受**显式正整数** k，`type(k) is int`，拒绝 bool，
+且 `1≤k≤len(冻结 execution_universe)`；不能把 Notebook 本次的 3/5 演示值
+写成产品上限，也不能超出固定证券资格范围。历史 feature session 有效合格成员少于
+k 时，沿原政策保存 NO_DECISION/INSUFFICIENT_ELIGIBLE_MEMBERS 和要求的 k，
+不退而选择较少证券；资格内任一显式 invalid 仍 NO_DECISION。按原分数降序、
+security_id 升序解同分取前 k，目标预算各为 1/k，仍按前收、100 股整手与同一
+现金、费用、容量、T+1 执行规则计算；v2 trace 保存 RAW_TOP_K 与实际 k，
+不把目标权重冒充已成交权重。
 
-公开 Core planner 可新增显式 `top_k=5` 参数；默认 5 的
-`axiom.stock_portfolio/1` 合同与意图身份输入保持原 Top5 解释，Top3 使用
-`axiom.stock_portfolio/2` 并把 k 纳入意图身份。Runtime 把已保存
-plan.portfolio_policy.top_k 传入同一 planner；新账户身份原本就绑定完整 request 与
-实现版本，Top3 的 core_version 固定为 `axiom.stock_portfolio/2`。
-loader 按保存的 k 与版本元组
-分别验证，保留旧 Top5 保存件和 Reader；不建立第二个 Research 信号、执行器或
-账户路径。Notebook 可用同一保存 StockPredictionFrame 分别展示 Top3/Top5 的
-目标与意图，feature/fit/predict 调用为零；若展示实际收益，须明确生成 Top3 的
-独立新 BacktestRun，不能用改变初始现金替代策略变化。
+公共纯工厂固定导出于 `axiom_engine.runtime`，签名为
+`stock_portfolio_policy(*, top_k: int, execution_universe: list[str]) -> dict`，
+只返回现有 `{eligibility_id,top_k,rebalance,budget_basis}` 精确形状；冻结 universe
+只用于边界校验，不重取成员或预测。Core planner 使用
+`plan_stock_portfolio(frame, *, account, context, top_k: int | None = None)`：
+省略 top_k 仅为旧 `axiom.stock_portfolio/1` 的原 Top5 兼容解释；所有**显式新配置**
+（包括 k=5）统一生成 `axiom.stock_portfolio/2`，并把 k 放入 Core 决策和意图
+身份输入。Runtime 将计划的 k 显式传给同一 planner，所有新股票运行的
+`core_version=axiom.stock_portfolio/2`；原 request_v3/run_v3、执行器、profile 与
+账户账本路径不分叉。新 run_id 仍由完整请求、Core/Runtime/实现版本决定；
+旧 v1 Top5 保存账户只按其原版本元组验证和加载，不倒改成 v2，也不声称重新运行
+会保留旧 run_id。Notebook 从同一保存 StockPredictionFrame 与原固定市场输入
+展示 Top3/Top5：feature/fit/predict 均零调用；若展示成交收益，两种配置应绑定
+各自保存账户身份，已有完全同配置、同实现版本的 Top5 可复用，不以改初始资金
+或用另一账户缓存冒充新策略。
 
 **两个时钟。** 决策为交易日 08:55 Asia/Shanghai，知识 cutoff 保持前一 session 的
 20:30。`stock_daily_observed` 仅是离线日级成交近似：execution Reader 在当日 20:30
@@ -671,12 +678,24 @@ v2 限制文案需反映已提供 CAGR，不能继续携带旧“无年化”描
 本节只为一个已有、完整的 BacktestRun 与同一 run 绑定的已保存 v2 评价增加新
 `evaluation_spec_v3 / evaluation_report_v3 / axiom.evaluation/3`。旧账户、旧 v1/v2
 spec/report、金额分桶、来源与实验登记不覆写；新报告复制已核验的 v2 指标和限制，
-再保存下述新增事实。新公共入口拟为
+再保存下述新增事实。新公共入口固定为
 `analysis_evaluation_spec(*, risk_free)`、
-`evaluate_saved_analysis(run, base_report, *, benchmarks, spec)`，只消费已保存的账户/
+`evaluate_saved_analysis(run: BacktestRun, base_report: EvaluationReport, *,
+benchmarks: dict[str, BenchmarkSeries | None], spec: EvaluationSpec) -> EvaluationReport`，
+只消费已保存的账户/
 评价及独立的真实基准输入；`save_backtest_evaluation` 与
 `load_backtest_evaluation` 继续负责独立新路径保存和按版本只读验证。这里描述合同，
 不宣称接口已经实现。
+
+`benchmarks` 精确包含 `CSI300/SSE_COMPOSITE/NASDAQ100` 三键；CSI300 必须与
+base_report 的原 `benchmark_ref/benchmark_input` 完全一致，不能静默替换原评价基准。
+尚无已核来源的另外两腿显式传 None，输出 SOURCE_UNAVAILABLE。新原生指数输入
+继续由 Data owner 固定来源合同后交接，不让 UI/Research 查询供应商。
+`risk_free` 必须是精确三字段 dict（currency/annual_effective_rate/source），金额率
+为有限 decimal 字符串，source 为非空字符串。`analysis_evaluation_spec` 返回固定
+`EvaluationSpec`，其身份含显式 rf；评价入口拒绝不同 run 三元组的 base_report。
+报告同时嵌入 `base_evaluation` 原 v2 保存内容，loader 校验其 digest/ref 及复制指标
+原值，读取 v3 不调用评价或账户执行。
 
 **输入、身份与来源。** spec 显式保存
 `risk_free={currency:"CNY",annual_effective_rate:"0",source:"EXPLICIT_ZERO_ASSUMPTION"}`：
@@ -685,7 +704,7 @@ spec/report、金额分桶、来源与实验登记不覆写；新报告复制已
 Actual/Actual 复利转换。spec 还冻结 20-session 滚动窗、2 个百分点分桶、三个
 benchmark key、对齐与缺值政策。报告保留旧 `input_run_ref` 三键和
 `signal_ref/market_ref/profile_ref`，另存 `base_evaluation_ref`、
-`base_evaluation_content_digest`、按 key 排序的 `benchmark_refs`、`spec_ref/spec`、
+`base_evaluation_content_digest/base_evaluation`、按 key 排序的 `benchmark_refs`、`spec_ref/spec`、
 `dividend_scope_ref`（含 null）、`implementation_ref`。新 `evaluation_ref` 的身份输入
 精确包含以上 run/base/spec/benchmark/dividend/版本/实现闭包，`content_digest`
 覆盖除自身之外的整个新报告；不得把新的评价身份误作新的账户 run_id。
@@ -752,9 +771,12 @@ Decimal precision=40、ROUND_HALF_UP 保存 decimal 字符串；不因首尾部�
 annualization_factor,risk_free},calmar:{status,value}}`；annualization_factor
 是 `sqrt(n/Y)` 的 decimal 字符串，缺失时为 null。
 
-**最小辅助分析与追踪。** `analysis_series` 保存 20 个账户交易 session 的
+**最小辅助分析与追踪。** `analysis_series` 每点保存 `session/committed_sequence/
+account_cumulative_return/rolling_return_20/rolling_volatility_20/rolling_status`；
+累计收益为 `NAV_t/initial_NAV-1`。20 个账户交易 session 的
 `NAV_t/NAV_(t-20)-1` 与窗口中 20 个逐期收益的样本标准差，后者是**逐期**
-波动，不年化；不足窗给 null/status。`execution_summary` 保存双边换手
+波动，不年化；首个完整窗允许 initial NAV 虚拟 anchor，不足窗给 null/
+INSUFFICIENT_WINDOW，任一期前值非正给 MISSING_RETURN，不前填。`execution_summary` 保存双边换手
 `sum(fill.gross_minor)/mean(saved NAV_minor)`、费用占初始资本
 `sum(fill.fee_minor)/initial_nav_minor`；`concentration_series` 逐 session
 取最大单票 `position.market_value_minor/nav.nav_minor`，同日引用必须有相同
@@ -834,12 +856,20 @@ save_backtest_evaluation(report, new_report_path)
 # UI/Research 继续仅 load_backtest_evaluation(new_report_path)。
 ```
 
-§11.3 拟增加 `analysis_evaluation_spec(*, risk_free)` 与
+§11.3 固定增量为 `analysis_evaluation_spec(*, risk_free)` 与
 `evaluate_saved_analysis(run, base_report, *, benchmarks, spec)`，沿用
 `save_backtest_evaluation/load_backtest_evaluation`，不增加账户或 Data 隐式调用。
-Top3/Top5 仍走原 `plan_stock_portfolio` 和 `run_backtest`；Notebook 如仅展示
-目标可调用 Core 两次，如比较已成交结果则 Top3 须保存独立的账户 run。
+显式 TopK 仍走原 `plan_stock_portfolio` 和 `run_backtest`；Notebook 如仅展示
+目标可调用 Core 两次，如比较已成交结果则不同 k 须各有独立账户 run。
 这两个增量入口在 Engine 源码/定向验收完成前均为设计状态。
+
+Data 显示投影消费另走 `build_fill_display(run, *, display)` 与独立保存/加载入口，
+消费需求为：固定 `display_ref`、完整显示跨度与末日锚点 A、共同 cutoff C、每个
+security/session 的 Decimal multiplier、原单位/目标单位与来源 refs；只接受实际
+fill.session 同时钟且原单位一致的映射。缺因子/单位不符或未证实 new_price_basis_session
+时坐标 null 并保留原因。该报告身份绑定 run 三元组与 Data display_ref/实现版本，
+不修改 run、原 fill.price/fee/cash/positions/NAV 或其身份。Data 的精确 wire shape
+交接前不猜字段名或新单位生效 session，暂不宣称显示接口可用。
 
 以下为其余通用目标接口，不因上面的有界 profile 而宣称全部实现：
 
