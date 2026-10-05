@@ -492,6 +492,9 @@ January union 不代表后两月完整 CSI300，也不用于策略收益结论�
 用月末事实回填月初；预热保留实际日历与连续 union，label 按实际 f+1/f+5 和可用时间成熟，
 normalization 仍为该日可见成员/有效且成熟样本的既定 cs_zscore，无全期间拟合变换。
 允许本次运行内复用不可变 Core 文档的固定 identity、Qlib 引用和已完整校验的保存对象，
+DataBatch 适配在本次调用读取一次完整 wire，批引用与逻辑 ViewRef 仍绑定该 wire 原值；
+batch_field 来源标识仅按完整 field/batch_ref/qualification/basis 键复用，逐键 provenance
+仍完整保留，cell 来源模式维持逐键身份。每次调用重新读取、验证，不继承此前信任。
 不省略 hash/ref/来源闭包验证，不跨调用持久信任；先核对逐窗口/批处理的 keys、值、null、
 时钟、成员、排名边界及缓存隔离，再报告提速。旧产物不覆盖，5–6 年外推单列历史 union
 扩张、重训/窗口重复、证据内存与 I/O；单折 fit 或 Feature 线性参考不能称完整 rolling 实测。
