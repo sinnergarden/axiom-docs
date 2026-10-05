@@ -551,19 +551,97 @@ ready 后，只顺序运行两个 TopK 账户，再读保存评价，记录账�
 <a id="etf-review-followup-proposal"></a>
 ### 6.3 ETF 与基准的第二优先级小方案（2026-10-05，待主协调亲审）
 
-以下合并为后续小变更，当前不启动长回放，也不占用 ML Notebook 验收资源。
+本节固定候选 API 和保存字段，待主协调批准后编码。当前只读源码/已有元数据及做
+合成算术准备，不启动真实 ETF 长回放，也不占用 Research 训练或 Notebook 验收资源。
 
-| 项目 | 最小增量及保存证据 |
-|---|---|
-| SSE 逐点回撤 | Engine 在 benchmark native/账户日期投影保存 benchmark_drawdown，并保存 max_drawdown；沿已定义 anchor/峰值/缺口 null 规则。CSI 复用原保存值，UI 只绑定收益/回撤及图例联动。新字段用新投影 marker/评价身份，旧保存 v3 缺字段仍可读，不补算。 |
-| 513100 持有参考 | 使用现有冻结 ETF 行情，名称“国泰纳斯达克100 ETF（513100）买入持有”、CNY/SSE 日历；同一个 Runtime 增加一次买入固定政策，保持现金分红、不周度再平衡、不强平，独立账户。保留原价/费用账本，显式验证 2022 年 1:5 正持仓拆分及新单位日期；无新 Nasdaq/FX 数据采集。 |
-| 2014 起探索 | 用户允许一次有预算探索；2019 保存结果仍为主口径。daily_open_profile(*,unknown_status_policy='block',price_limit_policy='require_both') 默认返回原 v1；显式 known_only 返回新 v2 并保存政策。缺单侧限价仅跳过该侧，null 不填事实；已知限价、停牌、价量、费用、现金、容量/整手/T+1 不放宽。需已有前段信号或 Research 有预算补前段简单动量，不宣称原2019 Signal含2014数据。 |
-| 非零滑点对照 | 原 JQ 明示0、原2019零滑点保存件保留。另加单边5 bps（买价增加、卖价减少）的明确研究假设，佣金0.0003/min0/tax0沿用。现有 slippage_bps 能表达数值，但 ETF 分支没有最小报价校验/舍入；在实现前固定可验证的每票 tick，买向上/卖向下取刻度后再检查限价、费用和现金。滑点仅进入成交价，不额外重复扣现金。不能把现有股票0.01刻度移给ETF，tick尚未核定时不猜值。 |
+**七票单位与刻度。** 冻结名单为 159915、510300、510500、510880、511010、513100、
+518880，身份继续使用已保存的完整 cn.etf listing identity。Data security_master 均为
+exchange_traded_fund，market_daily/price_limits 单位为 CNY/fund unit，volume_units 为
+fund units；既有 Data 合同没有 tick 字段，511010 不按每百元债券面值计价。
+本实验逐票固定 tick_size="0.001"，依据为上交所
+[2012 修订全文 §3.4.10–11](https://www.sse.com.cn/lawandrules/sselawsrules2025/repeal/rules/c/c_20121217_10785167.shtml)、
+[2026 规则附件 §3.3.10–11](https://www.sse.com.cn/lawandrules/sselawsrules2025/trade/universal/c/c_20260424_10816492.shtml)，及深交所
+[历史规则 §3.3.11–12](https://www.szse.cn/disclosure/notice/general/t20060515_499577.html)、
+[基金交易问答](https://investor.szse.cn/knowledge/fund/trade/t20171113_538865.html)。
+这是本次冻结执行假设的来源表，不新增 Data domain，也不把 ETF 刻度套给股票或债券。
 
-2014 探索建议硬预算为输入/前段 Signal 准备5分钟、账户一次5分钟、保存核对1分钟、
-单进程 RSS 4 GiB；超限保存阻塞收据结束，不扩工程或反复重跑。此前1762 session
-账户122.2秒、评价3.2秒只是已有测量，不能当新范围的耗时承诺。5 bps/tick 政策需进入
-新 profile/ref，不静默修改原 v1；两种 ETF 对照仍只有一个 _simulate/账本实现。
+**新 profile 与 0/5 bps。** 候选签名为
+`daily_open_profile(*, unknown_status_policy="block", price_limit_policy="require_both",
+slippage_bps="0", price_grid_policy="legacy")`。全部新增参数取默认值时返回原 v1 的精确
+字段和值；沿用原 unknown_status_policy 两个取值。显式
+price_grid_policy="etf_price_grid_v1" 返回 daily_open_profile_v2；新 v2 只接受
+price_limit_policy=require_both/known_only 和 slippage_bps="0"/"5"，非默认限价或滑点
+必须同时显式选择该 grid。v2 在原字段外保存 price_limit_policy、price_grid_policy、
+price_grid_ref 和 price_grid；grid 为
+`{contract_version:"etf_price_grid_v1",price_unit:"CNY/fund unit",rules:[{security_id,
+tick_size,source_keys}],sources:[{source_key,url,content_sha256,clause}]}`，按完整身份排序，
+source_keys 指向上述规则原文及原附件的冻结字节摘要，price_grid_ref 绑定整个表。
+入口校验每个执行证券均在表内且价格单位匹配，缺项或不支持单位在账本前阻断。
+
+v2 先确认原始 open 落在刻度上；不修复离格原价。用 Decimal 计算
+raw_slipped_price=open×(1±slippage_bps/10000)，买入 ceil(raw/tick)×tick，卖出
+floor(raw/tick)×tick，再检查正价、已知限价、费用与实际现金；容量、100份整手及本实验
+T+1 继续用同一个 _simulate/AccountLedger。买价等于已知上限、卖价等于已知下限仍
+不成交；known_only 仅跳过缺失的那一侧，null 不变成“无涨跌幅限制”的事实。
+新 fill 保存 raw_slipped_price、price_tick、price_grid_ref、price_rounding="adverse_tick"、
+rounding_delta=price−raw_slipped_price 和 effective_slippage_bps，后者为相对原 open 的
+不利价差比例乘10000；fill.price 是最终价，reference_open 是原价，slippage_minor 仍
+仅诊断，不重复扣现金。0.500 买入5bps原计算0.50025、取整0.501，实际20bps，必须披露。
+
+新的2019主基线、5bps对照和持有参考均从零持仓、50000000分开始。0/5两次轮动使用
+同一保存 Signal、行情、窗口、v2 grid、require_both、佣金0.0003/min0/tax0及其余政策，
+仅 slippage_bps 和独立 account_id 不同；旧0bp保存件及本地文件继续保留，不能把它
+按资金线性放大。profile_ref/run身份明确区分所有新政策。
+主基线显式调用 daily_open_profile(unknown_status_policy="etf_daily_observed",
+price_grid_policy="etf_price_grid_v1",slippage_bps="0")，对照只将最后参数改为"5"。
+
+**一次买入持有。** 新纯 factory
+`etf_buy_and_hold_policy(*, security_id, entry_session)` 返回
+`{contract_version:"etf_buy_and_hold_policy_v1",security_id,entry_session,budget:"1",
+schedule:"entry_session_once",partial_fill_policy:"expire_no_retry",cash_dividend_policy:
+"retain_cash",terminal_policy:"mark_open_position"}`。本次固定513100，entry_session 必须
+等于账户 start_session；名称为“国泰纳斯达克100 ETF（513100）买入持有”，币种CNY、
+SSE日历。Core 候选签名 `plan_etf_buy_and_hold(policy, *, account, context)`，版本为
+axiom.etf_buy_and_hold/1；context 精确为 trade_session/reference_session/decision_time/
+reference_cutoff/reference_prices/lot_size/commission_rate/minimum_commission_minor/
+tax_rate/slippage_bps/account_state_version。Runtime 核 reference_session 为完整日历
+的严格前一 session，reference_cutoff 为该日20:30 Asia/Shanghai，决策08:55；Core
+核入场日、零持仓、账户版本及原前收来源时钟，目标为
+floor(cash_minor/(reference_price×100×lot_size))×lot_size。缺严格前一session收价保存
+NO_DECISION/ENTRY_REFERENCE_UNAVAILABLE；合法目标只提交一次 BUY，实际可买量仍由
+原 Runtime 的现金/费用/容量裁定。阻断或部分成交不重试、不周调仓、不再投资现金
+分红、不结束强平，期末保留开放持仓；2022年1:5拆分继续消费既有单位事实和生效日，
+验证正持仓数量/成本与原价账本守恒，不猜 new_price_basis_session。
+
+ETF新入口为 backtest_request_v5：沿 v2 原字段增加 portfolio_policy 和显式
+price_unit="CNY/fund unit"，与grid单位核对；market_replay
+仍为 v2，原 unit_split_policy 保留，v5只消费新profile v2。轮动 policy 精确为
+`{contract_version:"etf_rotation_policy_v1",schedule:"weekly_first_trading_session"}`，
+signal_frame 仍为原保存 frame；持有 policy 使用上述factory且 signal_frame=null。
+保存元组为 backtest_run_v5/axiom.backtest/5/Core对应版本，另存 portfolio_policy_ref；
+持有 run/decision 的 signal_ref=null，不能造恒定 Signal 或借用513100指数曲线身份。
+v5 的公共 save/load、评价与成交显示准入按该显式元组验证 null 和 policy ref，旧
+v1–v4 loader 保持；两种政策只调用同一个 Runtime loop、成交模拟器和账本。
+
+**SSE回撤 wire。** 候选签名
+`analysis_evaluation_spec(*, risk_free, benchmark_projection_version="benchmark_comparison_v1")`。
+默认 spec 精确沿用旧 v3；显式 benchmark_comparison_v2 在新 spec 保存该参数，
+使 spec_ref/评价身份改变。report 仍为 v3，新 comparison 保存
+projection_version="benchmark_comparison_v2"、max_drawdown；native_series 与账户
+series 每点新增 benchmark_drawdown，均为非正收益分数或null。SSE从原anchor close
+作首峰，anchor点为0，逐点 close/max(anchor及截至该点已知close)−1；首次缺价后该点
+及后续回撤都null，不能忽略潜在缺失峰值恢复计算，max_drawdown 仅完整窗口可取最小值。
+CSI逐点复制原 base.benchmark.series.drawdown、最大值复制原 max_drawdown，anchor已知
+时为0；不重算旧值。SOURCE_UNAVAILABLE 保存新marker、max_drawdown=null及空序列。
+旧 v3 缺 marker/字段仍可原样读取，不补算；UI只显示owner保存值。Nasdaq/FX继续等真实
+owner输入，不因本改动采集或编造曲线。
+
+**2014独立探索预算。** 2019窗口和require_both仍为主口径；2014探索只用显式v2
+known_only、0bp及同一真实执行约束，不能把跨窗口/限价政策差异归因于滑点。输入/
+前段简单动量Signal准备最多5分钟，账户一次最多5分钟，保存核对最多1分钟，单进程
+RSS上限4GiB；超限保存实际范围、耗时和阻塞收据结束，不反复重跑。需要Research已有
+前段Signal或其有预算补齐，不宣称原2019 Signal包含2014数据。此前1762 session账户
+122.2秒、评价3.2秒只是旧测量；真实新账户待主协调给独立资源窗口后执行。
 
 ## 7. 账户与 Ledger 数据模型
 
