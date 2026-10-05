@@ -42,7 +42,8 @@ PIT 先过滤该 cutoff 可见的版本，再按声明的修订规则选择。�
 
 Qlib 每次导出完整校验一次固定 Snapshot，随后所有字段和成员查询复用该 Reader 与 manifest。
 同一次导出内，日历验证按 Snapshot、完整 sessions、逐 session cutoff、PIT policy 和
-`policy_by_session` 复用；不同字段或域本身不改变日历。命中仍检查引用分区的文件指纹与
+`policy_by_session` 复用；不同字段或域本身不改变日历。命名或自定义时区及 datetime
+子类的 cutoff 逐查询验证，保留原比较语义及 DST fold 区别。命中仍检查引用分区的文件指纹与
 预期 SHA，文件变更不能绕过完整性校验。不同日历签名单独过滤可见版本再选择 revision，
 遗漏日期的 strict 前一 cutoff 与 best-effort 下一 cutoff 规则保持原样；UNKNOWN 仍报错。
 复用仅存在于本次导出，不跨日期缓存终态，也不改变 QuerySpec、原始单位或 provenance。
