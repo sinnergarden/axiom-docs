@@ -623,6 +623,11 @@ signal_frame 仍为原保存 frame；持有 policy 使用上述factory且 signal
 v5 的公共 save/load、评价与成交显示准入按该显式元组验证 null 和 policy ref，旧
 v1–v4 loader 保持；两种政策只调用同一个 Runtime loop、成交模拟器和账本。
 
+513100 参考保存独立 BacktestRun/Evaluation，Research 登记上述可读名称及原保存refs，
+UI 首版直接复用现有运行对照，读取账户owner保存的收益、回撤及评价值。该账户不
+进入市场基准下拉；若未来放入下拉，先由owner另定独立投影合同，UI不能从NAV补算
+benchmark。本次不为下拉新增投影层。
+
 **SSE回撤 wire。** 候选签名
 `analysis_evaluation_spec(*, risk_free, benchmark_projection_version="benchmark_comparison_v1")`。
 默认 spec 精确沿用旧 v3；显式 benchmark_comparison_v2 在新 spec 保存该参数，
@@ -633,11 +638,13 @@ series 每点新增 benchmark_drawdown，均为非正收益分数或null。SSE�
 及后续回撤都null，不能忽略潜在缺失峰值恢复计算，max_drawdown 仅完整窗口可取最小值。
 CSI逐点复制原 base.benchmark.series.drawdown、最大值复制原 max_drawdown，anchor已知
 时为0；不重算旧值。SOURCE_UNAVAILABLE 保存新marker、max_drawdown=null及空序列。
-旧 v3 缺 marker/字段仍可原样读取，不补算；UI只显示owner保存值。Nasdaq/FX继续等真实
-owner输入，不因本改动采集或编造曲线。
+旧 v3 缺 marker/字段仍可原样读取，不补算；UI只显示owner保存值。直接Nasdaq指数/FX
+路径仅保留旧保存件及loader兼容，当前新增参考使用上述513100账户运行对照；未来
+跨市场方案另议。
 
 **2014独立探索预算。** 2019窗口和require_both仍为主口径；2014探索只用显式v2
-known_only、0bp及同一真实执行约束，不能把跨窗口/限价政策差异归因于滑点。输入/
+known_only、5bp及同一真实执行约束，与2019新5bp结果对照；2019的0bp独立保留，
+不额外运行2014零滑点账户。跨窗口/限价政策差异不能归因于滑点。输入/
 前段简单动量Signal准备最多5分钟，账户一次最多5分钟，保存核对最多1分钟，单进程
 RSS上限4GiB；超限保存实际范围、耗时和阻塞收据结束，不反复重跑。需要Research已有
 前段Signal或其有预算补齐，不宣称原2019 Signal包含2014数据。此前1762 session账户
