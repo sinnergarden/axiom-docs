@@ -500,6 +500,76 @@ common-anchor=02-08，补02-01 raw label并调用原公开归一化一次。fold
 供应商/Feature/账户为0，两fold fit/predict各2。单重进程、5.5 GiB停止/6 GiB硬上限、
 每阶段120秒/新增总480秒/新文件100 MiB；合同核过前不运行业务。
 
+<a id="two-year-weekly-batch-proposal"></a>
+### 4.8 两年训练窗与逐周批次：待主协调亲审的设计增量
+
+状态：`proposed`（2026-10-05）。用户要求简单 Feature、LightGBM、Top5 全链正确且高效。
+先完成下文独立信号评价，再用连续四个真实周测两年滑窗与新账户。五年运行在主协调核过
+总耗时和数据边界后启动；本节记录方案，未运行新的业务或 benchmark。
+
+**窗口与基线。** 候选四周为 2024-01-02—01-26，fit 分别取冻结日历中的
+2023-12-29、2024-01-05、01-12、01-19。每次训练使用 `[fit日期减两年, fit日期)`
+内的实际交易日；减两年遇2月29日回落2月28日。只纳入 fit 时已经到期且可用的五交易日
+标签，晚于 fit 的尾部保留排除原因。模型在上一周最后交易日晚训练，预测下一周各交易日
+严格前一 session 的 Feature；Top5 只在该周首个实际交易日调仓。
+继续使用 MOM010/MOM020/MOM030/VOL010/PRC010/LIQ010、100 trees、seed42和现有单线程
+LightGBM 参数。训练成员取各日历史资格；批次 union 覆盖两年训练、Feature预热及OOS，
+不能固定沿用 January 的314个ID来代表两年CSI300。首轮就绪预检决定该候选是否可用，
+选窗依据数据覆盖，不能看过收益后换窗。
+
+**一次验证和每折工作分别做什么。** 批次初始化读取每个唯一保存父件一次，核对文件与
+内容身份、来源证明、Snapshot/PIT、完整键、列序、成员及原事实时钟。它把 Feature 值和
+必要资格、时钟索引装入不可写矩阵，逐片释放完整 JSON/proof 对象。各折从同一矩阵按
+交易日切片，共用一次按完整证券ID和日期建立的索引；每折仍检查窗口和阶段时钟，筛选
+已成熟标签，调用现有 Core 截面归一化，再从同一合格键集合产生 X/y、训练和预测。
+
+Raw Label 按原 Query/cutoff 与父件版本分组。不同 fit 所需的标签来源版本不同，就分别
+保存并在初始化各读一次；相同文件/ref共用。晚 cutoff 查询出的最终标签按日期截断，
+不能冒充较早 fit 的来源。首版保留当前 common-anchor、f+1开盘/f+5收盘及价格/因子
+可用时钟规则，先去掉父件重复解析，再依据实测决定标签准备是否需要进一步优化。
+
+**入口与保存件候选。** 增加有界 `load_stock_ml_batch_inputs(batch_manifest, limits=...)`
+入口，并给现有 `build_stock_ml_fold_from_saved_inputs` 增加可选 `batch` 参数。
+batch_manifest 引用原 scope、calendar、Feature父件以及按fit分组的Raw Label父件，
+普通文件描述符沿用 `{path,file_digest,feature_ref或label_ref}`。该对象只在当前进程和
+固定输入定义内有效，构建器核对定义匹配；调用方不能传一个布尔值跳过验证。
+退出批次释放矩阵，mmap或分块只在容量测量需要时采用。
+
+两年窗口使用新 `stock_ml_fold_spec_v2`，
+`training_window={unit:'calendar_years',length:2,end:'previous_fit_session',
+start:'fit_date_minus_years_inclusive',leap_day:'clamp_feb_28'}`；其他阶段时钟字段沿§4.7。
+新fold/dataset使用v2命名空间并绑定实际训练日期和键，旧65-session v1合同与文件保留。
+Feature父件、模型后端及 `stock_prediction_run_v2` 的字段沿用现有接口。每折保存归一化
+标签、Dataset、模型、预测和引用原父件的证明，不在每折复制整份两年Feature/proof。
+发布时验证新文件字节、引用及每折闭包，复用当前批次已经验证的共同父件。独立进程调用
+公共loader仍完整验证文件、父件和时间关联；其成本单独记录，不藏入性能结果。
+
+**Dataset选型。** 首版采用一个共同索引和一个共同mask，继续交给原生
+`lgb.Dataset(X,label=y)`。Qlib兼容消费是可选薄适配：若DatasetH能实际减少重复准备且
+保持矩阵、成熟标签和推理段语义，就接入；仅更换类型名没有提速收益。Feature独立缓存
+继续保留。120/180交易日标签目前只记跨horizon复用备忘，65日训练窗不能提供这类成熟样本。
+
+**Engine依赖。** 各周预测拥有不同Model/Signal refs，交给Engine的是原v2保存件及其
+有序引用，不能拼成一个虚构的单模型frame。Engine需要一次明确的v2 Runtime准入和
+按决策session选择对应frame的适配，使用其原Top5、账户、行情及执行profile生成新的
+连续四周账户。主协调与Engine冻结该小接口后才能验收整链；此前v1账户不是本轮结果。
+
+**首轮预算与正确性。** 建议一个重进程，总预算30分钟，5.5GiB停止、6GiB硬上限，
+新增私人产物8GiB；达到任一预算就保存阶段证据并暂停。先做键乱序、重复/缺行、一日
+错位、未成熟尾部、成员变化与常量截面的定向反例；共同索引下X/y键、列序、null和
+排除原因必须精确一致。对同一折比较批次与独立投影的矩阵，保存booster独立预测复核，
+随后在新进程加载四折并核对原父件hash/mtime。两年输入准备是否完成也单独报告。
+
+**估时与实施顺序。** 分开计量唯一事实/Qlib/Feature/Label准备、初始化解析与验证、
+每折切片/归一化/fit/predict/发布、独立载入、Engine账户及评价。先测一折，再完成四折；
+首折初始化和稳态每折分开，记录峰值内存、读写字节及每个父件读取次数。长跑公式为
+`唯一冷准备 + 各受控批次初始化 + N个实际交易周的每折成本 + 新账户/评价 + 最终独立核验`。
+N取最终冻结日历中有交易日的ISO周数；已有256周证据只适用于2021—2025日历。
+每项都有实测或显式未知项才能给总预算；不能用65日窗口的42分钟外推两年窗口。
+估计2—4小时可交主协调批准长跑；达到10—20小时先优化最大成本项，再重测。
+实施顺序为：独立信号评价与保存读取 → 批次父件验证和共同矩阵 → 两年窗口定向验收 →
+四周真实fit/predict和新Top5账户 → 总耗时审核。UI设计与长跑分别后置。
+
 ## 5. SignalRun、表达式与评估（P06/P10）
 
 本轮 ETF 导出 Core 中立 `signal_frame_v1`：顶层固定 `signal_run_ref`、`signal_stage=final`、`score_semantics=momentum_20d` 与完整 `universe`；行包含 `security_id/session/knowledge_cutoff/available_at/score/valid/invalid_reason/source_refs`，score 为有限 float 或 null，键唯一。warmup/缺数保留 invalid，不把缺信号变成零。source refs 固定 FeatureBuild 和逻辑 Data Views；账户消费采用严格前一交易日信号。该确定性配方尚无 IC/标签/OOS 评估结论。
@@ -509,6 +579,52 @@ Raw 和 Derived SignalRun 使用同一读取/评估/回测协议。必要字段�
 SignalExpression 固定 inputs、join keys、算术/条件操作、归一化截面和缺失处理；用受控表达式或 SQL 编译计划，不允许任意 Python eval、动态网络或隐藏数据库输入。
 
 ### 5.1 信号评估
+
+<a id="saved-signal-quality-proposal"></a>
+**独立保存与批量比较：待主协调亲审的小合同（2026-10-05）。** 当前股票
+`stock_signal_evidence_v1` 已保存逐日IC/RankIC、有效配对数、Signal/Raw Label refs和
+评价cutoff；缺少独立公开评价/保存/载入入口及ICIR汇总。本轮沿用该文件和身份机制
+增加v2能力，先交付每份保存Signal的独立评价，不新建第二套评价平台。
+
+Research定义评价范围和标签版本，按 `(security_id,feature_session)` 拼接保存预测与
+成熟Raw Label，加载同批Label一次。训练所用归一化target与评价所用原始未来收益区分。
+默认指标为日截面Pearson IC、平均秩处理ties的Spearman RankIC，以及有效日序列的
+mean/std(ddof=1)和非年化ICIR/RankICIR。保留当前minimum_pairs=20；不足20、常量
+截面或非有限相关值保存null与原因。序列不足2日或std为0时IR为null；无有效日时均值
+也为null。五日标签重叠会产生时间依赖，短样本IR是描述值，不能据此声称统计置信度。
+这些定义参考[Qlib日截面相关](https://github.com/microsoft/qlib/blob/v0.9.7/qlib/contrib/eva/alpha.py#L160-L183)
+和[Signal Analysis记录](https://github.com/microsoft/qlib/blob/v0.9.7/qlib/workflow/record_temp.py#L319-L330)，
+不把原始回归分数解释为CTR/CVR概率，也不默认计算AUC或calibration。
+
+Research把已经选定的配对表交给[Core纯统计算子](03_axiom_core.md#signal-statistics-proposal)。
+Core计算相关与序列统计，Research负责来源、成熟时钟、资格、范围、版本、编排和保存。
+DuckDB可作为同表批量join/group/rank的候选后端，先与基准算子核对键、ties、null、
+计数和数值误差，再按实测选型；首版不要求安装OLAP服务或改写Data存储。
+
+候选公开入口是 `evaluate_stock_signal`、`evaluate_stock_signals`、
+`save_stock_signal_evaluation`、`load_stock_signal_evaluation`。单个评价对象可以是一份
+Signal，或按时间覆盖且键不重叠的weekly Signal列表；后者保留所有原refs及model refs，
+不伪装成一个单模型Signal。独立loader只验证保存值和来源绑定，不重新计算指标或账户。
+同Signal和同评价定义换TopK时复用原评价，策略各自的账户评价继续由Engine保存。
+CAGR、回撤及未来审准的Sharpe/Calmar都属于Engine；本合同不宣称后两项已实现。
+
+`stock_signal_evidence_v2` 候选顶层为 `evidence_ref/content_digest/input_signal_refs/
+input_evidence/label_ref/label_spec/scope/spec_ref/spec/sample_mask_ref/statistics_input_ref/statistics_ref/series/summary/
+coverage/status/limitations/implementation_ref`，另含contract_version。
+evidence_ref绑定准确Signal列表、Label、scope、spec、sample mask和统计实现；
+content_digest绑定除自身外全部保存输出。scope固定sessions、universe与评价cutoff，
+input_evidence沿用原保存文件的显式path/file_digest/内容ref描述符，供独立loader核对
+原Signal和Label的来源闭包；statistics_input_ref绑定送入Core的准确配对表。
+label_spec展示实际horizon、f+1/f+5、价格口径和单位。series沿原日行扩充必要计数，
+summary提供有效日数、mean_ic/ic_std/icir及对应RankIC值和IR不可用原因。
+coverage保存原参考成员键数、成熟有效Label数、有效预测数、实际配对数和排除计数，
+不以丢弃无效日来提高覆盖。旧v1保存件保持原读取行为。
+
+多Signal比较固定同一scope、成熟Label和历史资格，主比较使用各Signal共同有效键交集，
+同时展示各Signal原有覆盖与自然样本评价。共同mask绑定整个比较组，增加Signal导致
+交集变化时必须生成新评价身份，不能把自然样本指标冒充共同样本比较。范围没有交集或
+样本不足要显式显示原因。UI轻量投影读取上述refs、标签周期、范围、计数、指标与限制；
+UI展示与比较交互本轮仅作设计备忘，独立评价结果优先交付。
 
 | 组别 | 输出 | 使用条件 |
 |---|---|---|
