@@ -11,7 +11,8 @@ args = parser.parse_args()
 path = Path(args.notebook)
 if not path.is_absolute():
     path = Path(__file__).parent / path
-root = path.parents[2]
+path = path.resolve()
+root = Path(__file__).resolve().parents[1]
 n=nbformat.read(path,as_version=4)
 if args.execute:
     NotebookClient(n,timeout=240,kernel_name=n.metadata.get('kernelspec',{}).get('name','python3'),resources={'metadata':{'path':str(root)}}).execute()
@@ -36,6 +37,14 @@ for i,c in enumerate(n.cells):
         ident=f'section-{match.group(1)}' if match else f'cell-{i}'
         if match: nav.append(f'<a href="#{ident}">{html.escape(match.group(1)+". "+match.group(2))}</a>')
         rendered=markdown(c.source)
+        if n.metadata.get('axiom',{}).get('inline_local_images',False):
+            def inline_image(match):
+                image_path=(path.parent / match.group(1)).resolve()
+                if image_path.suffix.lower() != '.svg' or not image_path.is_relative_to(path.parent.parent):
+                    raise ValueError('inline image must be an SVG inside this documentation repository')
+                data=base64.b64encode(image_path.read_bytes()).decode('ascii')
+                return 'src="data:image/svg+xml;base64,'+data+'"'
+            rendered=re.sub(r'src="([^":]+\.svg)"',inline_image,rendered)
         if c.metadata.get('presentation')=='appendix':
             summary=match.group(2) if match else c.source.splitlines()[0].lstrip('# ')
             rendered='<details><summary>'+html.escape(summary)+'</summary>'+rendered+'</details>'
@@ -93,19 +102,22 @@ table{border-collapse:collapse;width:100%;font-size:13px;margin:16px 0} th{backg
 pre{background:#f3f6fa;border-radius:7px;padding:16px;overflow:auto;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace} code{font-size:.9em} p code,li code{background:#edf2f7;padding:2px 4px;border-radius:3px}
 .example{border-left:4px solid #328778}.example-label{font-size:12px;font-weight:700;color:#277469;letter-spacing:.07em}.output-text{max-height:660px}.table-scroll{overflow:auto}.table-scroll table{width:max-content;min-width:100%}.table-scroll td,.table-scroll th{max-width:300px}.chart{width:100%;max-width:1000px;height:auto}
 details{border-top:1px solid #e4e9ef;padding-top:12px;margin-top:18px} summary{cursor:pointer;color:#577087;font-size:13px}.code{max-height:650px}
-.security-code{white-space:nowrap}.markdown>details{border:0;margin:0;padding:0}.markdown>details>summary{font-size:18px;color:#213e59}.supporting-output{margin-top:12px}
+.security-code{white-space:nowrap}.markdown img{max-width:100%;height:auto}.markdown>details{border:0;margin:0;padding:0}.markdown>details>summary{font-size:18px;color:#213e59}.supporting-output{margin-top:12px}
 .wide-table-note{font-size:12px;color:#577087;margin:14px 0 0}.table-scroll:focus-visible{outline:2px solid #328778;outline-offset:3px}
 @media(max-width:980px){.layout{display:block;padding:14px}nav{position:static;height:auto;max-height:220px;margin-bottom:18px}section{padding:18px}h1{font-size:26px}}
 @media print{nav,details{display:none}.layout{display:block}body{background:white}section{break-inside:auto;border:0}pre{white-space:pre-wrap}.table-scroll{overflow:visible}}
 '''
 is_dev=n.metadata.get('axiom',{}).get('audience')=='developer' or path.stem=='axiom_data_developer_design'
-title='Axiom Data · For Quant Dev' if is_dev else 'Axiom Data · For Quant Researcher'
+title=n.metadata.get('axiom',{}).get('title') or ('Axiom Data · For Quant Dev' if is_dev else 'Axiom Data · For Quant Researcher')
 other=('axiom_data_design.html' if is_dev else 'axiom_data_developer_design.html') if path.parent.name=='notebooks' and path.parent.parent.name=='design' else ('researcher_tutorial.html' if is_dev else 'developer_tutorial.html')
 other_label='阅读 Researcher 版' if is_dev else '阅读 Dev 版'
+other=n.metadata.get('axiom',{}).get('peer_html',other)
+other_label=n.metadata.get('axiom',{}).get('peer_label',other_label)
 subtitle=html.escape(n.metadata.get('axiom',{}).get('subtitle','沪深300 / 2020 年起 / 假设数据演示'))
 table_navigation='''<script>
 function markWideTables(){document.querySelectorAll('.table-scroll').forEach(function(t){var note=t.previousElementSibling;if(!note||!note.classList.contains('wide-table-note')){note=document.createElement('p');note.className='wide-table-note';note.textContent='宽表可左右滚动查看完整列；也可聚焦表格后使用方向键。';t.before(note);}note.hidden=!(t.clientWidth>0&&t.scrollWidth>t.clientWidth);});}
-window.addEventListener('load',markWideTables);window.addEventListener('resize',markWideTables);document.addEventListener('toggle',markWideTables,true);
+function restoreSection(){var id=window.location.hash.slice(1);if(!/^section-[0-9]+$/.test(id))return;var section=document.getElementById(id);if(!section)return;section.querySelectorAll('details').forEach(function(d){d.open=true;});section.scrollIntoView({behavior:'instant',block:'start'});}
+window.addEventListener('load',function(){markWideTables();restoreSection();});window.addEventListener('hashchange',restoreSection);window.addEventListener('resize',markWideTables);document.addEventListener('toggle',markWideTables,true);
 </script>'''
 doc='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+title+'</title><style>'+style+'</style></head><body><header><b>'+title+'</b><p>'+subtitle+'</p><a style="color:#c5e8ff" href="'+other+'">'+other_label+'</a></header><div class="layout"><nav>'+''.join(nav)+'</nav><main>'+''.join(body)+'</main></div>'+table_navigation+'</body></html>'
 out=path.with_suffix('.html'); out.write_text(doc)

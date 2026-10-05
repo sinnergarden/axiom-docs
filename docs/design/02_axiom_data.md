@@ -446,8 +446,9 @@ read 不采集、不修复、不隐式物化。Qlib已纳入本轮交付：显�
 ### 7.3 复盘显示所需的固定事实与投影
 
 状态：2026-10-05 设计提案，待总协调亲审；本节不表示新增接口、采集或实现已经验收。
-本轮需要真实沪深300、上证指数和 Nasdaq100 基准、默认复权且可切未复权的 K 线，
-以及中文证券名称与代码。Data 保存事实查询结果和稳定显示变换；账户、比较收益及
+本轮需要真实沪深300和上证指数比较，并以513100独立买入持有账户作为 Nasdaq100
+参考；显示仍需默认复权且可切未复权的 K 线，以及中文证券名称与代码。Data 保存
+事实查询结果和稳定显示变换；账户、比较收益及
 成交标记组合仍由各消费者 owner 保存，UI 读取这些结果，具体组合协议归 UI。
 
 本轮只读盘点以固定版本为准，没有执行全历史 Reader 或新增来源请求。现有
@@ -468,7 +469,8 @@ read 不采集、不修复、不隐式物化。Qlib已纳入本轮交付：显�
 |---|---|---|
 | 沪深300 | `000300.SH`；人民币价格指数；单位为指数点 | ETF 固定版本已有上述范围，股票9月小分区也有；复用固定版本内的 `index_daily`，具体 UI 范围再做有界 Reader 检查 |
 | 上证指数 | `000001.SH`；人民币价格指数；单位为指数点 | ETF 基准分区未保存，股票已核9月分区未保存；官方 `index_daily` 支持按确认的指数代码和日期取数，不据此推定现有完整历史已保存 |
-| Nasdaq100 | NDX；美元价格指数；美国本地交易 session | 固定 ETF 基准未保存，当前代码没有国际指数 adapter；Tushare `index_global` 公开列表列出 IXIC，未列出 NDX，Nasdaq100 的可用 Tushare endpoint/code 与账户权限尚未确认 |
+| 本轮 Nasdaq100 参考 | 513100独立买入持有账户；基金自身的CNY交易与账户口径 | 复用已有ETF事实；独立账户及评价归 [Trade §6.3](04_axiom_trade.md#etf-review-followup-proposal)，UI读取保存的账户运行对照 |
+| 直接 NDX（后续候选） | NDX；美元价格指数；美国本地交易 session | 固定 ETF 基准未保存，当前代码没有国际指数 adapter；Tushare `index_global` 公开列表列出 IXIC，未列出 NDX，Nasdaq100 的可用 Tushare endpoint/code 与账户权限尚未确认 |
 
 沪深300与上证指数的名称、人民币口径及分别存在的全收益版本见
 [中证沪深300资料](https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/indices/detail/files/zh_CN/000300factsheet.pdf)和
@@ -476,8 +478,10 @@ read 不采集、不修复、不隐式物化。Qlib已纳入本轮交付：显�
 价格与总收益是不同序列，不能给价格指数加一个 TR 标签；是否展示总收益及与策略账户的
 可比口径由 Research/Engine 明示。Nasdaq 官方将 NDX 定义为美元价格收益版本，
 XNDX 为美元总收益版本，见 [NDX 版本表](https://indexes.nasdaqomx.com/docs/NDX%20Versions.pdf)。
-本轮所需为 Nasdaq100，不用 Nasdaq Composite、513100 基金价格或由ETF收益反推的
-序列替代真实指数。[Tushare 国际指数](https://tushare.pro/document/2?doc_id=211)的已列能力
+本轮 Nasdaq100 参考按 [Trade §6.3](04_axiom_trade.md#etf-review-followup-proposal)采用
+513100独立买入持有账户，不再要求单独采集NDX；该账户不标作NDX原指数或放入市场
+基准下拉。直接NDX/FRED仅为后续候选；未来若展示原指数，仍须使用确切指数事实，
+不能把Composite或ETF收益重标为NDX。[Tushare 国际指数](https://tushare.pro/document/2?doc_id=211)的已列能力
 不能证明供应商其他接口一概没有 NDX；当前结论是来源未确认，应明确报告不可用原因。
 
 基准事实导出输入固定 Snapshot、确认的指数身份、原生日期范围、字段、PIT policy 与
@@ -575,12 +579,14 @@ Data 不读取账本来裁决成交，UI 不临时把成交标记挪到蜡烛上
 3. 股票名称先用目标 Raw 的字段检查；没有 name 时只请求该证券集合的 stock_basic 身份
    字段，包含已退出但在本轮显示/持仓中的证券。历史名称非本轮标签必需时可后做；不得用
    当前简称伪造历史有效期。
-4. Nasdaq100 先确认官方可用 Tushare endpoint、准确供应商 code、价格/币种与现有账户权限；
-   如需跟踪元信息，只对513100作有界 `etf_basic`/确认代码的
+4. 本轮513100参考复用已有ETF事实，独立账户按 [Trade §6.3](04_axiom_trade.md#etf-review-followup-proposal)
+   执行。直接NDX若日后接入，先确认官方可用 Tushare endpoint、准确供应商 code、价格/币种与现有账户权限；
+   如后续需要跟踪元信息，只对513100作有界 `etf_basic`/确认代码的
    [etf_index](https://tushare.pro/document/2?doc_id=386) 查询，并声明各自
    官方8000积分权限要求。元信息不证明日线可取。确认行情接口后才安排最多10个 session
-   的来源/美国日期/receipt 小探测及同范围日历；没有权限或确定来源则保留该基准不可用，
-   不购买新源、不盲试未列代码、不自动换 IXIC。长范围补采须另给准确 selectors 与预算。
+   的来源/美国日期/receipt 小探测及同范围日历；没有权限或确定来源则保留直接NDX候选不可用，
+   不购买新源、不盲试未列代码、不自动换 IXIC。后续探测与长范围补采须另给准确 selectors、预算与授权，
+   不作为本轮513100参考的采集或验收前提。
 5. 验收只覆盖实际范围：核保存投影与公共 `adjust_prices` 一致、缩放不换 A、量额/native价
    保持原单位、两次已支持拆分的标记与尺度关系、缺因子/缺价/缺名称/缺基准可解释；由
    Engine 核 B/S 坐标及原成交/账户不变，Research/Engine 核跨市场比较口径和可用时间。
@@ -687,6 +693,9 @@ native batch，收益归一、账户比较和指标归Engine，不以散CSV或�
 上证native batch已交付，但需Engine owner显式支持新的独立事后比较身份/来源/时钟。
 Data没有把000001.SH重标为000300.SH或伪造历史可用时刻，也未重算旧账户/指标。
 
+以下为此前直接NDX/FRED来源与许可核实的历史研究记录，只保留为后续候选。
+本轮513100独立账户参考按 [§7.3.1](#benchmark-facts)与 Trade §6.3执行，不要求FRED采集。
+
 FRED 的 [NASDAQ100](https://fred.stlouisfed.org/series/NASDAQ100/) 明确是 Nasdaq, Inc.
 提供的NASDAQ-100日收盘指数；不是Composite。官方说明为美股收市值，通常16:00 ET、
 部分假日提前收市，单位Index，未季调；series页面更新时间是网站更新，不是逐revision
@@ -705,7 +714,7 @@ close，不造OHLC、量额、严格历史vintage或美国收盘时刻日历。
 
 无key下载能力也未验收：一次官方fredgraph.csv的31自然日技术探测（NASDAQ100，
 2024-01-01—2024-01-31；非选定run的生产采集）在25秒超时，未取得CSV或receipt成功
-证据。当前只有说明页/许可阅读与失败请求记录；需精确本轮窗口和许可澄清后再验证，
+证据。当前只有说明页/许可阅读与失败请求记录；日后获准接入时，须先明确窗口并澄清许可，
 不把失败当空数据、不改用Composite、不要求购买新源或注册key。
 
 ## 8. 日更、修复与最小检查
