@@ -504,14 +504,16 @@ common-anchor=02-08，补02-01 raw label并调用原公开归一化一次。fold
 ### 4.8 两年训练窗与逐周批次：待主协调亲审的设计增量
 
 状态：`proposed`（2026-10-05）。用户要求简单 Feature、LightGBM、Top5 全链正确且高效。
-先完成下文独立信号评价，再用连续四个真实周测两年滑窗与新账户。五年运行在主协调核过
+独立信号评价与批次优化可并行准备，基础评价结果优先交付；后续指标不阻塞连续四个
+真实周的两年滑窗与新账户试点。五年运行在主协调核过
 总耗时和数据边界后启动；本节记录方案，未运行新的业务或 benchmark。
 
 **窗口与基线。** 候选四周为 2024-01-02—01-26，fit 分别取冻结日历中的
 2023-12-29、2024-01-05、01-12、01-19。每次训练使用 `[fit日期减两年, fit日期)`
 内的实际交易日；减两年遇2月29日回落2月28日。只纳入 fit 时已经到期且可用的五交易日
 标签，晚于 fit 的尾部保留排除原因。模型在上一周最后交易日晚训练，预测下一周各交易日
-严格前一 session 的 Feature；Top5 只在该周首个实际交易日调仓。
+严格前一 session 的 Feature。Top5调仓日期由显式weekly_first_trading_session政策
+决定；fold或model切换本身不触发额外调仓。
 继续使用 MOM010/MOM020/MOM030/VOL010/PRC010/LIQ010、100 trees、seed42和现有单线程
 LightGBM 参数。训练成员取各日历史资格；批次 union 覆盖两年训练、Feature预热及OOS，
 不能固定沿用 January 的314个ID来代表两年CSI300。首轮就绪预检决定该候选是否可用，
@@ -534,6 +536,8 @@ batch_manifest 引用原 scope、calendar、Feature父件以及按fit分组的Ra
 普通文件描述符沿用 `{path,file_digest,feature_ref或label_ref}`。该对象只在当前进程和
 固定输入定义内有效，构建器核对定义匹配；调用方不能传一个布尔值跳过验证。
 退出批次释放矩阵，mmap或分块只在容量测量需要时采用。
+入口接受非空、有序、有限的fold列表，不设1–4折产品上限；3–4折只是首轮试点预算。
+资源预检按实际fold、行和字节数量执行，后续扩到多年仍使用同一入口。
 
 两年窗口使用新 `stock_ml_fold_spec_v2`，
 `training_window={unit:'calendar_years',length:2,end:'previous_fit_session',
@@ -552,7 +556,14 @@ Feature父件、模型后端及 `stock_prediction_run_v2` 的字段沿用现有�
 **Engine依赖。** 各周预测拥有不同Model/Signal refs，交给Engine的是原v2保存件及其
 有序引用，不能拼成一个虚构的单模型frame。Engine需要一次明确的v2 Runtime准入和
 按决策session选择对应frame的适配，使用其原Top5、账户、行情及执行profile生成新的
-连续四周账户。主协调与Engine冻结该小接口后才能验收整链；此前v1账户不是本轮结果。
+连续四周账户。接口对齐[Trade调度提案PR24](https://github.com/sinnergarden/axiom-docs/pull/24)：
+`stock_prediction_schedule(folds=[{fold_ref,fold_spec,model,prediction_frame}],calendar=...)`
+接收原fold元数据、model.json与v2预测，不搬训练大表。各fold使用同一冻结prediction
+union，trade_schedule覆盖账户区间每个实际session，并指向其严格前一session原预测组。
+run入口一次校验schedule、model和预测闭包，再建立session索引；session循环只消费
+已准入组并核当前账户/决策context。前收和成员保留Feature原20:30 cutoff，21:00
+预测在下一实际交易日08:55决策准入。跨fold持仓与现金连续；调仓仍由显式策略政策决定。
+该提案冻结并实现后才能验收整链；此前v1账户不是本轮结果。
 
 **首轮预算与正确性。** 建议一个重进程，总预算30分钟，5.5GiB停止、6GiB硬上限，
 新增私人产物8GiB；达到任一预算就保存阶段证据并暂停。先做键乱序、重复/缺行、一日
@@ -567,8 +578,9 @@ Feature父件、模型后端及 `stock_prediction_run_v2` 的字段沿用现有�
 N取最终冻结日历中有交易日的ISO周数；已有256周证据只适用于2021—2025日历。
 每项都有实测或显式未知项才能给总预算；不能用65日窗口的42分钟外推两年窗口。
 估计2—4小时可交主协调批准长跑；达到10—20小时先优化最大成本项，再重测。
-实施顺序为：独立信号评价与保存读取 → 批次父件验证和共同矩阵 → 两年窗口定向验收 →
-四周真实fit/predict和新Top5账户 → 总耗时审核。UI设计与长跑分别后置。
+独立信号评价与批次父件验证/共同矩阵可并行实施，基础评价保存读取优先出结果；随后
+完成两年窗口定向验收、四周真实fit/predict和新Top5账户，再审核总耗时。扩展指标、
+UI设计与长跑分别后置。
 
 ## 5. SignalRun、表达式与评估（P06/P10）
 
