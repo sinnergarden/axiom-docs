@@ -354,10 +354,13 @@ receipt 中跳过阶段的 0 当作冷构建耗时。原生 total/build seconds 
 <a id="stock-saved-fold-clock-contract"></a>
 ### 4.7 保存输入的有界滑动 fold 与独立时钟
 
-状态：**合同与首版软件经父任务亲审；真实验收在旧证明格式校验处停止，兼容修复待固定 head 亲审，未自动重试**（2026-10-05）。本轮只补两个
+状态：**合同及固定软件经父任务亲审；旧证明格式兼容修复通过亲审后，两个真实滑动 fold 已保存并通过 owner 验收，教程收尾待协调**（2026-10-05）。本轮只补两个
 真正滑动的 weekly fold；旧固定日期试点及其失败/通过证据保留，全年/多年仍暂停。
 不建设通用 schedule、自动搜参、多年缓存或平台。现有 Data Reader/价格调整、Research
 Label/归一化和原生 LightGBM 后端继续复用，不新增 Feature 执行器或账户路径。
+该有界验收包括保存后公共载入、同定义 HIT、Engine v2 中立验证及 saved booster 独立
+预测逐值相等；首次格式校验失败证据保留，恢复复用已保存标签，不重读 Data 或归一化。
+v2 账户仍未准入；私人产物及完整逐阶段时间、内存、重复父件解析证据留在本地。
 
 **当前约束与最小解法。** 旧 Research `_validate_config` 要求
 `fit_cutoff < cutoff_by_session[prediction_session]`；同一映射又用于 Feature 查询/构建，
