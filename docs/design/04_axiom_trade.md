@@ -443,6 +443,13 @@ execution:next_exchange_session_open,clock_basis:declared_simulation}`。
 signal_run_ref/Feature/model/fold refs、完整 union、member、validity、分数和全部行；
 所有 fold 使用同一冻结有序 prediction union，不静默补行或裁掉池外持仓。
 
+实现候选将预算交给 `run_backtest(request, *, limits=None)` 的可选参数；limits 精确为
+`{max_folds,max_prediction_rows,max_market_rows,max_input_bytes}`，各值为非负整数且拒绝 bool。
+它统计实际 fold 数、原预测行数、market_replay 行数及 request 规范 UTF-8 JSON 字节数，
+逐项超限即在 ledger 创建前拒绝。预算只决定本次工作是否允许启动，不进入 run 身份；
+同一输入在充足预算和未提供预算时得到相同结果。原调用方式和旧请求不变，显式 limits
+仅准入 request_v4。这四项仍待主协调随代码精确审阅。
+
 trade_schedule 每项固定
 `{trade_session,feature_session,signal_run_ref,fold_spec_ref}`；覆盖请求账户区间内的每个
 实际交易 session，不能仅覆盖有调仓的周首日。每个 trade_session 映射到相应原 frame
@@ -479,6 +486,10 @@ feature_knowledge_cutoff 校验。目标预算和 1/k 不变，结果仍为 axio
 simulated_model_available_at,model_ref,fold_spec_ref}`，取原预测时钟及 refs，NO_DECISION 也保留；
 意图身份绑定原 frame、所有 context 时钟、k 和账户版本；旧输出不补这些字段。
 
+v2 意图身份通过已核对原 frame 全部内容的 signal_run_ref 绑定预测。公共 Core 调用
+完整校验 frame 及自身 ref；Runtime 入口已经完成同一校验，后续决策复用该 ref，
+不为每次意图重新序列化整份预测。两种调用对相同 frame/account/context 产生相同决策。
+
 新 `stock_snapshot_pair_admission_v2` 沿用原完整 native DataBatch/Query/Reader 配对
 证据，增加 prediction_schedule_ref 及逐 fold
 `prediction_refs=[{fold_ref,fold_spec_ref,signal_run_ref,feature_ref,model_ref}]`，取代旧
@@ -488,12 +499,29 @@ union 和窗口 session，按原 feature cutoff 校验。原 83 只/23 session �
 用于新日期。实际 Snapshot、完整日历和 owner 配对证据须由 Research/父线程交接后
 固定；Engine 不自行采集、不缩到最终成交证券，也不从结果倒推准入。
 
+动态计数的准确字段候选为顶层
+`listing_identity_checks={checked_rows,paired_rows,mismatches}`，两项计数均须等于冻结
+execution universe 大小，mismatches 必须为空。previous_close_basis_checks 保留
+`all_available_at_feature_knowledge_cutoff/all_available_before_decision` 两个时钟结论和
+`paired_rows_per_root/checked_rows_both_roots`；新增
+`equal_rows/listing_identity_checked_rows/listing_identity_mismatches`。前两项分别等于
+execution universe 大小乘完整 market calendar session 数，mismatches 必须为空，
+checked_rows_both_roots 等于两倍配对数。新版本不接收旧固定 83/23 布尔标签代替这些
+计数；动态计数均要求 int，并拒绝 bool 和浮点数。其余完整 native 字段、Query、Reader、
+原 member 配对和 warmup 证明继续逐项校验；
+这些字段待主协调随代码精确审阅，真实新日期收据仍由 owner 交接。
+
 **保存预测复用和评价边界。** 同一 schedule_ref/原预测及市场输入分别生成 Top3、
 Top5 独立 account_id/run 三元引用；feature/label/fit/predict/供应商调用均为 0，初始
 现金相同。Engine 按上述版本增量适配旧公共 save/load、stock_dividend_scope 和保存
 评价/成交显示的输入准入；旧 v1/v2/v3 读取保持原值，不重放或升级旧身份。
 Engine 账户评价仍负责原 CAGR/DD/Sharpe/Calmar：3–4 周不足一年，CAGR/Sharpe 及
 依赖 CAGR 的 Calmar 按原资格为 null，不用 IC 替代账户表现。
+
+用户在 2026-10-05 更新统一基数：今后新 ETF、股票、TopK 和买入持有对照账户均使用
+初始现金 500000 CNY，即 50000000 分，并从零持仓开始。Engine 使用真实费用、整手及
+容量规则重新运行新账户；旧账户数值不能线性放大为新基数。旧 refs 和文件暂保留作为
+兼容证据。用户已澄清旧记录只从页面撤下，本地文件全部保留，不做永久清理。
 
 **一次准入和性能验收。** schedule、逐 fold model/原预测及共享 native 输入闭包在
 run 入口各校验一次，建立按 trade_session 定位的已准入 frame/group 索引。session
