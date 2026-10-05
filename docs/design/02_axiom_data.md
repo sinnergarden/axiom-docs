@@ -587,6 +587,55 @@ Data 不读取账本来裁决成交，UI 不临时把成交标记挪到蜡烛上
    当前终态假设不升级历史 PIT，缺口不隐藏。通过后交付固定文件/查询 refs 与范围报告，
    不以文档通过代替实现验收，不触发全年或多年 ML 扩跑。
 
+#### 7.3.5 导出文件合同与 FRED 候选源核实
+
+状态：2026-10-05 补充草案；Data显示导出实现见
+[PR40](https://github.com/sinnergarden/axiom-data/pull/40)，临时 synthetic Snapshot 的公共
+Reader集成等16项检查已通过；实际本轮run窗口、保存文件、Engine/UI消费和生产覆盖
+尚未验收。主设计的亲审不替代这些检查，新增来源也未因此获准接入。
+
+公共入口为 `Data.export_review_display(snapshot=..., price_query=..., factor_query=...,
+anchor_session=..., destination=..., security_query=None, event_queries=())`。两个日频查询
+分别固定 `market_daily` 与 `adjustment_factors`，选择 `historical_exploration`、同 Snapshot/
+政策/一个共同截止C，完整输入跨度终止于A；因子字段为 `factor`。量字段按证券单位
+明确选择 `volume_shares` 或 `volume_units`，并保留 `amount_cny`。名称若需要，显式给
+security_master 的 EventQuery；事件仅接受明确查询的 corporate_actions 与
+fund_share_conversions，均使用同C与政策，不隐式枚举来源或补采。
+
+| 固定文件 | 内容与消费方式 |
+|---|---|
+| `ohlcv.json` | `review_display_v1` 的 records/field_meta/context；键为security_id/session，open/high/low/close为共同锚点显示价，native_open/native_high/native_low/native_close为来源未复权价，display_scale为factor(t)/factor(A)。量额原单位保持，可选native_pre_close保留来源原口径 |
+| `securities.json`（显式可选） | 固定名称Reader完整batch，name_kind为snapshot_label，name_validity为unknown；上市日不当名称起点，已知观测晚于C的标签拒绝，缺名称证券在manifest单列 |
+| `events.json`（显式可选） | 按所选域保存完整公共events batch及revision/缺失/来源context；非全历史行动认证，不由价格/因子比推事件 |
+| `manifest.json` | 版本、固定来源查询/实现、Snapshot、A/C、政策、源限制及各文件相对uri/bytes/sha256；名称/事件未请求状态明示，不产生账户变化 |
+
+Engine按同一security/session/单位读取display_scale和原始成交，保存其B/S显示坐标；
+UI保留原成交与native价选择。该文件是事后显示产物，不能冒充新Reader请求、历史
+模型输入或账本。已有目录拒绝覆盖，失败无最终目录；普通Reader仍不要求导出。
+交付时另列实际绝对位置与文件refs，由消费者绑定自己的run；源事实可沿原QuerySpec/
+Snapshot/revision/receipt查回，不按mutable current重新发现。
+
+FRED 的 [NASDAQ100](https://fred.stlouisfed.org/series/NASDAQ100/) 明确是 Nasdaq, Inc.
+提供的NASDAQ-100日收盘指数；不是Composite。官方说明为美股收市值，通常16:00 ET、
+部分假日提前收市，单位Index，未季调；series页面更新时间是网站更新，不是逐revision
+历史公开证明。目标价格版本与美元口径仍按前述Nasdaq NDX版本资料绑定。若日后接入，
+必须另以FRED分发源profile保留series ID、精确日期selectors、原CSV字节、实际receipt、
+缺数符号/周末/假日语义、终态修订限制及正常Raw→Canonical→新Snapshot路径；仅有
+close，不造OHLC、量额、严格历史vintage或美国收盘时刻日历。
+
+许可核实见 [FRED完整条款](https://fred.stlouisfed.org/legal/)：个人非商业研究及下载有
+明确允许范围，但本series标记Copyrighted: Pre-Approval Required，Nasdaq底层版权仍在。
+公开再分发数据/图表不是仅注明来源就获准；FRED图表许可仍以第三方数据权利为条件。
+完整条款另有限制存储/缓存/归档/并入数据库和软件/ML用途的文字，不能仅据个人使用
+摘要宣称自动落库、公开展示或训练已获许可。本轮保留官方普通链接；官网提供embed
+功能不独立证明此受版权series的公开嵌入获准，不自动嵌入、不代用户接受协议或联系
+版权方。当前没有FRED adapter、落库或公开数据包。
+
+无key下载能力也未验收：一次官方fredgraph.csv的31自然日技术探测（NASDAQ100，
+2024-01-01—2024-01-31；非选定run的生产采集）在25秒超时，未取得CSV或receipt成功
+证据。当前只有说明页/许可阅读与失败请求记录；需精确本轮窗口和许可澄清后再验证，
+不把失败当空数据、不改用Composite、不要求购买新源或注册key。
+
 ## 8. 日更、修复与最小检查
 
 <a id="source-readiness"></a>
