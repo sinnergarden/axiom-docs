@@ -410,6 +410,8 @@ QuerySpec 固定 Snapshot、字段、scope、PIT/cutoff、价格/复权口径和
 
 context 的 `contract_version` 标识 DataBatch 返回结构，独立于 Snapshot schema 与 Reader 实现版本；`generated_at` 是这次响应生成时间，不是行情新鲜度或历史可用时间。实际数据时间由 session、field_meta 和域覆盖表达。 本地 DataBatch 的 `to_json()` 保留可复现的语义内容；API 传输使用 `to_response()` 添加 context.generated_at，UI/P12 另有自己的响应生成时间。生成时间不进入逻辑 ViewRef 或缓存身份。UI 映射保留这些字段，同时使用自己的 P12 组合协议版本；未知必要字段/不兼容版本明确报错，不靠列位置或静默默认解释。
 
+同一次 scope/Reader 调用可复用已校验、Snapshot ID 一致的 manifest 对象，避免内部重复加载；不同 Snapshot 不共享该对象，不引入跨调用的全局信任缓存。manifest 完整性校验的分块编码须保持既有 canonical JSON 字节及 Snapshot hash 身份，损坏仍须拒绝；不得为节省内存省略校验、改 PIT/缺失语义、重写旧 Snapshot 或新增持久格式。结果缓存的容量不代表 manifest/临时编码的内存上限；性能验收分别记录 wall time 和进程 peak RSS。
+
 Research/Runtime adapter 按同一合同映射为 Core FactBatch；Core 不读 Data 磁盘。Runtime 给决策与成交模拟注入不同 Reader 权限：开盘决策不能提前看完整日线，simulator 只能随时钟推进读取随后行情。UI 后端将同一结果转为 JSON，保存 query context；不重算 Feature、不联网补数。
 
 ### 7.1 用途查询的共同语义
