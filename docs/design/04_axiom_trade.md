@@ -389,10 +389,13 @@ SZSE [2023 交易规则](https://www.szse.cn/lawrules/rule/repeal/rules/t2023021
 过户费双边 0.00001 的完整深圳原文未取得，始终标研究费用假设。
 
 <a id="stock-v2-runtime-clock-proposal"></a>
-### 6.2 保存预测 v2 接入同一股票账户（2026-10-05，主线设计已审、待实现）
+### 6.2 保存预测 v2 接入同一股票账户（2026-10-05，源码已合并、真实验收待窗口）
 
-主协调已亲审固定源码 `019f9824` 的本节主线合同；待 Research getter 交接 ACK 后实现，
-先做合成/轻量验收，真实账户等待统一窗口。本节不代表账户准入已经实现。Research 负责先保存
+主协调已亲审固定源码 `019f9824` 的本节主线合同；账户源码已由
+[Engine PR14](https://github.com/sinnergarden/axiom-engine/pull/14) 合并为
+`af337ee875297d369cd4a9bb7593619688e297b7`，合成/轻量验收通过，真实账户仍等待统一窗口。
+[Engine PR15](https://github.com/sinnergarden/axiom-engine/pull/15) 声明公开包版本 0.3.0；
+消费者至少依赖 `axiom-engine>=0.3.0`，并锁定经审阅的源码提交。Research 负责先保存
 3–4 个真实连续周的 rolling fold：每折过去两年训练、下周预测、标签在 fit cutoff
 前成熟。两年范围、标签成熟、训练键、参数及同批一次 load/validate 由 Research
 主章定义；Engine 不改成 65 session，也不导入 Qlib/LightGBM 或另建执行器。
@@ -443,12 +446,13 @@ execution:next_exchange_session_open,clock_basis:declared_simulation}`。
 signal_run_ref/Feature/model/fold refs、完整 union、member、validity、分数和全部行；
 所有 fold 使用同一冻结有序 prediction union，不静默补行或裁掉池外持仓。
 
-实现候选将预算交给 `run_backtest(request, *, limits=None)` 的可选参数；limits 精确为
+公共入口将预算交给 `run_backtest(request, *, limits=None)` 的可选参数；limits 精确为
 `{max_folds,max_prediction_rows,max_market_rows,max_input_bytes}`，各值为非负整数且拒绝 bool。
 它统计实际 fold 数、原预测行数、market_replay 行数及 request 规范 UTF-8 JSON 字节数，
 逐项超限即在 ledger 创建前拒绝。预算只决定本次工作是否允许启动，不进入 run 身份；
 同一输入在充足预算和未提供预算时得到相同结果。原调用方式和旧请求不变，显式 limits
-仅准入 request_v4。这四项仍待主协调随代码精确审阅。
+仅准入 request_v4。这四项已随 PR14 审阅合并；带预算时复用同一请求解码的进一步修正
+进入 0.3.1 源码候选，仍完整执行准入，不开放公共“已准入”标记。
 
 trade_schedule 每项固定
 `{trade_session,feature_session,signal_run_ref,fold_spec_ref}`；覆盖请求账户区间内的每个
@@ -509,7 +513,7 @@ execution universe 大小乘完整 market calendar session 数，mismatches 必�
 checked_rows_both_roots 等于两倍配对数。新版本不接收旧固定 83/23 布尔标签代替这些
 计数；动态计数均要求 int，并拒绝 bool 和浮点数。其余完整 native 字段、Query、Reader、
 原 member 配对和 warmup 证明继续逐项校验；
-这些字段待主协调随代码精确审阅，真实新日期收据仍由 owner 交接。
+这些字段已随 PR14 审阅合并，真实新日期收据仍由 owner 交接。
 
 **保存预测复用和评价边界。** 同一 schedule_ref/原预测及市场输入分别生成 Top3、
 Top5 独立 account_id/run 三元引用；feature/label/fit/predict/供应商调用均为 0，初始
@@ -548,11 +552,47 @@ ready 后，只顺序运行两个 TopK 账户，再读保存评价，记录账�
 成交/现金与费用对账及零上游调用。当前不启动新账户，训练先由 Research 独占资源。
 不能以冷构建/缓存命中替代真实 rolling，不能为账户演示重做多年 ML。
 
-<a id="etf-review-followup-proposal"></a>
-### 6.3 ETF 与基准的第二优先级小方案（2026-10-05，待主协调亲审）
+**Agent 账户阶段交接。** Research 负责完整研究用例和原保存 fold 的公共读取，Engine
+提供这一段可复用的账户入口。Agent 先取得 owner 已保存并核验的
+`{fold_ref,fold_spec,model,prediction_frame}`，调用
+`stock_prediction_schedule(*, folds, calendar)` 构造上述调度，再把原调度、完整市场与
+native 配对证据放入 `BacktestRequest.from_dict(request_v4_wire)`。执行只调用
+`run_backtest(request, limits=limits)`；Top3 与 Top5 分别使用独立 account_id、相同
+50000000 分和零持仓，沿全窗口各维护一个连续账本。冻结 manifest 记录源码提交、包版本、
+request.identity、schedule_ref、逐 fold 原 refs、market/admission refs、完整区间和
+实际输入规模；预算作为运行收据另存，不能改变确定性身份。未交接完整闭包时保留
+INPUT_NOT_READY 状态，不能用合成 fixture 或旧月份收据替代真实输入。
 
-本节固定候选 API 和保存字段，待主协调批准后编码。当前只读源码/已有元数据及做
-合成算术准备，不启动真实 ETF 长回放，也不占用 Research 训练或 Notebook 验收资源。
+成功后调用 `save_backtest_run(run, path)`，登记原
+`{run_id,content_digest,committed_sequence}`，并核对现金、费用、整手、T+1、跨 fold
+水位和原预测身份。评价用保存 run 调用 `evaluate_backtest`，再以原 v2 评价和明确
+benchmark/spec 调用 `evaluate_saved_analysis`；三个阶段均消费 owner 保存输入，Engine
+的供应商、Feature 构建、fit 和 predict 调用数为零。短窗口资格仍按本节保留 null。
+单个 run 的入口准入次数不随账户 session 增长；两个独立 TopK run 和后续独立公共
+评价或 loader 调用各自核验闭包，不能把“一次”解释为整条研究流程只验证一次。
+
+恢复以保存阶段为边界。已有匹配 manifest 与 run 三元组时，Agent 通过
+`load_backtest_run(path)` 读取原结果，继续尚未完成的保存评价阶段。准入异常保留原输入
+和准确错误收据，待 owner 修正事实并重新冻结请求、父线程给资源窗口后，只重新运行
+有界账户阶段。BLOCKED 结果可保存停止原因、水位和有效前缀，但完整评价只接受
+COMPLETE；当前没有追加旧账本或 session checkpoint 恢复接口。不能把截断前缀改成
+完整结果，也不能为了重试账户重新训练模型或构建 Feature。
+
+运行收据另存 `wall_seconds`、规范化为字节的 `peak_rss_bytes`、实际 fold/预测/市场行数、
+UTF-8 输入字节数、调用方预算和结束状态；耗时与 RSS 不进入确定性 run 内容。Agent
+可用单进程计时和资源统计取得入口总耗时与进程峰值，外层资源窗口负责 time/RSS 中止。
+公开入口目前没有 admission/session-loop 分段计时回调；开发验收可用有界只读插桩记录
+两段耗时及 frame/model/native 校验次数，不能伪称它们是公共 API 返回值。该收据既检验
+量化口径的账户连续性和费用守恒，也检验开发实现的批量读取、入口校验与 loop 复用；
+Research 的真实新窗口完成前，两者都只标合成或轻量证据。
+
+<a id="etf-review-followup-proposal"></a>
+### 6.3 ETF 与基准的第二优先级小方案（2026-10-05，设计已审、源码候选）
+
+本节 API 和保存字段已由主协调亲审，[Docs30](https://github.com/sinnergarden/axiom-docs/pull/30)
+合并为 `edef7af896a36afa066d19a74f083cab085f78c4`。Engine 0.3.1 源码候选正在独立审查，
+已完成小型合成检查；真实 ETF 长回放仍待父线程释放窗口，不占用 Research 训练或
+Notebook 验收资源。未合并候选不作为已完成的真实账户证据。
 
 **七票单位与刻度。** 冻结名单为 159915、510300、510500、510880、511010、513100、
 518880，身份继续使用已保存的完整 cn.etf listing identity。Data security_master 均为
