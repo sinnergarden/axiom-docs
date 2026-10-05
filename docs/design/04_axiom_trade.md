@@ -242,7 +242,7 @@ security_id 升序解同分取前 k，目标预算各为 1/k，仍按前收、10
 `plan_stock_portfolio(frame, *, account, context, top_k: int | None = None)`：
 省略 top_k 仅为旧 `axiom.stock_portfolio/1` 的原 Top5 兼容解释；所有**显式新配置**
 （包括 k=5）统一生成 `axiom.stock_portfolio/2`，并把 k 放入 Core 决策和意图
-身份输入。Runtime 将计划的 k 显式传给同一 planner，所有新股票运行的
+身份输入，v2 decision 顶层保存 `top_k`。Runtime 将计划的 k 显式传给同一 planner，所有新股票运行的
 `core_version=axiom.stock_portfolio/2`；原 request_v3/run_v3、执行器、profile 与
 账户账本路径不分叉。新 run_id 仍由完整请求、Core/Runtime/实现版本决定；
 旧 v1 Top5 保存账户只按其原版本元组验证和加载，不倒改成 v2，也不声称重新运行
@@ -691,7 +691,7 @@ benchmarks: dict[str, BenchmarkSeries | None], spec: EvaluationSpec) -> Evaluati
 base_report 的原 `benchmark_ref/benchmark_input` 完全一致，不能静默替换原评价基准。
 尚无已核来源的另外两腿显式传 None，输出 SOURCE_UNAVAILABLE。新原生指数输入
 继续由 Data owner 固定来源合同后交接，不让 UI/Research 查询供应商。
-`risk_free` 必须是精确三字段 dict（currency/annual_effective_rate/source），金额率
+`risk_free` 必须是精确三字段 dict（currency/annual_effective_rate/source），currency 必须为 CNY，金额率
 为有限 decimal 字符串，source 为非空字符串。`analysis_evaluation_spec` 返回固定
 `EvaluationSpec`，其身份含显式 rf；评价入口拒绝不同 run 三元组的 base_report。
 报告同时嵌入 `base_evaluation` 原 v2 保存内容，loader 校验其 digest/ref 及复制指标
@@ -704,7 +704,9 @@ base_report 的原 `benchmark_ref/benchmark_input` 完全一致，不能静默�
 Actual/Actual 复利转换。spec 还冻结 20-session 滚动窗、2 个百分点分桶、三个
 benchmark key、对齐与缺值政策。报告保留旧 `input_run_ref` 三键和
 `signal_ref/market_ref/profile_ref`，另存 `base_evaluation_ref`、
-`base_evaluation_content_digest/base_evaluation`、按 key 排序的 `benchmark_refs`、`spec_ref/spec`、
+`base_evaluation_content_digest/base_evaluation`、按 key 排序的
+`benchmark_refs/benchmark_inputs`（三键均保存完整原输入或 null，loader 逐腿校验
+input.identity==ref）、`spec_ref/spec`、
 `dividend_scope_ref`（含 null）、`implementation_ref`。新 `evaluation_ref` 的身份输入
 精确包含以上 run/base/spec/benchmark/dividend/版本/实现闭包，`content_digest`
 覆盖除自身之外的整个新报告；不得把新的评价身份误作新的账户 run_id。
@@ -712,7 +714,8 @@ benchmark key、对齐与缺值政策。报告保留旧 `input_run_ref` 三键�
 `benchmark_comparisons`、`analysis_series`、`execution_summary`、
 `concentration_series`、`episode_points`、`execution_trace` 为新增顶层输出，
 旧 v2 的 `series/monthly_returns/episodes/episode_metrics/pnl_distribution/
-benchmark/period_metrics` 原值保留。
+benchmark/period_metrics` 原值保留。原 v2 limitations 完整留于 base_evaluation；
+v3 顶层标明“原 v2 无 Sharpe”描述原报告范围，本轮可用风险值仅遵循新 v3 状态。
 
 基准 key 固定 `CSI300`（默认）、`SSE_COMPOSITE`、`NASDAQ100`。CSI300 复用旧 v2
 评价已固定的价格指数证据；另外两个需 Data owner 提供真实证券身份、币种、价格或
@@ -780,16 +783,18 @@ account_cumulative_return/rolling_return_20/rolling_volatility_20/rolling_status
 波动，不年化；首个完整窗允许 initial NAV 虚拟 anchor，不足窗给 null/
 INSUFFICIENT_WINDOW，任一期前值非正给 MISSING_RETURN，不前填。`execution_summary` 保存双边换手
 `sum(fill.gross_minor)/mean(saved NAV_minor)`、费用占初始资本
-`sum(fill.fee_minor)/initial_nav_minor`；`concentration_series` 逐 session
+`sum(fill.fee_minor)/initial_nav_minor`；平均 NAV=0 时换手为 null/ZERO_MEAN_NAV；`concentration_series` 逐 session
 取最大单票 `position.market_value_minor/nav.nav_minor`，同日引用必须有相同
-committed_sequence，空仓比重为 0，零 NAV 明确不可用。`episode_points` 仅含
+committed_sequence，零 NAV 优先给 null/ZERO_NAV，有正 NAV 的空仓比重为 0。`episode_points` 仅含
 可统计闭合段的 `(episode_id, net_return, entry_session, exit_session,
 holding_calendar_days)`，天数为两日期差；开放、左截断、已知收入 pending 段不填。
 UI 仅读取保存值。
 
 `execution_trace` 按原 decision 数组序号保存 trade/feature session、原 status、
 selected_security_ids/targets/trace 与精确链接 `intent_id→order_id→fill_id[]`；
-订单未成交时 fill_ids=[]，保留原 order.status/reason、requested/filled/
+订单未成交时 fill_ids=[]，`requested_quantity` 精确来自 order.quantity，
+保留原 decision 的单数或复数 selected 字段。没有保存的 sequence/field 均为 null，
+不推定订单 committed_sequence；保留原 order.status/reason、requested/filled/
 unfilled_quantity、execution_admission 与成交价/费/sequence。资格内历史分数
 可从同一保存 `plan.signal_frame` 精确取出并标
 `DERIVED_FROM_SAVED_SIGNAL`；如生成名次，须复核原 Core 同分规则且标为派生，
