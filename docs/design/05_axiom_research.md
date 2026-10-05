@@ -596,13 +596,18 @@ SignalExpression 固定 inputs、join keys、算术/条件操作、归一化截�
 ### 5.1 信号评估
 
 <a id="saved-signal-quality-proposal"></a>
-**独立保存与批量比较：待主协调亲审的小合同（2026-10-05）。** 当前股票
+**独立保存与批量比较：合成验收通过的源码候选（2026-10-05），待主协调亲审。**
+[Research PR7](https://github.com/sinnergarden/axiom-research/pull/7) 固定源码
+`1912bb5dd4b9b8e6aa595ebf0fe63b5e82a0d2b1` 基于batch PR6，版本0.2.4；
+15项定向合成测试和独立复审通过。原股票
 `stock_signal_evidence_v1` 已保存逐日IC/RankIC、有效配对数、Signal/Raw Label refs和
-评价cutoff；缺少独立公开评价/保存/载入入口及ICIR汇总。本轮沿用该文件和身份机制
-增加v2能力，先交付每份保存Signal的独立评价，不新建第二套评价平台。
+评价cutoff。候选实现沿用该文件和身份机制，提供独立公开评价、保存、载入入口及ICIR
+汇总。已验证旧v1、分阶段时钟v2和compact fold v2的来源闭包；真实两年规模尚未验收。
 
 Research定义评价范围和标签版本，按 `(security_id,feature_session)` 拼接保存预测与
-成熟Raw Label，加载同批Label一次。训练所用归一化target与评价所用原始未来收益区分。
+成熟Raw Label。同次批量评价共用已选定的Raw Label表；公共owner loader仍逐份验证
+保存来源闭包，可能重复读取其Label父件，不能据此声称总文件只读一次或已验证规模性能。
+训练所用归一化target与评价所用原始未来收益区分。
 信号评价使用独立evaluation_cutoff；较晚才成熟或可用的标签可进入事后评价，
 不能回流到此前fit_cutoff的训练样本或改写已经保存的模型。
 默认指标为日截面Pearson IC、平均秩处理ties的Spearman RankIC，以及有效日序列的
@@ -626,17 +631,40 @@ Signal，或按时间覆盖且键不重叠的weekly Signal列表；后者保留�
 CAGR、回撤、Sharpe和Calmar均由Engine已实现的
 [保存账户分析评价](04_axiom_trade.md#saved-account-analysis)提供，Research读取原保存值。
 
+准确调用形状为：
+
+```python
+report = evaluate_stock_signal(signal_input, raw_label_input=raw_label_input, scope=scope)
+reports = evaluate_stock_signals(signal_inputs, raw_label_input=raw_label_input, scope=scope)
+saved = save_stock_signal_evaluation(report, destination=destination)
+saved = load_stock_signal_evaluation(path)
+report = saved.to_dict()
+```
+
+`signal_inputs` 是保留插入顺序的名称映射，每个值是一份Signal描述符或按时间排序的
+不重叠Signal描述符列表。描述符精确包含 `path/file_digest/signal_run_ref`，Raw Label
+描述符精确包含 `path/file_digest/label_ref`；路径必须是固定绝对路径。scope精确包含
+`sessions/universe/evaluation_cutoff/calendar`，其中完整冻结calendar须与原Raw Label及
+Signal所属owner记录相同。保存返回 `StockSignalEvaluation`，提供 `path/reused/identity`
+及 `to_dict()`；identity是原evidence_ref。目录内保存signal-evidence.json和manifest.json，
+相同报告命中复用，身份相同但输出不同则拒绝覆写。
+
 `stock_signal_evidence_v2` 候选顶层为 `evidence_ref/content_digest/input_signal_refs/
 input_evidence/label_ref/label_spec/scope/spec_ref/spec/sample_mask_ref/statistics_input_ref/statistics_ref/series/summary/
 coverage/status/limitations/implementation_ref`，另含contract_version。
 evidence_ref绑定准确Signal列表、Label、scope、spec、sample mask和统计实现；
-content_digest绑定除自身外全部保存输出。scope固定sessions、universe与评价cutoff，
+content_digest绑定除自身外全部保存输出。scope固定sessions、universe、评价cutoff和calendar，
 input_evidence沿用原保存文件的显式path/file_digest/内容ref描述符，供独立loader核对
 原Signal和Label的来源闭包；statistics_input_ref绑定送入Core的准确配对表。
-label_spec展示实际horizon、f+1/f+5、价格口径和单位。series沿原日行扩充必要计数，
+label_spec原样展示实际horizon、f+1/f+5、价格口径；原件没有单位字段时保留缺失与限制。
+series沿原日行扩充必要计数，
 summary提供有效日数、mean_ic/ic_std/icir及对应RankIC值和IR不可用原因。
 coverage保存原参考成员键数、成熟有效Label数、有效预测数、实际配对数和排除计数，
-不以丢弃无效日来提高覆盖。旧v1保存件保持原读取行为。
+不以丢弃无效日来提高覆盖。coverage.native保留该Signal自然样本的计数、series、summary
+和统计refs；coverage.common_statistics/native_statistics各保存完整Core统计文档及其
+输入ref，供loader验证共同与自然样本绑定。loader重建来源配对、核对哈希、计数及
+null/reason规则，不重新执行相关、均值、标准差或IR计算；新进程禁导入Data、Engine、
+Qlib、LightGBM、pandas和numpy的载入验收通过。旧v1保存件保持原读取行为。
 
 多Signal比较固定同一scope、成熟Label和历史资格，主比较使用各Signal共同有效键交集，
 同时展示各Signal原有覆盖与自然样本评价。共同mask绑定整个比较组，增加Signal导致
