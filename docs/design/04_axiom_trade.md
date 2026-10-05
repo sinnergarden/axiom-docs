@@ -191,7 +191,10 @@ signal_ref、supported_universe_ref、expected_account_version、status
 （DECISION_COMPLETE/NO_DECISION）、selected_security_ids、targets、intents、trace；
 意图身份绑定账户版本、frame identity、context 与合同。
 
-**保存滑动 fold 的 v2 中立验证（2026-10-05，待源码验收）。** 与
+**保存滑动 fold 的 v2 中立验证（2026-10-05，已实现并有界验收）。** 源码
+`ac20e086` 已经主协调亲审及独立复审，经
+[Engine PR #12](https://github.com/sinnergarden/axiom-engine/pull/12) 合并为
+`330903c6`；新旧预测时钟定向验收通过，未运行账户。与
 [Research §4.7 固定合同](https://github.com/sinnergarden/axiom-docs/blob/b343555736f602d4897a6901bdc1d2980048e941/docs/design/05_axiom_research.md#stock-saved-fold-clock-contract)
 保持同一字段清单。现有纯函数公共导出为
 `from axiom_engine.core import StockPredictionFrame, validate_stock_predictions`；
@@ -218,7 +221,7 @@ Engine 不导入训练库，不从 model_ref 猜训练时间。
 
 本阶段仅解锁中立验证，`plan_stock_portfolio` 与 `validate_stock_request` 明确只账户
 消费 v1；v2 在规划/启动 ledger 前以“账户时钟消费尚未准入”拒绝，现有账户与保存件
-不变，新增账户执行为0。未来 v2 账户消费须另行冻结：复用唯一 Core planner/Runtime，
+不变，新增账户执行为0。v2 账户消费增量提案见 §6.2，尚未批准或实现：复用唯一 Core planner/Runtime，
 决策准入使用推理/发布时间，前收/member/Feature 仍受原 feature_knowledge_cutoff
 约束，不把 Data 查询提升到推理时钟，不新增执行器或账户路径。
 
@@ -384,6 +387,135 @@ SZSE [2023 交易规则](https://www.szse.cn/lawrules/rule/repeal/rules/t2023021
 §3.1.4/§3.1.5 核到清算交收前不得卖出及当日回转例外列表中不含普通 A 股；它不单独
 证明清算周期恰为 T+1。settlement_sessions=1 作为本轮声明模型参数保留此核验边界。
 过户费双边 0.00001 的完整深圳原文未取得，始终标研究费用假设。
+
+<a id="stock-v2-runtime-clock-proposal"></a>
+### 6.2 保存预测 v2 接入同一股票账户（2026-10-05，待主协调亲审）
+
+本节是本轮第一优先级的**设计提案**，不代表账户准入已经实现。Research 负责先保存
+3–4 个真实连续周的 rolling fold：每折过去两年训练、下周预测、标签在 fit cutoff
+前成熟。两年范围、标签成熟、训练键、参数及同批一次 load/validate 由 Research
+主章定义；Engine 不改成 65 session，也不导入 Qlib/LightGBM 或另建执行器。
+当前 January v1 预测、账户、评价及 §6.1 的 TopK 政策继续保留原身份。
+
+**时钟分离。** 以下为本次账户配置的准确时钟，所有比较采用 aware instant，原字符串
+保留；不是把 20:45/21:00 写入通用中立预测校验器：
+
+| 阶段 | 本次约束 | 归属 |
+|---|---|---|
+| Feature/member/前收 | feature session 当日 20:30 Asia/Shanghai；Feature 依赖最大 available_at 不晚于该 cutoff | Research 保存原依赖，Data 保留原可见性，Engine 校验账户输入配对 |
+| fit | fold_spec.fit_cutoff，训练 Feature 和成熟 label 都不得晚于它 | Research 公共保存件 loader |
+| model | fit_cutoff < simulated_model_available_at；本次声明 fit session 20:45 | Research 保存模型元数据及声明时钟 |
+| inference/publish | 行 knowledge_cutoff = available_at = feature session 21:00；model available 严格早于它 | v2 原预测及 Engine 决策准入 |
+| decision | 严格下一实际 exchange session 08:55；预测 available_at 不晚于该时刻 | 唯一 Runtime |
+| execution | 下一实际 session 开盘价格代理；执行事实仍按当日 20:30 的事后日线证据解释 | 原股票 profile/模拟器 |
+
+非 null Feature 可用时刻比较 `feature_available_at≤feature_knowledge_cutoff≤inference_cutoff≤decision_time`；
+valid 行必须有 Feature 可用时刻，invalid 行的原 null/原因保留、不参与排序。
+同时检查 `fit_cutoff<model_available<inference_cutoff`。模型完成/预测发布的历史时刻
+仍是 `clock_basis=declared_simulation`，不能把今天的实际训练 wall time 说成历史完成证据。
+前收报价和历史 member **仍只准入至原 Feature 20:30**；不得为了消费 21:00 预测，把
+Data Query cutoff、原 Feature metadata 或标签成熟截止提升到 21:00。周末/长假用保存
+exchange calendar 的严格前后 session 映射，不用工作日或自然日加一。
+
+**保存 fold 调度，保持原预测身份。** 一个 v2 frame 只有一个 model_ref 和一个模型
+可用时刻，不能把多个 rolling model 的行拼进同一 v2 并伪造共享 model_ref。拟增加
+`axiom_engine.runtime.StockPredictionSchedule` 及纯工厂：
+
+```python
+stock_prediction_schedule(*, folds: list[dict], calendar: list[str]) -> StockPredictionSchedule
+# folds 每项：{fold_ref, fold_spec, model, prediction_frame}
+# prediction_frame 是 Research 公共 loader 返回的原 stock_prediction_run_v2 wire。
+# model 是原 stock_model_release_v2 元数据；不包含 booster 或训练大表。
+```
+
+调度 wire 的精确顶层为
+`{contract_version,schedule_ref,clock_policy,calendar,universe,folds,trade_schedule,limitations}`，
+`contract_version=stock_prediction_schedule_v1`；schedule_ref 是除自身之外全部内容的
+canonical digest。clock_policy 为
+`{contract_version:stock_prediction_clock_policy_v1,feature_cutoff_local_time:20:30:00,
+inference_cutoff_local_time:21:00:00,decision_local_time:08:55:00,
+execution:next_exchange_session_open,clock_basis:declared_simulation}`。
+本次只接受 1–4 个非重叠 fold，真实工程验收使用 3–4 折。每个 frame 保留原
+signal_run_ref/Feature/model/fold refs、完整 union、member、validity、分数和全部行；
+所有 fold 使用同一冻结有序 prediction union，不静默补行或裁掉池外持仓。
+
+trade_schedule 每项固定
+`{trade_session,feature_session,signal_run_ref,fold_spec_ref}`；覆盖完整 OOS account session，
+feature_session 必须是 calendar 中 trade_session 的严格前一项，匹配该 fold_spec 的
+oos_trade_sessions/inference_cutoff_by_session。重叠、洞、重复、缺原预测组、原 model
+元数据 hash 不符、fit/model/推理时钟冲突或 union 不同，均在创建 ledger 前拒绝。
+Engine 校验完整 model.json 自身 ref、与原预测及 FoldSpec 的时钟/ref 关系；训练键、
+成熟 label、booster/父 Feature 闭包仍由 Research 公共 loader 验证一次，并交接 fold_ref。
+调度只保存这些小元数据和预测，不重复嵌入训练 Dataset、Label 或 Feature proof 大表。
+
+**同一个运行入口和连续账本。** 新计划为 `backtest_request_v4`：沿 request_v3 的
+account_id/start_session/end_session/market_replay/initial_account/profile/
+prediction_universe/execution_universe/supported_universe_ref/portfolio_policy/
+admission_ref/admission_evidence/stock_action_policy，仅以 `prediction_schedule` 替换
+`signal_frame`。市场仍为原 market_replay_v3，股票 profile、资格、事件、费用、现金、
+整手、容量、T+1、NO_DECISION 和周首调仓政策沿用 §6.1。初始空仓只在窗口开始一次；
+跨 fold 不清仓、不重置现金、不拼接独立账户 NAV。`run_backtest(BacktestRequest)` 在原
+session loop 取已固定的 fold/frame，调用同一 Core planner、_simulate 和 AccountLedger。
+保存元组为 backtest_run_v4/axiom.backtest/4/axiom.stock_portfolio/2；这只是新输入和
+时钟合同版本，不增加执行器或 Qlib 回测路径。
+run.signal_ref 取 schedule_ref；每个 decision.signal_ref 仍取当次原 frame.signal_run_ref，
+不把组合调度身份冒充任一原始预测身份。
+
+Core 公共签名仍为
+`plan_stock_portfolio(frame, *, account, context, top_k=None)`。v1 的精确 context、20:30
+及旧默认 Top5 输出保持不变。消费 v2 时 top_k 必须显式；context 在原股票字段之外
+仅加 `feature_knowledge_cutoff`，knowledge_cutoff 表示原预测 inference cutoff。
+Core 校验该组原行时钟一致、available_at≤decision_time；前收 source available_at 改按
+feature_knowledge_cutoff 校验。目标预算和 1/k 不变，结果仍为 axiom.stock_portfolio/2，
+新 v2 决策顶层另存 `prediction_clock={clock_basis,feature_knowledge_cutoff,inference_cutoff,
+simulated_model_available_at,model_ref,fold_spec_ref}`，取原预测时钟及 refs，NO_DECISION 也保留；
+意图身份绑定原 frame、所有 context 时钟、k 和账户版本；旧输出不补这些字段。
+
+新 `stock_snapshot_pair_admission_v2` 沿用原完整 native DataBatch/Query/Reader 配对
+证据，增加 prediction_schedule_ref 及逐 fold
+`prediction_refs=[{fold_ref,fold_spec_ref,signal_run_ref,feature_ref,model_ref}]`，取代旧
+单 frame 的三个顶层 refs。成员配对覆盖所有原预测行；前收 basis 配对覆盖全部执行
+union 和窗口 session，按原 feature cutoff 校验。原 83 只/23 session 的特定计数字段
+在新版本按实际 scope 明确保存 checked_rows/paired_rows，不把旧月份的 PASS receipt
+用于新日期。实际 Snapshot、完整日历和 owner 配对证据须由 Research/父线程交接后
+固定；Engine 不自行采集、不缩到最终成交证券，也不从结果倒推准入。
+
+**保存预测复用和评价边界。** 同一 schedule_ref/原预测及市场输入分别生成 Top3、
+Top5 独立 account_id/run 三元引用；feature/label/fit/predict/供应商调用均为 0，初始
+现金相同。Engine 按上述版本增量适配旧公共 save/load、stock_dividend_scope 和保存
+评价/成交显示的输入准入；旧 v1/v2/v3 读取保持原值，不重放或升级旧身份。
+Engine 账户评价仍负责原 CAGR/DD/Sharpe/Calmar：3–4 周不足一年，CAGR/Sharpe 及
+依赖 CAGR 的 Calmar 按原资格为 null，不用 IC 替代账户表现。
+
+Research 的 SignalEvaluation 可独立于策略/账户比较多个保存 Signal，负责 IC/RankIC/
+ICIR 等定义、Label refs、maturity、对齐、编排和保存；多 Signal 共用一次 Label 读取
+及对齐。Core 若需提供共享纯算子，先复用已有实现，由 Research 提交准确 input/output、
+缺失/tie/截面/权重合同后单独父审，Engine 不先抢写其接口或文件。DuckDB/OLAP 只是
+候选参考，本提案不引入依赖。UI/Notebook 只显示两类 owner 保存值，不自行补算。
+
+**有界验收与资源。** 先用合成连续两周验 fit=model/模型晚于推理/预测晚于下一决策、
+20:30 后前收、长假、重叠/漏 fold、跨 fold 持仓及现金保持、Top3/Top5 和旧 v1 字节
+兼容；阻断必须发生在账本写入前。Research 的真实 3–4 周保存预测和完整准入闭包
+ready 后，只顺序运行两个 TopK 账户，再读保存评价，记录账户 wall time/RSS、决策/
+成交/现金与费用对账及零上游调用。当前不启动新账户，训练先由 Research 独占资源。
+不能以冷构建/缓存命中替代真实 rolling，不能为账户演示重做多年 ML。
+
+<a id="etf-review-followup-proposal"></a>
+### 6.3 ETF 与基准的第二优先级小方案（2026-10-05，待主协调亲审）
+
+以下合并为后续小变更，当前不启动长回放，也不占用 ML Notebook 验收资源。
+
+| 项目 | 最小增量及保存证据 |
+|---|---|
+| SSE 逐点回撤 | Engine 在 benchmark native/账户日期投影保存 benchmark_drawdown，并保存 max_drawdown；沿已定义 anchor/峰值/缺口 null 规则。CSI 复用原保存值，UI 只绑定收益/回撤及图例联动。新字段用新投影 marker/评价身份，旧保存 v3 缺字段仍可读，不补算。 |
+| 513100 持有参考 | 使用现有冻结 ETF 行情，名称“国泰纳斯达克100 ETF（513100）买入持有”、CNY/SSE 日历；同一个 Runtime 增加一次买入固定政策，保持现金分红、不周度再平衡、不强平，独立账户。保留原价/费用账本，显式验证 2022 年 1:5 正持仓拆分及新单位日期；无新 Nasdaq/FX 数据采集。 |
+| 2014 起探索 | 用户允许一次有预算探索；2019 保存结果仍为主口径。daily_open_profile(*,unknown_status_policy='block',price_limit_policy='require_both') 默认返回原 v1；显式 known_only 返回新 v2 并保存政策。缺单侧限价仅跳过该侧，null 不填事实；已知限价、停牌、价量、费用、现金、容量/整手/T+1 不放宽。需已有前段信号或 Research 有预算补前段简单动量，不宣称原2019 Signal含2014数据。 |
+| 非零滑点对照 | 原 JQ 明示0、原2019零滑点保存件保留。另加单边5 bps（买价增加、卖价减少）的明确研究假设，佣金0.0003/min0/tax0沿用。现有 slippage_bps 能表达数值，但 ETF 分支没有最小报价校验/舍入；在实现前固定可验证的每票 tick，买向上/卖向下取刻度后再检查限价、费用和现金。滑点仅进入成交价，不额外重复扣现金。不能把现有股票0.01刻度移给ETF，tick尚未核定时不猜值。 |
+
+2014 探索建议硬预算为输入/前段 Signal 准备5分钟、账户一次5分钟、保存核对1分钟、
+单进程 RSS 4 GiB；超限保存阻塞收据结束，不扩工程或反复重跑。此前1762 session
+账户122.2秒、评价3.2秒只是已有测量，不能当新范围的耗时承诺。5 bps/tick 政策需进入
+新 profile/ref，不静默修改原 v1；两种 ETF 对照仍只有一个 _simulate/账本实现。
 
 ## 7. 账户与 Ledger 数据模型
 
