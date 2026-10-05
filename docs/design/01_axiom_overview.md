@@ -30,6 +30,15 @@
 
 **来源与新增约定：**五个逻辑领域、四个物理仓库、单回测、PIT、信号复用、统一评估、只读 UI 和持续演进来自既有讨论。各专项的表结构、接口示意、错误码和验收夹具是“本版实现约定”，不冒充代码现状。供应商历史能力、实际券商行为、准确费率与硬件耗时仍须实施取证，不默认已有结论。资料及与 Qsys 的差异统一见最后一节。
 
+**2026-10-05 ML 工程的实际边界。** 固定 Data 事实/Qlib 格式准备、Research catalog→共享
+Core Feature 执行、成熟 Label/Dataset、Research LightGBM fit/inference、保存 Signal、
+Engine 唯一账户与 Evaluation、UI 保存件消费已有有界实现。通用 Core ModelHandle/SignalPlan、
+组合参数与正式公开 rolling 恢复仍未全部完成；当前股票公共策略严格固定 Top5。
+[工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)用实线/虚线图展开此边界，
+其业务代码未执行，静态 HTML 检查不构成工程验收。[四项具体待审提案](05_axiom_research.md#ml-engineering-review-proposals)
+分别约定缓存失效、proof 有界加载、weekly 小例与 Engine TopK 增量；后者由 Engine owner
+维护 Trade 主章。先由协调任务审设计与预算，再跑教学小例；未开始的全年/五年 ML 暂停。
+
 ## 1. 系统目标与基本原则
 
 Axiom 同时承担研究平台、投资辅助和自动交易系统三个角色。推进顺序是先建立可信研究闭环，再完善监控和 shadow，最后进入受控实盘；自动研究不是第一阶段前提。

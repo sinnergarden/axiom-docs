@@ -9,6 +9,12 @@
 2026-09-28 Data 接口实证：Research 所有的 adapter 已将真实月末 DataBatch/成员结果映射为 FactBatch、ExecutionContext 和 FeaturePlan，并执行 identity/lag/return；这不是全部策略或决策算子的真实验收。
 见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
 
+2026-10-05 当前边界：共享 FeaturePlan 执行与股票中立预测验证、固定 Top5 决策已有有界实现；
+LightGBM fit/inference 仍在 Research。正文中的通用 ModelHandle、SignalPlan/组合参数与正式
+rolling 恢复不因固定样本通过而成为已实现 ABI。当前股票决策 context 无 TopK 参数，Runtime
+只接受 top_k=5；不同 TopK 的公共对照需要先审合同增量，不能用改资金代替。
+已实现/规划图及教学顺序见 [ML 工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)。
+
 ## 1. 一句话定义
 
 Core 是一套可被 Research 和 Trade 调用的**共享计算与投资决策库**。同样的已知事实、信号、账户、策略状态、参数与时间，应该得到同样的目标仓位和订单意图。

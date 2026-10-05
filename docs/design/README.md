@@ -13,3 +13,7 @@
 2026-10-03 从工作区 `design/` 迁入，保留了八份正文及 A/B 补丁。原文件未在 Data 的旧 Git 历史内，不虚构迁移前提交历史；首次纳入版本控制后，以本仓提交记录后续变化。原路径仅保留导航，可恢复的迁移前副本保存在仓库外历史归档。
 
 当前实现、测量和未完成事项见 [本轮交付](../current-delivery.md)，适用代码版本见 [versions.json](../../versions.json)。
+
+新增 [ML 工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)作为工程教学入口：
+实线已实现/虚线规划图、自动 registry 表、成熟与重跑边界，以及待审 weekly 小样本预算。
+本稿未执行，先审整体设计及小流程，再讨论全年/多年 ML；不取代本目录规范正文。

@@ -1,5 +1,10 @@
 # 两种阅读路线
 
+新增 [ML 工程 Notebook 初稿](ml_engineering_tutorial.ipynb)及[生成 HTML](ml_engineering_tutorial.html)：
+先看整体 owner 图、固定真实短样本、registry、成熟 label/Dataset/model、保存 Signal、
+Engine 唯一账户、UI 与缓存边界。当前仅叙事/预算初稿，未执行；父任务先审设计后再跑小例，
+全年/多年 ML 暂停。详细合同仍链接统一设计正文，HTML 从 Notebook 生成，不独立编辑。
+
 唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
 
 Researcher 沿一次研究准备工作展开：先看一只证券六天的价格，扩成矩阵，处理缺失与价格尺度，再加入当时可见的财报，保存并复用特征，最后交给下游。Developer 沿一次接入工作展开：保存响应、转换字段、检查并发布，再加入财报与基金，继续日更，处理范围变化、失败恢复和交接。

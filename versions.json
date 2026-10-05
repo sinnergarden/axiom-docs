@@ -138,7 +138,7 @@
     },
     "axiom-ui": {
       "repository": "sinnergarden/axiom-ui",
-      "git_commit": "05a1dd8acccf472b36ba6fba4a360c35824bc26d",
+      "git_commit": "f0e913bfaa01dee7903a7f397d17a96c7634f8fb",
       "version": "0.2.0",
       "branch": "publish/ui-readonly",
       "status": "merged_parent_source_reviewed_bounded_stock_v3_consumer; owner_QA_passed; root_pixel_and_user_acceptance_pending",
@@ -150,9 +150,9 @@
         "version": "0.1.0",
         "status": "public_source_parent_reviewed_bounded_readonly_report"
       },
-      "source_commit": "bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4",
-      "source_tree": "02fcab8842a03d2db0c61caa9d5f032c2e66492f",
-      "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/3",
+      "source_commit": "0260cb35a8d02d57170ee58fc4b9504edcc39ca5",
+      "source_tree": "3d9f70c40259aa8d4708df3ab11605c3193bde80",
+      "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/4",
       "source_tree_unchanged_after_merge": true,
       "final_product_acceptance": false,
       "previous_workbench_source": {
@@ -164,7 +164,8 @@
       "pull_requests": [
         "https://github.com/sinnergarden/axiom-ui/pull/1",
         "https://github.com/sinnergarden/axiom-ui/pull/2",
-        "https://github.com/sinnergarden/axiom-ui/pull/3"
+        "https://github.com/sinnergarden/axiom-ui/pull/3",
+        "https://github.com/sinnergarden/axiom-ui/pull/4"
       ],
       "parent_pixel_review": "not_performed",
       "user_acceptance": "not_completed",
@@ -191,6 +192,17 @@
         "file_ids": [],
         "local_Mac_files": "available_to_open",
         "success_receipt": null
+      },
+      "scope": "saved account/model/stage Reader and selected static public Pages; engineering notebook remains unexecuted design draft",
+      "public_pages_source": {
+        "source_commit": "0260cb35a8d02d57170ee58fc4b9504edcc39ca5",
+        "merge_commit": "f0e913bfaa01dee7903a7f397d17a96c7634f8fb",
+        "source_tree": "3d9f70c40259aa8d4708df3ab11605c3193bde80",
+        "notebook_status": "engineering narrative/budget draft, not executed or published",
+        "evidence_reports": [
+          "reports/public-pages-acceptance.json",
+          "reports/public-pages-browser-acceptance.json"
+        ]
       }
     }
   },

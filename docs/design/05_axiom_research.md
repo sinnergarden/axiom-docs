@@ -503,6 +503,105 @@ batch_field 来源标识仅按完整 field/batch_ref/qualification/basis 键复�
 
 ### 8.4 变更影响与重跑边界
 
+<a id="ml-engineering-current-boundary"></a>
+**2026-10-05 当前工程边界与待裁决风险。** 本文规定 owner 与合同；
+[ML 工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)沿固定真实短样本解释输入、
+准备、成熟、训练、保存 Signal、唯一账户、评估与展示，不另建一份规范正文。本稿未执行，
+用户功能确认与源码实现、教学运行验收分开登记。后续先审整体设计及小流程；所有未开始的
+全年/多年 ML 构建暂停，不能沿此前条件计划先跑。
+
+Data 的 Raw/Canonical/Snapshot 和 Qlib 导出是事实/格式准备；导出不执行预测 Feature。
+Research catalog 编译既有 Core FeaturePlan，调用共享执行器；成熟 Label、Dataset、
+LightGBM fit/inference、保存预测目前由 Research 编排。通用 Core ModelHandle/SignalPlan/
+组合与正式公开 rolling 恢复仍为目标。本轮完整日期跨 fold parent 复用是有界编排证据，
+不是通用持久 feature/cache 平台。
+
+当前单折 builder 身份绑定 Research Python、Data Python、Core Python 的整体实现及环境，
+非语义代码也可能造成 MISS；旧保存件可读不代表最新 builder 必须 HIT。公开
+`build_stock_ml_from_saved_features` 复用固定同 config 的 Feature/raw Label，免 Data/Feature
+执行，仍重新处理 label/norm/Dataset/fit/infer；完全相同目标再次调用才是整实验 HIT。
+Qlib 和保存件复用仍有完整解析/hash/ref/证明核验成本，不称零 I/O。只换无账户依赖预测
+Signal 的组合，应仅执行 Core 组合/Runtime/Evaluation；当前 Engine 固定 Top5，须先审最小
+组合参数增量才能实际证明不同组合的零 Feature/fit/predict，不以改资金替代。
+
+待父任务裁决两项目标：一是把过粗失效身份拆到真实语义依赖，完整实现来源继续用于审计；
+二是将长历史 Feature/proof 按完整日期截面持久化、逐片校验并释放，冻结多 parent 与原子
+checkpoint/resume 边界。两折通过尚未证明长历史常驻内存有界；教程不据此大重构生产代码。
+
+用户新增五年 **weekly retrain** 规模问题，实际 fold 数由真实日历确定，约 260 只是参考。
+旧 monthly 两折与 3–6 小时情景不作为 weekly 估计。先拟两个代表性真实 weekly folds，
+分冷准备、已有 Feature 复用、每周成熟 label/Dataset/norm/fit/infer 与证明 I/O；先冻结教学
+范围/执行预算并跑通小例，全年/五年仍不启动。代码读取实际 catalog 自动成表，不手写
+另一份 Feature 事实源；模型无量纲分数、账户状态缓存、来源限制均保持原合同。
+
+<a id="ml-engineering-review-proposals"></a>
+### 8.4.1 四项具体候选：先评审，不默认生效
+
+以下是协调任务待裁决的候选合同，不改变当前 builder、保存件 loader 或 Engine 公共接口。
+教学 source 与生成 HTML 可先发布 draft 供亲读；业务运行须待方案审阅，全年/五年仍暂停。
+
+**A. 失效身份与复用边界。** 建议把阶段 recipe/cache identity 与完整实现审计 receipt 分开，
+在新版本命名空间试验，旧保存件和其身份不覆盖。Feature key 绑定实际输入 batch/view refs、
+Snapshot/QuerySpec、cutoff/PIT/价格与单位、完整 reference-members 截面、catalog/plan 语义及
+实际用到的 Core 算子实现；raw Label 绑定真实日历、f+1/f+5、价格/因子、可用时点与 label
+实现；norm/Dataset 再绑定 fit cutoff、成熟/排除键、列序与 transform；Model 绑定 Dataset、
+固定参数/seed/训练后端版本及训练实现；Signal 绑定 Model、Feature、预测时钟及推理实现。
+完整 repo/source/environment 仍留作审计，不因 UI 排版或未使用模块改动自动重算所有阶段。
+不能只比较人工 semantic_version 而忽略实际计算代码；未证明无关的改动保守 MISS。
+相同 key 仍逐次读取并核验原内容/来源闭包，不引入跨次持久“信任缓存”。
+
+只改 portfolio 以原 account-independent Signal 为输入，生成新的 Runtime plan/run 与
+Evaluation；不重训或改 Signal 身份。只改 label/model 从实际受影响阶段往下失效；改字段、
+Snapshot、PIT/cutoff 或 Feature 语义按真实依赖失效。账户、持仓路径、退出/风险策略状态属于
+各自账本，不能借“信号缓存”跨账户复用。首轮小例需证明同目标 HIT、实际受影响修改 MISS、
+旧 loader 可读，不能先把新候选身份当成现有公共能力。
+
+**B. 长 Feature/proof 切块、落盘与加载。** 建议首轮按 **2 个完整 feature 日期**一 shard，
+每日期保留完整固定 union/历史成员截面与 validity；滚动输入另保留所需前 20 个实际 session
+上下文，不按证券拆碎横截面归一化。shard 保存 keys/schema/值/null/时钟与 immutable parent
+选择；root 只保存范围、列序、各 shard digest、实际父依赖图及覆盖证明，不能驻留全部 rows。
+重复 source proof 作为 content-addressed blob 独立保存一次，shard 保存原 batch ref 与精确
+projection 描述；原 DataBatch digest/逐键来源不能改成一个未经验证的摘要。
+公开有界 loader 尚缺，候选必须先定义完整原 proof 的流式 hash/结构/投影核验，再只物化
+当前训练窗口需要的片与前置上下文，处理后释放；每次新调用重验，不能跨调用沿用信任。
+大矩阵采用声明的磁盘数组/按窗口读取，训练内存另计；此处不宣称实际 LGBM out-of-core。
+每个已完成 shard/fold 原子发布，checkpoint 仅引用其冻结身份；恢复时验完整 shard/输出
+再跳过计算。缺失、损坏或未完成临时件不作 HIT，不覆写旧结果。
+先验证 peak RSS、累计新文件、两 shard 交界 keys/NaN/排名、一次中断恢复与零重复 fit；
+预算不够先停止，不能把本轮私有多 parent 编排直接晋升为公共平台。
+
+**C. Weekly 真实小例、fit 窗口与预算。** 候选 OOS 为 **2024-02-05—02-08** 与
+**2024-02-19—02-23**；fit 分别为严格前一实际 session **02-02 / 02-08，20:30 +08**。
+教学控制使用此前三个完整日历月 **2023-11-01—2024-01-31** 的固定 Feature 日期，各周重新
+筛其 fit 时钟已经成熟且有效的 label，不能借 04-15 outcome cutoff 进入训练。日历、成员与
+cutoff 从同一固定 Snapshot 的公开合同证明；缺覆盖就 BLOCKED，不用工作日推断。
+314 原 January IDs/六特征是规模对照，不称两周完整 CSI300；字段由实际 registry 自动拉取
+OHLC/amount/factor 及成员/日历证据，原 Feature 复用需完整 parent 校验。每周推理包括严格
+前 session anchor；模型不能回填到自身 fit 之前的时钟。OOS outcome 仅用于事后评价，
+与训练 cutoff 分开。两周是教学/测量样本，不是全年模型或账户收益证据。
+拟上限：1 次同配置 saved-Feature 首建 fit/infer + 实际第二次 HIT；两 weekly folds 各
+1 次业务 fit/infer，最多 8 次公共 Data label-outcome 查询、供应商 0；不同组合最多 2 次
+账户/评价且须等 D 接口。一个重进程，RSS 硬上限 6 GiB、外部 own-PID guard 在 5.5 GiB
+停止；每阶段 120 s、总业务 480 s、累计新产物 1 GiB，超限保存证据停止，不自动扩预算。
+保存件解析、norm/Dataset、fit/infer、proof/hash、序列化/文件字节分别计时；冷 Data/Qlib
+准备先引用既有实测并明确“历史证据”，不冒称本次新冷跑。五年 weekly fold 数从真实日历
+枚举，估计按唯一日期冷准备与各实际 weekly 成本分开汇总；旧 monthly 3–6 小时不适用。
+
+**D. Engine TopK 最小接口提案（交 Engine owner 汇合）。** 当前 Runtime 只接受
+`portfolio_policy.top_k=5`，Core 固定 [:5]、budget/5，公共 context 无此参数。
+候选保留 `BacktestRequest.from_dict` / `run_backtest` 路径及原 Signal 合同，只将
+portfolio_policy 的 top_k 校验扩至首版 **{3,5}**；旧显式 5 请求继续有效。
+建议 Core 公开函数增量 `plan_stock_portfolio(frame, *, account, context, top_k=5)`，
+Runtime 把 plan 中 K 显式传入，保持原 context ABI；K 必须 exact int，拒绝 bool/float。
+足够有效成员时按原 score 降序/security_id 升序取 K，等权预算/K；不足 K 为 NO_DECISION。
+价格/现金/lot/T+1/费用/Unknown/admission/执行池/周首调仓政策均不改，不加分数正值门槛。
+K 进入 plan/run 与 Core 决策/意图身份和 trace；保存 Signal 的 bytes/ref 保持原值。
+旧保存 run/evaluation 不重写，loader 继续按其存储版本/hash 验证；Core 策略版本与新 trace
+由 Engine 冻结，不能假称旧文档已支持。对照固定同一 January Signal/market/初始账户/profile，
+实际跑 K5 与 K3 并证明至少一个目标组合不同；探针须记录 Data/supplier/Feature/fit/predict=0，
+仅 Core 组合/Runtime/Evaluation 有调用。改资金、只复制 JSON 或写断言都不算通过。
+本 PR 不编辑 Trade §04、不实现这个增量，准确合同由 Engine owner 亲审后吸收。
+
 | 变更 | 最先失效的阶段 | 可复用部分 |
 |---|---|---|
 | 只改 UI/报告排版 | 展示缓存 | 数据、Feature、模型、信号、账户评估原值 |
