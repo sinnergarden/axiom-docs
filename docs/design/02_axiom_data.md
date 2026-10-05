@@ -627,6 +627,33 @@ Snapshot/revision/receipt查回，不按mutable current重新发现。
 `load_review_display(directory, manifest_sha256=已绑定的字节摘要)` 校验此manifest及其
 引用文件后返回保存内容，不查询生产根、不重算显示或账户。Engine/UI使用此只读入口。
 
+<a id="independent-security-labels"></a>
+##### 新观察名称的独立绑定（待总控裁决）
+
+本轮83只股票的新stock_basic观察不能塞入旧行情Snapshot：现有security_query严格
+要求同Snapshot/政策/C，而新名称的真实receipt晚于已保存显示C。建议保留现有OHLCV
+目录与旧run，另存一个独立、不可覆盖的名称公共投影；不重新构建旧账户或改旧事实。
+名称先写入独立Raw/receipt与typed canonical，构建新的名称Snapshot，由公共
+`Data.events` 显式查询security_master的name/source_code，取得原生DataBatch。
+只请求保存plan中的83个稳定身份；代码映射沿已绑定来源证据，逐项核上市日和交易所，
+缺项、身份冲突与中文名称未提供单列，不能把今日标签称作历史有效名称。
+
+拟定独立文件为 `security-labels/manifest.json` 与 `securities.json`，合同
+`review_security_labels_v1`、用途 `retrospective_label`。securities保留完整名称
+DataBatch和 `name_kind=observed_label`、未知名称有效期（起止均null）；manifest绑定
+原run引用、原显示manifest字节引用、目标稳定证券集合、新名称Snapshot、实际
+label_cutoff及Reader版本，并给名称文件uri/bytes/sha256。label_cutoff须覆盖新receipt，
+与价格显示C分别保存；它不改变价格/因子的历史或事后可见性。独立公共保存/加载入口
+只验证身份范围和文件refs，加载不查询、不改显示价格，也不把名称Snapshot伪装成
+价格Snapshot。现有 `review_display_v1` 的同Snapshot限制保持原样；消费者仅按
+security_id关联明确的新标签。此段是待裁决方案，不代表新投影接口或消费已经验收。
+
+新增上证比较事实同样保存独立来源Snapshot与原生benchmark_daily DataBatch，明确
+来源为index_daily、证券代码000001.SH、收盘点位单位index points及真实receipt。
+31自然日probe通过后，仅取已保存ETF长run/股票Jan run的session与各自前锚点；
+Data保留原QuerySpec/context/field_meta，向Engine现有BenchmarkSeries交付可验证的
+native batch，收益归一、账户比较和指标归Engine，不以散CSV或重标旧来源替代。
+
 FRED 的 [NASDAQ100](https://fred.stlouisfed.org/series/NASDAQ100/) 明确是 Nasdaq, Inc.
 提供的NASDAQ-100日收盘指数；不是Composite。官方说明为美股收市值，通常16:00 ET、
 部分假日提前收市，单位Index，未季调；series页面更新时间是网站更新，不是逐revision
