@@ -1,16 +1,16 @@
 # 当前实现、复用与交付边界
 
-公开设计与教学的唯一编辑源是 axiom-docs。代码、配置和验收报告归实现 owner；本页链接固定提交的报告，不复制生产数据或另一份结果 JSON。专项设计正文继续定义目标，本页记录截至 2026-10-04 的有界交付。适用代码与此前安装包见 [versions.json](../versions.json)。
+公开设计与教学的唯一编辑源是 axiom-docs。代码、配置和验收报告归实现 owner；本页链接固定提交的报告，不复制生产数据或另一份结果 JSON。专项设计正文继续定义目标，本页记录截至 2026-10-05 的有界交付。适用代码与此前安装包见 [versions.json](../versions.json)。
 
 ## 本轮保存结果消费闭环
 
-固定 Data → Research Feature/Signal → Engine Core/Runtime 账户 → UI 保存结果展示，已完成此前短 ETF 样本、固定长 ETF 范围及有界股票短月的 owner 工程验收，范围各自保留。Research PR #1/#2/#3 已亲审后合并，当前 0.2.1 main 为 `3a7451e`、对应源码 `a8f30d4`；Engine PR #2—#6 已亲审后合并，当前 main 为 `9d0b52c`、对应源码 `cb94d7a`。UI PR #1/#2/#3 已亲审后合入 `publish/ui-readonly`，0.2.0 最终股票 v3 源码 `bcacc5f`、merge `05a1dd8` 包含合法缺 high/low 的降级修复。各次合并源码树与已审 head 一致，不因 merge 重跑。软件源码已经交付；owner 35 tests、默认安全 Chrome 与 wheel 资产独立核验通过，不代表已安装或发布新 wheel。Root 尚未亲看最终截图，用户未验收；本人私有 HTML/截图在 Mac 本地可打开，资料库交付受阻：实际工具返回 Library prepare_uploads is not available，0 文件写入、无文件 IDs；不重试或换通道。原本地非 Git 目录只保留旧副本，不作为另一处编辑源。
+固定 Data → Research Feature/Signal → Engine Core/Runtime 账户 → UI 保存结果展示，已完成此前短 ETF 样本、固定长 ETF 范围及有界股票短月的 owner 工程验收，范围各自保留。Research PR #1—#4 已亲审后合并，当前 0.2.1 main 为 `57359a8`、对应源码 `90b378a`；Engine PR #2—#7 已亲审后合并，当前 main 为 `d6655c7`、对应源码 `93de8f7`。UI PR #1/#2/#3 已亲审后合入 `publish/ui-readonly`，0.2.0 最终股票 v3 源码 `bcacc5f`、merge `05a1dd8` 包含合法缺 high/low 的降级修复。各次合并源码树与已审 head 一致，不因 merge 重跑。软件源码已经交付；owner 35 tests、默认安全 Chrome 与 wheel 资产独立核验通过，不代表已安装或发布新 wheel。Root 尚未亲看最终截图，用户未验收；本人私有 HTML/截图在 Mac 本地可打开，资料库交付受阻：实际工具返回 Library prepare_uploads is not available，0 文件写入、无文件 IDs；不重试或换通道。原本地非 Git 目录只保留旧副本，不作为另一处编辑源。
 
 | owner | 实际交付 | 固定源码与证据 | 验收边界 |
 |---|---|---|---|
-| Data | 固定 ETF/股票 Snapshot 的 native daily、因子、限价、成员、身份、日历与行动证据；消费者只读 | 原已验 0.3.5 `f6b8fad` 安装身份保留；最新 0.3.8 源码 [`aae9b23`](https://github.com/sinnergarden/axiom-data/tree/aae9b23d0e223b0221fb946b2e9daa9332cd622c) 经 [PR #37](https://github.com/sinnergarden/axiom-data/pull/37) 合并为 `44bad96`，含已审官方 fund_share_conversions 与新 Snapshot；[来源与事件边界](design/event-ambiguity-continuation.md) | 原 0.3.3 bulk builder/operation 绑定不改；PR #36 日历审计作为历史来源保留；best-effort/终态修订/成员来源限制保留，不声称十二年所有用途完整 |
-| Research | 确定性 ETF 信号；固定六特征/五 session 归一化 target/单 fold 股票模型；成熟训练键、信号汇总与计时 sidecar；不可变登记及只读投影 | 股票模型 [PR #2](https://github.com/sinnergarden/axiom-research/pull/2)：`091189e` → `fec9270`；阶段报告 [PR #3](https://github.com/sinnergarden/axiom-research/pull/3)：`a8f30d4` → `3a7451e`；[读取合同](design/05_axiom_research.md#stock-saved-stage-report-proposal) | 原 ETF/登记验收保留；股票模型 75 tests、阶段报告 25 项定向 tests 与独立复审。固定模型证据不扩为通用模型选择或预测收益承诺 |
-| Engine | 冻结信号/market replay 离线账本；ETF 份额拆分；有界 SZSE Top5 与股票费用/现金行动；保存 run/evaluation 公共 loader | ETF 拆分 [PR #5](https://github.com/sinnergarden/axiom-engine/pull/5)：`59a4e1c` → `1df81dc`；股票 [PR #6](https://github.com/sinnergarden/axiom-engine/pull/6)：`cb94d7a` → `9d0b52c`；[Trade §6.1](design/04_axiom_trade.md#stock-daily-observed-minimal) | 原账户/P10/v2 验收保留；股票 owner 114 source tests、独立复审及真实短月 observed/strict 保存件通过。日级事后近似，无 live/SQLite 恢复或完整股票数量行动/退市支持 |
+| Data | 固定 ETF/股票 Snapshot 的 native daily、因子、限价、成员、身份、日历与行动证据；消费者只读 | 原已验 0.3.5 `f6b8fad` 安装身份保留；当前软件源码 [`06b4bd5`](https://github.com/sinnergarden/axiom-data/tree/06b4bd562398fa433d26708586a7d00309bb1910) 经 [PR #39](https://github.com/sinnergarden/axiom-data/pull/39) 合并为 `1bb85e3`，包含 [PR #38](https://github.com/sinnergarden/axiom-data/pull/38) 的 Reader/manifest 复用；此前 PR #37 的官方 fund_share_conversions 与固定 Snapshot 来源保留；[来源与事件边界](design/event-ambiguity-continuation.md) | 原 0.3.3 bulk builder/operation 绑定不改；PR #36 日历审计作为历史来源保留；best-effort/终态修订/成员来源限制保留，不声称十二年所有用途完整 |
+| Research | 确定性 ETF 信号；固定六特征/五 session 归一化 target/单 fold 股票模型；成熟训练键、信号汇总与计时 sidecar；不可变登记及只读投影 | 股票模型 [PR #2](https://github.com/sinnergarden/axiom-research/pull/2)：`091189e` → `fec9270`；阶段报告 PR #3 的来源保留；调用内复用与特征/标签准备拆分 [PR #4](https://github.com/sinnergarden/axiom-research/pull/4)：`90b378a` → `57359a8`；[读取合同](design/05_axiom_research.md#stock-saved-stage-report-proposal) | 原 ETF/登记验收保留；股票模型/阶段报告原验收保留；新有界两折性能与保存证据独立复审通过，March 为部分 OOS。固定模型证据不扩为通用模型选择或预测收益承诺 |
+| Engine | 冻结信号/market replay 离线账本；ETF 份额拆分；有界 SZSE Top5 与股票费用/现金行动；保存 run/evaluation 公共 loader | ETF 拆分 [PR #5](https://github.com/sinnergarden/axiom-engine/pull/5)：`59a4e1c` → `1df81dc`；股票 PR #6 来源保留；保存 Reader 复用 [PR #7](https://github.com/sinnergarden/axiom-engine/pull/7)：`93de8f7` → `d6655c7`；[Trade §6.1](design/04_axiom_trade.md#stock-daily-observed-minimal) | 原账户/P10/v2 验收保留；股票 owner 114 source tests、独立复审及真实短月 observed/strict 保存件通过。日级事后近似，无 live/SQLite 恢复或完整股票数量行动/退市支持 |
 | UI | 公共 Reader 的保存运行导航、显式 diff、阶段报告与 ETF/股票 v3 静态只读展示 | 0.2.0 最终源码 [`bcacc5f`](https://github.com/sinnergarden/axiom-ui/tree/bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4) 经 [PR #3](https://github.com/sinnergarden/axiom-ui/pull/3) 合并为 `05a1dd8`；[owner 展示验收](https://github.com/sinnergarden/axiom-ui/blob/bcacc5febafc4a4938a64f0fa45ef3cd5f4c79d4/reports/stock-account-v3-display-acceptance.json)、[只读接入](ui-workbench-read-contract.md) | 35 tests、默认安全 Chrome 桌面/手机及 wheel 资产独立核验通过；root 源码亲审，最终像素未亲看、用户未验收。本人资料库交付受阻，Mac 本地可打开；不重算或写 owner，无完整 BFF/live 产品验收 |
 
 ### 同一输入与两种执行政策
@@ -41,9 +41,17 @@ Engine [PR #4](https://github.com/sinnergarden/axiom-engine/pull/4) 将 [有界�
 
 股票仅覆盖统一 [Trade §6.1](design/04_axiom_trade.md#stock-daily-observed-minimal) 的 2024-01 有界 SZSE 主板三前缀账户窗口：原 314 预测 union 和模型身份不改，账户事件核验覆盖完整 83 资格 union。Engine 保存显式 observed 与严格 UNKNOWN 对照及各自评价，22 个 NAV sessions 的 CAGR 仍为 null/INSUFFICIENT_SPAN；源码与 owner 保存件验收通过，不在此复制私人收益明细。Research 在原 normalized 模型版本追加两条账户登记、关联原阶段报告，旧 model manifest/历史登记当时的 blocked 状态不倒写。原行情批次已包含 OHLCV/amount，直接复用同 Snapshot、同 Query 与 source reference，volume_shares 为股；此次交接没有新 Data 查询、训练或账户执行。
 
-股票证据保存支持 bundle 内 coverage 去重/压缩，重建后仍绑定完整原 native batch hash，不借存储压缩宣称来源完整。Owner 测得该短样本公共 loader 约 29 秒、峰值约 4 GB，市场证据约 103.9 MB；这些是当前保存件的解码成本，并非已完成多年股票规模验收。原 Source、模型、manifest、账户和评价保持不变；UI 只展示明确绑定的保存值。
+股票证据保存支持 bundle 内 coverage 去重/压缩，重建后仍绑定完整原 native batch hash，不借存储压缩宣称来源完整。此前 owner 的旧源码完整保存件消费/导出验证基线约 29.10 秒、峰值约 4 GB，包含两次 Reader/to_dict 及 208 个受保护文件哈希；市场证据约 103.9 MB。这不是新版单 Reader 的耗时或页面打开时间，也不是已完成多年股票规模验收。原 Source、模型、manifest、账户和评价保持不变；UI 只展示明确绑定的保存值。
 
-扩长耗时只作线性参考：同环境、同配方、固定 314 标的 union 与六特征，实际 81 个 Feature sessions / 25,434 行冷建 1,020.77 秒（约 17 分钟）；假设一年 250 sessions，Feature 约 53 分钟，2020—2026 七年量级约 6.1 小时。250/年是规模假设，不替代真实冻结日历；历史成员 union、缓存、证据和分区 I/O 会改变成本。当前归一化模型训练实测约 0.048 秒，训练不是该短样本瓶颈；上述估计仅指 Feature，不包含尚未验证的多年证据内存、训练计划或账户 I/O 扩展。22 日账户 Reader 的约 29 秒 / 4 GB 已显示保存证据成本，暂不能保证多年账户或全链在一天内完成；本轮未实际运行长股票或新增性能框架。
+此前源码的扩长耗时只作历史线性参考，最新有界测量见下节：同环境、同配方、固定 314 标的 union 与六特征，实际 81 个 Feature sessions / 25,434 行冷建 1,020.77 秒（约 17 分钟）；假设一年 250 sessions，Feature 约 53 分钟，2020—2026 七年量级约 6.1 小时。250/年是规模假设，不替代真实冻结日历；历史成员 union、缓存、证据和分区 I/O 会改变成本。此前归一化模型训练实测约 0.048 秒，训练不是该短样本瓶颈；上述估计仅指 Feature，不包含尚未验证的多年证据内存、训练计划或账户 I/O 扩展。22 日账户旧源码完整消费/导出验证基线的约 29.10 秒 / 4 GB 已显示保存证据成本，暂不能保证多年账户或全链在一天内完成；该历史轮未实际运行长股票或新增性能框架。
+
+### 已合软件性能与验证范围（2026-10-05）
+
+上述三个软件性能 PR 均经独立 review 与父任务亲审后通过 PR 合并；原 hash、时间、成员、来源及输入绑定检查保留，新安装包没有验收声明。Engine 的 **45.5% 耗时下降**是同一保存件的单 Reader 有界实测，不能称为完整 UI 导出提速。Data PR #38 复用一次验证的 manifest 与选定分区，PR #39 在同次 Qlib 导出中复用 freshly verified Reader：冷导出 manifest 加载 **5→1 次**，warm 导出仍重新验证一次；这不是 5 倍实测提速，也没有该新版 exporter 的生产 RSS/耗时验收。
+
+Research 保持原固定 314 股票控制集、六特征、五个实际 session label 与模型参数；共享日期只准备一次，各折仍使用独立 fit/outcome cutoff、成熟标签、当日可见成员及逐日截面归一化。February 完整 **15 个 OOS sessions**、March 仅 **3/21 个 OOS sessions**，均完成真实 fit/predict、同矩阵复现、保存模型预测复现及保存证据独立复审，无效行保留。本次复用已准备 Native 的两折主进程约 **282.34 秒、主进程峰值 4.09 GiB**，包含约 65.62 秒额外原 adapter 正确性对照；不含单独 Qlib 准备及先前未完成尝试，OS 页缓存未清理。私人模型、预测、账户结果与完整 benchmark 日志仍只在本地；该验收没有生成新的多年账户。
+
+**条件估计**：固定相同 314 股票/六特征、假设每年 250 sessions 并复用共享日期，5 年约 3.2—3.4 小时、6 年约 3.8—4.1 小时。它只外推有界特征速率和两折的剩余阶段成本，March 部分 OOS 与固定设置成本均保留在估计限制中；不含冷 Qlib 导出扩展、历史成分股 union 扩张或额外来源覆盖成本。仅序列化特征/输入证据即估为约 3.67/4.37 GiB，当前 helper 会保留输入至返回；多年分块驻留内存、完整 OOS 查询成本与全链吞吐均未验，不能保证多年任务在 6 GiB 或一天内完成。原统计语义、账户和保存件不因本轮性能更新而改变。
 
 ### 公开加载与持久复用
 
@@ -74,11 +82,11 @@ UI 价量输入只读同一冻结 Snapshot，精确复用保存账户的 market_
 
 ## 尚未完成的范围
 
-Data 已完成第一阶段股票/ETF 来源采集与显式续接，0.3.8 固定源码 `54e98c6` 保留不可裁决事件的 cutoff 可见缺失范围；这属于有明确限制的来源交付，不能当作所有研究/交易用途均完整。事件裁决见 [Data 补充](design/event-ambiguity-continuation.md)。此前财务冲突修复待验和暂停 checkpoint 数量仅是历史状态。日历审计修正 `e62774c` 经 PR #36 合并为 `93872ac` 的历史来源保留；最新已亲审官方 fund_share_conversions 源码 `aae9b23` 经 PR #37 合并为 `44bad96`，版本仍为 0.3.8，并提供新的固定 Snapshot。更正覆盖报告与最终固定输入已被上述有界 ETF/股票消费者使用，不沿用旧待完成 Snapshot 状态或失效缺口数字。既有安装包、原 0.3.3 builder 和续接 operation 的具体绑定各自保留，不因新源码或消费者结果改写。本轮 docs/消费者没有改写原计划、进程、Raw、checkpoint、数据根或 current；完整十二年所有用途覆盖仍未获得验收。
+Data 已完成第一阶段股票/ETF 来源采集与显式续接，0.3.8 固定源码 `54e98c6` 保留不可裁决事件的 cutoff 可见缺失范围；这属于有明确限制的来源交付，不能当作所有研究/交易用途均完整。事件裁决见 [Data 补充](design/event-ambiguity-continuation.md)。此前财务冲突修复待验和暂停 checkpoint 数量仅是历史状态。日历审计修正 `e62774c` 经 PR #36 合并为 `93872ac` 的历史来源保留；已亲审官方 fund_share_conversions 源码 `aae9b23` 经 PR #37 合并为 `44bad96`，版本为 0.3.8，并提供此前固定 Snapshot。当前软件 main `1bb85e3` / source `06b4bd5` 追加 PR #38/#39 的读取复用，不改写原 Snapshot 或 bulk 绑定。更正覆盖报告与最终固定输入已被上述有界 ETF/股票消费者使用，不沿用旧待完成 Snapshot 状态或失效缺口数字。既有安装包、原 0.3.3 builder 和续接 operation 的具体绑定各自保留，不因新源码或消费者结果改写。本轮 docs/消费者没有改写原计划、进程、Raw、checkpoint、数据根或 current；完整十二年所有用途覆盖仍未获得验收。
 
 长历史先依据 Data 的有界 `etf_limit` / `stk_limit` 探测选择上述共同范围，再固定 final Snapshot 并完成 owner 消费；精确代码窗口、正控、来源推断边界及起点门槛见 [Research 数据准备](design/05_axiom_research.md#41-数据准备顺序)。保持执行限价/profile、原日期和固定 7 ETF。旧 Snapshot 的首周小预算预检仍只是历史起点证据，不冒充 final 范围；两处范围内行情缺失按原 invalid/执行规则保留。私人输入与产物继续只保存在本地，不为状态收尾重复多年 Feature、训练、账户或教程。
 
-任意 FeaturePlan、TTM 联合投影、通用模型选择/跨 fold OOS、股票多年策略或规模性能、跨 OS、完整浏览器/BFF、SQLite/Broker 恢复与实盘均未因此获得验收。固定股票六特征/五 session label/单 fold 训练与保存件验收是已交付的有界能力，不再统称为未实现。股票 UI 修复源码已合并交付，owner 图表 QA、root 亲看最终像素和用户验收分别登记，后两者尚未完成；本人资料库交付最终回执为 BLOCKED/0 文件写入，Mac 本地文件可打开。普通说明、注释和链接变更只做文档检查；可执行教学变更只执行受影响单元及前置条件。
+任意 FeaturePlan、TTM 联合投影、通用模型选择/跨 fold OOS、股票多年策略或规模性能、跨 OS、完整浏览器/BFF、SQLite/Broker 恢复与实盘均未因此获得验收。固定股票六特征/五 session label/单 fold 训练与保存件及上述两折性能验收是已交付的有界能力；两折不等同于通用跨 fold 平台或新的多年账户验收。股票 UI 修复源码已合并交付，owner 图表 QA、root 亲看最终像素和用户验收分别登记，后两者尚未完成；本人资料库交付最终回执为 BLOCKED/0 文件写入，Mac 本地文件可打开。普通说明、注释和链接变更只做文档检查；可执行教学变更只执行受影响单元及前置条件。
 
 统一交付收尾的检查记录见 [docs closeout check](../reports/docs-etf-closeout-check.json)：该轮 Notebook 代码、输出与元数据逐单元不变，保存输出重新渲染；新增本地链接、固定 owner 提交/文件与版本引用核对通过。
 
