@@ -870,6 +870,31 @@ save_backtest_evaluation(report, new_report_path)
 目标可调用 Core 两次，如比较已成交结果则不同 k 须各有独立账户 run。
 这两个增量入口在 Engine 源码/定向验收完成前均为设计状态。
 
+**上证事后比较最小准入（2026-10-05，待父审/源码验收）。** Data 已交接
+`benchmark_daily` 原生保存 DataBatch（仅 close），证券 `000001.SH`、单位
+`index points`、原 `series_kind=price_index`，不是全收益指数；独立新观察 Snapshot、
+`operational_pit_v1`、`historical_exploration` 和共同观察 cutoff C 保留原值。
+它不能通过 CSI300 的旧 same-Snapshot/历史 cutoff 合同重新标记为策略当时已知。
+
+准确最小入口为 `read_sse_benchmark(native_path, *, receipt, run_key)`，其中 receipt
+是 Data 的完整固定 handoff，run_key 为其已登记的账户条目；以及无 I/O 工厂
+`retrospective_sse_benchmark(*, native_batch_text, receipt, run_key)`。两者返回现有
+`BenchmarkSeries` 类承载的新合同 `retrospective_benchmark_v1`：原生 UTF-8 文本、
+byte SHA/长度、完整 receipt/ref、原 Snapshot/query/C 与每条 close 的原日期、
+`usable_from`、missing_reason/provenance 均进身份。公共 loader 只读固定文件并验证
+receipt 中 byte ref；不查询 Reader 或供应商、不改写 Data 原生 payload。
+
+准入检查 close 单位、唯一完整 query 键、timezone-aware 原收据/usable_from≤C、
+当前观察政策/用途、原始行与逐键 metadata。C 可以晚于账户交易日期，必须披露为
+当前观察的事后对照。receipt 中 run 三元组/首末日期/前 anchor 必须对应所消费的
+原 v2；CSI300 仍逐字绑定原 v2输入，两个账户仍只读。新增 SSE input/ref 后另保存
+v3 报告；旧 v3（SSE=None）、旧 v1/v2 均可加载，不改旧报告或身份。
+
+SSE 元数据明确 CNY 成分价格指数、Asia/Shanghai、本地 session 与观察 C。精确原生
+日期对齐，不 forward-fill/asof；缺边界/缺价为 null。使用原账户保存累计收益计算
+事后价格指数相对财富，UI 不计算收益。Nasdaq100 继续 `SOURCE_UNAVAILABLE`，整体
+`PARTIAL`；来源和许可未核准前没有新准入，也没有原币/FX 数据的替代造数。
+
 Data 显示投影消费另走 `build_fill_display(run, *, display)` 与独立保存/加载入口，
 消费 [Data §7.3.5 固定设计](https://github.com/sinnergarden/axiom-docs/blob/b36f6a75e0a55c1c407026e38f3704485a22d1fb/docs/design/02_axiom_data.md) 的
 `review_display_v1`；对应章节合入 main 后归回相对入口。准确入口如下
