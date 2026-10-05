@@ -488,11 +488,15 @@ definition 绑定 input_manifest_ref、fold_spec、所有准确输入文件/内�
 同 definition 的完整保存件才 HIT；HIT 不查询/训练/推理，失败临时件不是 HIT，不覆盖旧结果。
 SignalEvidence 只消费原02-29 20:30 OOS raw Label，账户/收益准入与此证据分开。
 fold 顶层另存 `engine_admission={neutral_validation:'NOT_PERFORMED_BY_BUILDER',
-runtime:'UNSUPPORTED_V2'}`：构建器不调用 Engine 中立 validator 或账户。独立验收显式
+runtime:'NOT_PERFORMED_BY_BUILDER'}`：构建器不调用 Engine 中立 validator 或账户。
+该字段记录本保存件尚未执行准入验证，不能用它判断当前Engine的软件能力。旧产物中的
+`runtime:'UNSUPPORTED_V2'` 保留为当时保存值；loader接受这两种完整map，均不作为
+已准入凭据，也不允许自行写入ADMITTED。独立验收显式
 调用公共 `validate_stock_predictions(StockPredictionFrame.from_dict(saved.predictions()))`；
 通过证据由 owner receipt 保存，不倒写 fold。当次合成软件输入已通过已审 Engine
 `ac20e086` 的同一中立入口（随后合并 `330903c6`）；真实两折输出尚未验证。
-Engine v2 中立结构/时钟支持与 v2 planner/Runtime 账户消费分开，后者本轮明确拒绝。
+Engine中立结构/时钟校验与账户消费分开。当前Engine PR14已增加明确的schedule准入路径，
+Research构建器仍不调用它；调用方须显式校验原fold/model/predictions及完整日历，再执行账户。
 
 新增准备最多两次公共查询：同固定 Snapshot/02-08 20:30 cutoff/purpose=label_outcomes，
 读取02-02/05/06/07/08的 market_daily(open,close) 与 adjustment_factors(factor)，原 Data
