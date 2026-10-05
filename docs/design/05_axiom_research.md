@@ -501,9 +501,11 @@ common-anchor=02-08，补02-01 raw label并调用原公开归一化一次。fold
 每阶段120秒/新增总480秒/新文件100 MiB；合同核过前不运行业务。
 
 <a id="two-year-weekly-batch-proposal"></a>
-### 4.8 两年训练窗与逐周批次：待主协调亲审的设计增量
+### 4.8 两年训练窗与逐周批次：软件候选与实测边界
 
-状态：`proposed`（2026-10-05）。用户要求简单 Feature、LightGBM、Top5 全链正确且高效。
+状态：`software_candidate_synthetic_verified`（2026-10-05）。Research批次入口和两年窗口已完成
+合成定向验收，软件仍待亲审；真实两年父件、四周fit/predict与新账户尚未执行。
+用户要求简单 Feature、LightGBM、Top5 全链正确且高效。
 独立信号评价与批次优化可并行准备，基础评价结果优先交付；后续指标不阻塞连续四个
 真实周的两年滑窗与新账户试点。五年运行在主协调核过
 总耗时和数据边界后启动；本节记录方案，未运行新的业务或 benchmark。
@@ -523,29 +525,41 @@ LightGBM 参数。训练成员取各日历史资格；批次 union 覆盖两年�
 选窗依据数据覆盖，不能看过收益后换窗。
 
 **一次验证和每折工作分别做什么。** 批次初始化读取每个唯一保存父件一次，核对文件与
-内容身份、来源证明、Snapshot/PIT、完整键、列序、成员及原事实时钟。它把 Feature 值和
-必要资格、时钟索引装入不可写矩阵，逐片释放完整 JSON/proof 对象。各折从同一矩阵按
-交易日切片，共用一次按完整证券ID和日期建立的索引；每折仍检查窗口和阶段时钟，筛选
-已成熟标签，调用现有 Core 截面归一化，再从同一合格键集合产生 X/y、训练和预测。
+内容身份；共同Feature父件同时核对来源证明、Snapshot/PIT、完整键、列序、成员及原事实时钟。
+标签的来源、cutoff与成熟资格仍由各折独立核对。初始化把Feature值装入不可写矩阵，
+必要资格和时钟随共享行与索引保留，逐片释放完整proof；Feature行和元数据共用同一解析对象。
+各折从同一矩阵按交易日切片，共用一次按完整证券ID和日期建立的索引；
+每折仍检查窗口和阶段时钟，筛选
+已成熟标签，再从同一合格键集合产生 X/y、训练和预测。各fit的归一化Label父件在准备
+阶段调用现有Core保存；批次构建器验证其Core输入、输出与资格闭包，不再次执行归一化。
 
 Raw Label 按原 Query/cutoff 与父件版本分组。不同 fit 所需的标签来源版本不同，就分别
 保存并在初始化各读一次；相同文件/ref共用。晚 cutoff 查询出的最终标签按日期截断，
 不能冒充较早 fit 的来源。首版保留当前 common-anchor、f+1开盘/f+5收盘及价格/因子
 可用时钟规则，先去掉父件重复解析，再依据实测决定标签准备是否需要进一步优化。
 
-**入口与保存件候选。** 增加有界 `load_stock_ml_batch_inputs(batch_manifest, limits=...)`
-入口，并给现有 `build_stock_ml_fold_from_saved_inputs` 增加可选 `batch` 参数。
-batch_manifest 引用原 scope、calendar、Feature父件以及按fit分组的Raw Label父件，
+**入口与保存件候选。** 首版提供有界 `load_stock_ml_batch_inputs(batch_manifest, limits=...)`
+入口，并为现有 `build_stock_ml_fold_from_saved_inputs` 增加可选 `batch` 参数。
+首版准确形状为 `{contract_version:'stock_ml_batch_inputs_v1',
+folds:[{input_manifest:<原stock_ml_saved_inputs_v1>,fold_spec:<原v1或新v2>}...]}`。
+各input_manifest引用同一scope、calendar、Feature父件，以及按fit分组的Raw和归一化Label父件，
 普通文件描述符沿用 `{path,file_digest,feature_ref或label_ref}`。该对象只在当前进程和
 固定输入定义内有效，构建器核对定义匹配；调用方不能传一个布尔值跳过验证。
 退出批次释放矩阵，mmap或分块只在容量测量需要时采用。
 入口接受非空、有序、有限的fold列表，不设1–4折产品上限；3–4折只是首轮试点预算。
 资源预检按实际fold、行和字节数量执行，后续扩到多年仍使用同一入口。
+`limits`准确字段为正整数 `maximum_source_bytes` 与 `maximum_matrix_bytes`，默认分别
+8GiB与512MiB。它们限制唯一来源文件和共同float64矩阵的字节数，不能证明JSON解析后的
+RSS低于进程预算；Raw/归一化Label父件目前驻留批次缓存，真实准备仍须单独量测峰值内存。
+`batch.metrics`给出实际父件读取次数、共同矩阵字节与初始化耗时；`close()`或上下文退出释放缓存。
 
 两年窗口使用新 `stock_ml_fold_spec_v2`，
 `training_window={unit:'calendar_years',length:2,end:'previous_fit_session',
 start:'fit_date_minus_years_inclusive',leap_day:'clamp_feb_28'}`；其他阶段时钟字段沿§4.7。
 新fold/dataset使用v2命名空间并绑定实际训练日期和键，旧65-session v1合同与文件保留。
+新Feature slice仅物化OOS行，保留实际training_sessions和各日父件；新Label slice保存
+选择摘要、键数、排除原因与父件。Dataset保留实际入模键和联合训练行digest，独立loader
+从原父件重建后精确核对这些值。
 Feature父件、模型后端及 `stock_prediction_run_v2` 的字段沿用现有接口。每折保存归一化
 标签、Dataset、模型、预测和引用原父件的证明，不在每折复制整份两年Feature/proof。
 发布时验证新文件字节、引用及每折闭包，复用当前批次已经验证的共同父件。独立进程调用
@@ -567,6 +581,12 @@ run入口一次校验schedule、model和预测闭包，再建立session索引；
 已准入组并核当前账户/决策context。前收和成员保留Feature原20:30 cutoff，21:00
 预测在下一实际交易日08:55决策准入。跨fold持仓与现金连续；调仓仍由显式策略政策决定。
 该提案冻结并实现后才能验收整链；此前v1账户不是本轮结果。
+
+**新账户与页面范围。** 用户已明确所有后续新回测统一初始现金500000元，即
+`initial_account.cash_minor=50000000`。信号和模型可复用，账户必须以该初始值真实运行，
+不能缩放旧净值代替。页面撤下旧账户记录，本地保存件、登记原值和审计证据保留。
+页面展示原保存执行profile的佣金、最低佣金、税费、滑点和容量假设；滑点为0时明确写零滑点，
+不省略费用或把开盘代理成交当成真实开盘流动性证据。此处记录展示与新账户要求，未改写旧结果。
 
 **首轮预算与正确性。** 建议一个重进程，总预算30分钟，5.5GiB停止、6GiB硬上限，
 新增私人产物8GiB；达到任一预算就保存阶段证据并暂停。先做键乱序、重复/缺行、一日
