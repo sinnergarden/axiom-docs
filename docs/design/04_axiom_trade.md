@@ -892,7 +892,10 @@ v3 报告；旧 v3（SSE=None）、旧 v1/v2 均可加载，不改旧报告或�
 
 SSE 元数据明确 CNY 成分价格指数、Asia/Shanghai、本地 session 与观察 C。精确原生
 日期对齐，不 forward-fill/asof；缺边界/缺价为 null。使用原账户保存累计收益计算
-事后价格指数相对财富，UI 不计算收益。Nasdaq100 继续 `SOURCE_UNAVAILABLE`，整体
+事后价格指数相对财富，UI 不计算收益。同图所需 `benchmark_cumulative_return`
+由 Engine 同时保存于原生与账户日期投影点，值为 `normalized_index - 1`，沿用同一
+anchor 与 null 规则；旧 v3 无该字段仍可读，UI 明确使用净值指数模式或不可用，不补公式。
+Nasdaq100 继续 `SOURCE_UNAVAILABLE`，整体
 `PARTIAL`；来源和许可未核准前没有新准入，也没有原币/FX 数据的替代造数。
 
 Data 显示投影消费另走 `build_fill_display(run, *, display)` 与独立保存/加载入口，
