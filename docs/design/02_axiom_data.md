@@ -597,8 +597,9 @@ ETF长窗（7只、2019-07-01—2026-09-30、12,334行）和股票Jan窗（83只
 2024-01-02—01-31、1,826行），Data保存后核对及新进程公共loader通过。
 共同C为 `2026-10-05T06:17:55.480001Z`、政策为operational_pit_v1、A为各窗末日；
 这是事后显示观测截止，不是策略历史cutoff。ETF保留2个来源缺价，附7个名称、
-23条范围内分红记录及2个份额转换事件；股票Snapshot缺name/source_code，未补采或
-以其他Snapshot名称替代。ETF/股票ohlcv文件分别123,327,134/18,201,397字节；
+23条范围内分红记录及2个份额转换事件；股票原Snapshot缺name/source_code，该显示
+目录未绑定其他Snapshot名称；后续独立名称补采状态见下段。ETF/股票ohlcv文件分别
+123,327,134/18,201,397字节；
 本轮生成进程峰值RSS约4.36GB，新进程保存加载峰值约612MB，消费者仍需按预算读取。
 Engine成交显示映射、UI实际消费及完整来源覆盖仍待各owner验收；不将此次有界Data
 导出当作全历史认证。主设计的亲审不替代这些检查，新增来源也未因此获准接入。
@@ -648,11 +649,29 @@ label_cutoff及Reader版本，并给名称文件uri/bytes/sha256。label_cutoff�
 价格Snapshot。现有 `review_display_v1` 的同Snapshot限制保持原样；消费者仅按
 security_id关联明确的新标签。此段是待裁决方案，不代表新投影接口或消费已经验收。
 
+2026-10-05 有界补采已完成：83只/83个中文标签均由stock_basic逐只精确代码请求取得，
+上市日/交易所与旧run已绑定身份一致；新Raw的真实receipt、revision与公共名称DataBatch
+已保留。名称源固定Snapshot为 `s_1bf3b4990a13f3e943fba7f2f2d8f9605520988abc7bd520064f70acabdc2092`，
+label_cutoff为 `2026-10-05T06:38:32.306117Z`，与价格显示C分别保存。最后一请求发生
+一次传输失败，复用82条原receipt有界续接一次后完成；没有全市场名称查询、历史
+名称有效期推断或旧run/显示文件改写。83个Raw与1个typed分区验证通过；独立名称
+公共投影的绑定/加载接口仍按上段等待裁决，不能把观察完成写成UI接入完成。
+
 新增上证比较事实同样保存独立来源Snapshot与原生benchmark_daily DataBatch，明确
 来源为index_daily、证券代码000001.SH、收盘点位单位index points及真实receipt。
 31自然日probe通过后，仅取已保存ETF长run/股票Jan run的session与各自前锚点；
 Data保留原QuerySpec/context/field_meta，向Engine现有BenchmarkSeries交付可验证的
 native batch，收益归一、账户比较和指标归Engine，不以散CSV或重标旧来源替代。
+
+2026-10-05 probe选择2024-01-01—31（31自然日），取得22个有效来源session；通过后
+仅补2019-06-28—2026-09-30并按保存plan分别查询ETF的1,763个session（前锚点
+2019-06-28）和股票Jan的23个session（前锚点2023-12-29），两批缺价均为0。
+源Snapshot为 `s_95ee352a944eafb1e6a9d22d6bb22c31985a5c3798ac559bdc36f66bbee269ba`，
+共同查询C为 `2026-10-05T06:34:05.432385Z`；2个真实Raw与88个typed分区验证通过。
+这是新观察的operational_pit_v1/historical_exploration原生证据。已读Engine保存分析
+源码 `931e33f` 的BenchmarkSeries仍限定000300.SH、账户同Snapshot与历史日截止；
+上证native batch已交付，但需Engine owner显式支持新的独立事后比较身份/来源/时钟。
+Data没有把000001.SH重标为000300.SH或伪造历史可用时刻，也未重算旧账户/指标。
 
 FRED 的 [NASDAQ100](https://fred.stlouisfed.org/series/NASDAQ100/) 明确是 Nasdaq, Inc.
 提供的NASDAQ-100日收盘指数；不是Composite。官方说明为美股收市值，通常16:00 ET、
