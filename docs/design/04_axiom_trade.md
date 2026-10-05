@@ -661,6 +661,20 @@ saved = load_backtest_evaluation(report_path)
 payload = saved.to_dict()
 ```
 
+<a id="saved-reader-cost"></a>
+**保存 Reader 性能约束。** 状态 `frozen_for_bounded_saved_reader_optimization`（2026-10-05）。
+允许同一次加载复用已校验的 coverage canonical bytes，并按原 canonical JSON 的键序、
+数组顺序、数值编码与 UTF-8 字节流式核对完整原 DataBatch SHA，减少重复遍历和巨大临时
+字符串。有限值、Unknown、来源与引用闭包、投影及损坏输入的全部验证仍须执行；不能
+直接信任未验证的原字节或绕过投影语义。旧保存件身份、refs、输出值及公共 API 不变，
+校验复用只在本次加载内有效，不建立跨次持久信任缓存，不查询 Data 或重算账户/统计。
+
+Owner 对保存股票样本的完整 Reader 诊断为约 27.34 秒 / 3.99 GB，其中 canonical 校验
+与序列化约 23.01 秒；磁盘读取约 0.11 秒、解压约 0.33 秒。此前约 29.10 秒另含两次
+Reader/to_dict 与 208 个受保护文件哈希，不能当作页面打开耗时；已导出 HTML 的打开与切页
+不调用 Reader。优化验收须核对原/新加载的身份与值、错误输入拒绝和峰值内存，并分别
+记录加载、校验、投影的成本；本单样本诊断不作为多年性能保证。
+
 §11.2 的已确认增量入口已由 Engine PR #4 实现；复用上述评价、保存和只读加载函数，仅增加固定工厂，不另建账户路径。以下示例本轮未执行：
 
 ```python
