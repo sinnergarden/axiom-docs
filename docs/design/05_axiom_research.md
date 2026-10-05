@@ -510,7 +510,10 @@ common-anchor=02-08，补02-01 raw label并调用原公开归一化一次。fold
 
 **窗口与基线。** 候选四周为 2024-01-02—01-26，fit 分别取冻结日历中的
 2023-12-29、2024-01-05、01-12、01-19。每次训练使用 `[fit日期减两年, fit日期)`
-内的实际交易日；减两年遇2月29日回落2月28日。只纳入 fit 时已经到期且可用的五交易日
+内的实际交易日；实际末交易日是冻结日历中严格早于fit日期的最后交易日，
+`training_window.end='previous_fit_session'` 表示这一边界，不再额外退一日。
+保存实际training_sessions及首末session，由冻结日历核对完整日期列表，不靠字符串猜。
+减两年遇2月29日回落2月28日。只纳入 fit 时已经到期且可用的五交易日
 标签，晚于 fit 的尾部保留排除原因。模型在上一周最后交易日晚训练，预测下一周各交易日
 严格前一 session 的 Feature。Top5调仓日期由显式weekly_first_trading_session政策
 决定；fold或model切换本身不触发额外调仓。
@@ -600,6 +603,8 @@ SignalExpression 固定 inputs、join keys、算术/条件操作、归一化截�
 
 Research定义评价范围和标签版本，按 `(security_id,feature_session)` 拼接保存预测与
 成熟Raw Label，加载同批Label一次。训练所用归一化target与评价所用原始未来收益区分。
+信号评价使用独立evaluation_cutoff；较晚才成熟或可用的标签可进入事后评价，
+不能回流到此前fit_cutoff的训练样本或改写已经保存的模型。
 默认指标为日截面Pearson IC、平均秩处理ties的Spearman RankIC，以及有效日序列的
 mean/std(ddof=1)和非年化ICIR/RankICIR。保留当前minimum_pairs=20；不足20、常量
 截面或非有限相关值保存null与原因。序列不足2日或std为0时IR为null；无有效日时均值
@@ -618,7 +623,8 @@ DuckDB可作为同表批量join/group/rank的候选后端，先与基准算子�
 Signal，或按时间覆盖且键不重叠的weekly Signal列表；后者保留所有原refs及model refs，
 不伪装成一个单模型Signal。独立loader只验证保存值和来源绑定，不重新计算指标或账户。
 同Signal和同评价定义换TopK时复用原评价，策略各自的账户评价继续由Engine保存。
-CAGR、回撤及未来审准的Sharpe/Calmar都属于Engine；本合同不宣称后两项已实现。
+CAGR、回撤、Sharpe和Calmar均由Engine已实现的
+[保存账户分析评价](04_axiom_trade.md#saved-account-analysis)提供，Research读取原保存值。
 
 `stock_signal_evidence_v2` 候选顶层为 `evidence_ref/content_digest/input_signal_refs/
 input_evidence/label_ref/label_spec/scope/spec_ref/spec/sample_mask_ref/statistics_input_ref/statistics_ref/series/summary/
