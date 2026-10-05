@@ -629,10 +629,10 @@ Snapshot/revision/receipt查回，不按mutable current重新发现。
 引用文件后返回保存内容，不查询生产根、不重算显示或账户。Engine/UI使用此只读入口。
 
 <a id="independent-security-labels"></a>
-##### 新观察名称的独立绑定（待总控裁决）
+##### 新观察名称的独立绑定
 
 本轮83只股票的新stock_basic观察不能塞入旧行情Snapshot：现有security_query严格
-要求同Snapshot/政策/C，而新名称的真实receipt晚于已保存显示C。建议保留现有OHLCV
+要求同Snapshot/政策/C，而新名称的真实receipt晚于已保存显示C。采用保留现有OHLCV
 目录与旧run，另存一个独立、不可覆盖的名称公共投影；不重新构建旧账户或改旧事实。
 名称先写入独立Raw/receipt与typed canonical，构建新的名称Snapshot，由公共
 `Data.events` 显式查询security_master的name/source_code，取得原生DataBatch。
@@ -647,7 +647,14 @@ label_cutoff及Reader版本，并给名称文件uri/bytes/sha256。label_cutoff�
 与价格显示C分别保存；它不改变价格/因子的历史或事后可见性。独立公共保存/加载入口
 只验证身份范围和文件refs，加载不查询、不改显示价格，也不把名称Snapshot伪装成
 价格Snapshot。现有 `review_display_v1` 的同Snapshot限制保持原样；消费者仅按
-security_id关联明确的新标签。此段是待裁决方案，不代表新投影接口或消费已经验收。
+security_id关联明确的新标签。2026-10-05总控已批准此最小方案；Data只保存调用方
+给出的strict-JSON opaque run引用，不导入Engine或解析账户业务，实际run身份由UI核。
+公共入口为 `save_review_security_labels(labels, destination=..., display_manifest=...,
+display_manifest_sha256=..., run_ref=...)` 与
+`load_review_security_labels(directory, manifest_sha256=...)`。保存仅读取已绑定价格
+manifest核摘要/证券范围，保留名称完整batch并另存独立目录；加载只验证本目录文件，
+返回opaque run与display refs供消费者核对，不追随外部路径。接口实现的定向检查与
+独立review和真实文件交付分别记录，不以设计批准代替UI消费验收。
 
 2026-10-05 有界补采已完成：83只/83个中文标签均由stock_basic逐只精确代码请求取得，
 上市日/交易所与旧run已绑定身份一致；新Raw的真实receipt、revision与公共名称DataBatch
@@ -655,7 +662,14 @@ security_id关联明确的新标签。此段是待裁决方案，不代表新投
 label_cutoff为 `2026-10-05T06:38:32.306117Z`，与价格显示C分别保存。最后一请求发生
 一次传输失败，复用82条原receipt有界续接一次后完成；没有全市场名称查询、历史
 名称有效期推断或旧run/显示文件改写。83个Raw与1个typed分区验证通过；独立名称
-公共投影的绑定/加载接口仍按上段等待裁决，不能把观察完成写成UI接入完成。
+公共投影的绑定/加载接口已按上段获准实现，不能把观察完成写成UI接入完成。
+
+名称投影实现与独立review固定于
+[Data `73d8670`](https://github.com/sinnergarden/axiom-data/commit/73d867010585c0b902e829ab92689b9c03e95004)：
+23项有界synthetic检查通过，覆盖独立Snapshot/C、opaque引用保真、完整batch和缺项、
+原子失败及纯loader。已复用上述83条原生批次保存独立标签文件，实际保存/加载验收
+确认原价格目录字节/修改时间及原生批次不变，本步Reader查询/来源调用为0。
+UI实际run身份与display refs绑定仍待消费者验收；名称有效期仍未知。
 
 新增上证比较事实同样保存独立来源Snapshot与原生benchmark_daily DataBatch，明确
 来源为index_daily、证券代码000001.SH、收盘点位单位index points及真实receipt。
