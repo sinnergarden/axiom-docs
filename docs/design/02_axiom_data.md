@@ -614,6 +614,9 @@ UI保留原成交与native价选择。该文件是事后显示产物，不能冒
 模型输入或账本。已有目录拒绝覆盖，失败无最终目录；普通Reader仍不要求导出。
 交付时另列实际绝对位置与文件refs，由消费者绑定自己的run；源事实可沿原QuerySpec/
 Snapshot/revision/receipt查回，不按mutable current重新发现。
+写入返回receipt另给manifest_file_ref，避免将manifest自身的摘要写回自身；公共
+`load_review_display(directory, manifest_sha256=已绑定的字节摘要)` 校验此manifest及其
+引用文件后返回保存内容，不查询生产根、不重算显示或账户。Engine/UI使用此只读入口。
 
 FRED 的 [NASDAQ100](https://fred.stlouisfed.org/series/NASDAQ100/) 明确是 Nasdaq, Inc.
 提供的NASDAQ-100日收盘指数；不是Composite。官方说明为美股收市值，通常16:00 ET、
