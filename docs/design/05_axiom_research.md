@@ -481,6 +481,24 @@ Cache hit 必须校验 manifest/身份与输出支持范围；prefix/superset re
 
 固定硬件、样本规模、冷/热 cache 和参数，记录每阶段 wall time、peak memory、bytes read、cache hit/miss、训练/推理次数。首轮测量后确定预算，不在本设计凭空承诺分钟数或倍数。
 
+**本轮有界 rolling 性能基线（2026-10-05）。** 固定原 January 的 314 canonical ID 作为
+规模样本、原六特征、五实际交易日 label、模型参数与单线程；月度重训，前置三个月训练，
+复用已保存 January 基线后尝试 February/March 两折。各日仍按当时历史成员筛选，固定
+January union 不代表后两月完整 CSI300，也不用于策略收益结论。先测 1–3、再 10–20 个
+日期，累计预算 15 分钟 / 6 GiB RSS / 1 GiB 新产物，超预算停止本私有任务并保存瓶颈证据。
+事实读取、Qlib 投影、调整/adapter、Core、label/Dataset、数组组装、fit/infer、校验/序列化
+及缓存分别计时；共同日期只构建一次，每折显式绑定裁剪范围、fit 与预测 cutoff，不借
+旧 exact-config 缓存冒充跨折复用。每个 session 原 cutoff 的公共查询是批处理参考，不能
+用月末事实回填月初；预热保留实际日历与连续 union，label 按实际 f+1/f+5 和可用时间成熟，
+normalization 仍为该日可见成员/有效且成熟样本的既定 cs_zscore，无全期间拟合变换。
+允许本次运行内复用不可变 Core 文档的固定 identity、Qlib 引用和已完整校验的保存对象，
+DataBatch 适配在本次调用读取一次完整 wire，批引用与逻辑 ViewRef 仍绑定该 wire 原值；
+batch_field 来源标识仅按完整 field/batch_ref/qualification/basis 键复用，逐键 provenance
+仍完整保留，cell 来源模式维持逐键身份。每次调用重新读取、验证，不继承此前信任。
+不省略 hash/ref/来源闭包验证，不跨调用持久信任；先核对逐窗口/批处理的 keys、值、null、
+时钟、成员、排名边界及缓存隔离，再报告提速。旧产物不覆盖，5–6 年外推单列历史 union
+扩张、重训/窗口重复、证据内存与 I/O；单折 fit 或 Feature 线性参考不能称完整 rolling 实测。
+
 最低硬断言：只改 portfolio 时 train/predict 为 0；只看图或评估不触发训练；同 FeatureBuild 可被多实验并发只读；恢复不重复完成 fold；优化前后 keys/NaN/Feature/prediction 及关键排名边界满足声明一致性。
 
 ### 8.4 变更影响与重跑边界
