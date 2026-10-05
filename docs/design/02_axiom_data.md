@@ -592,8 +592,16 @@ Data 不读取账本来裁决成交，UI 不临时把成交标记挪到蜡烛上
 状态：2026-10-05 补充草案；Data显示导出实现见
 [PR40](https://github.com/sinnergarden/axiom-data/pull/40)，临时 synthetic Snapshot 的公共
 Reader集成等18项检查已通过，含名称/两类事件保存后加载、原始单位和缺失/非法因子原因；
-loader禁查询/禁变换检查通过。实际本轮run窗口、保存文件、Engine/UI消费和生产覆盖
-尚未验收。主设计的亲审不替代这些检查，新增来源也未因此获准接入。
+loader禁查询/禁变换检查通过。2026-10-05 用固定源码 `d1d8a55` 按保存run的plan生成
+ETF长窗（7只、2019-07-01—2026-09-30、12,334行）和股票Jan窗（83只执行证券、
+2024-01-02—01-31、1,826行），Data保存后核对及新进程公共loader通过。
+共同C为 `2026-10-05T06:17:55.480001Z`、政策为operational_pit_v1、A为各窗末日；
+这是事后显示观测截止，不是策略历史cutoff。ETF保留2个来源缺价，附7个名称、
+23条范围内分红记录及2个份额转换事件；股票Snapshot缺name/source_code，未补采或
+以其他Snapshot名称替代。ETF/股票ohlcv文件分别123,327,134/18,201,397字节；
+本轮生成进程峰值RSS约4.36GB，新进程保存加载峰值约612MB，消费者仍需按预算读取。
+Engine成交显示映射、UI实际消费及完整来源覆盖仍待各owner验收；不将此次有界Data
+导出当作全历史认证。主设计的亲审不替代这些检查，新增来源也未因此获准接入。
 
 公共入口为 `Data.export_review_display(snapshot=..., price_query=..., factor_query=...,
 anchor_session=..., destination=..., security_query=None, event_queries=())`。两个日频查询
