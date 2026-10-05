@@ -191,6 +191,37 @@ signal_ref、supported_universe_ref、expected_account_version、status
 （DECISION_COMPLETE/NO_DECISION）、selected_security_ids、targets、intents、trace；
 意图身份绑定账户版本、frame identity、context 与合同。
 
+**保存滑动 fold 的 v2 中立验证（2026-10-05，待源码验收）。** 与
+[Research §4.7 固定合同](https://github.com/sinnergarden/axiom-docs/blob/b343555736f602d4897a6901bdc1d2980048e941/docs/design/05_axiom_research.md#stock-saved-fold-clock-contract)
+保持同一字段清单。现有纯函数公共导出为
+`from axiom_engine.core import StockPredictionFrame, validate_stock_predictions`；
+`validate_stock_predictions(frame)` 仍返回 `(wire, indexed_rows)`，不查询 Data、不训练、
+不规划组合或执行账户。按 contract_version 分支：旧 `stock_prediction_run_v1` 的精确
+字段与20:30、available_at≤knowledge_cutoff校验完全保留；新
+`stock_prediction_run_v2` 顶层仅在 v1 字段外增加 `fold_spec_ref` 和
+`clock_basis='declared_simulation'`，每行仅增加 `feature_knowledge_cutoff`、
+`feature_available_at`、`simulated_model_available_at`。既有 stage、score semantics/unit、
+完整 universe/member/validity、唯一行键、来源 refs 与无效行 null/原因保持原义。
+Feature/model/fold refs 固定保存；v2 source_refs 包含对应 Feature slice/model refs。
+
+v2 行 `knowledge_cutoff=available_at=inference_cutoff`（同一 aware instant）表示声明
+模拟推理与信号发布；不放宽为晚发布。feature_knowledge_cutoff 与 inference cutoff
+均归属行 session 的 Asia/Shanghai 日期，Feature 依赖可用时间可以更早。
+非 null `feature_available_at≤feature_knowledge_cutoff≤inference_cutoff`；valid 行
+feature_available_at 必须非 null，原依赖全部 null 时仅保留 invalid/null。原 Feature
+依赖最大值由 Research 保存/校验，Engine 不从标量倒推出依赖证据。
+`simulated_model_available_at<inference_cutoff`；同一 session 的完整 union 使用一致的
+Feature/inference 时钟，同一 model_ref 使用一致的模拟模型可用时刻。时间使用 aware
+instant 比较并保留原字符串，不把教学20:45/21:00硬编码为通用库唯一时刻。
+Research model/fold loader 负责 fit_cutoff<模型可用以及模型/原输入/fold_spec refs 闭包；
+Engine 不导入训练库，不从 model_ref 猜训练时间。
+
+本阶段仅解锁中立验证，`plan_stock_portfolio` 与 `validate_stock_request` 明确只账户
+消费 v1；v2 在规划/启动 ledger 前以“账户时钟消费尚未准入”拒绝，现有账户与保存件
+不变，新增账户执行为0。未来 v2 账户消费须另行冻结：复用唯一 Core planner/Runtime，
+决策准入使用推理/发布时间，前收/member/Feature 仍受原 feature_knowledge_cutoff
+约束，不把 Data 查询提升到推理时钟，不新增执行器或账户路径。
+
 Runtime 为 backtest_request_v3 / backtest_run_v3 / axiom.backtest/3，现有
 run_backtest、SimBroker、AccountLedger 按显式股票 planner/profile/adapter 分派；
 公开 load_backtest_run 继续只读取保存件。新输入闭包绑定原预测身份和 payload、组合政策/
