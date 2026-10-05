@@ -354,7 +354,7 @@ receipt 中跳过阶段的 0 当作冷构建耗时。原生 total/build seconds 
 <a id="stock-saved-fold-clock-contract"></a>
 ### 4.7 保存输入的有界滑动 fold 与独立时钟
 
-状态：**最小合同待父任务时钟审阅，业务执行未开始**（2026-10-05）。本轮只补两个
+状态：**合同经父任务时钟亲审通过，软件候选待固定 head 源码亲审；业务执行未开始**（2026-10-05）。本轮只补两个
 真正滑动的 weekly fold；旧固定日期试点及其失败/通过证据保留，全年/多年仍暂停。
 不建设通用 schedule、自动搜参、多年缓存或平台。现有 Data Reader/价格调整、Research
 Label/归一化和原生 LightGBM 后端继续复用，不新增 Feature 执行器或账户路径。
@@ -396,6 +396,27 @@ cutoff 和完整日期投影。旧归一化父件须核验保存 Core plan/facts
 raw_label_ref 必须对应已保存 raw 父件的准确日期投影，不只校验一个人工摘要。
 每日期选择完整证券截面，不拼成假的 `stock_feature_build_v1`；原父件/证明原样保存，
 每次调用重验，证明解析对象校验后释放。本轮保留显式固定父件位置，不宣称通用存储迁移。
+
+准确 manifest 字段集合为 `contract_version/scope/snapshot/pit_policy/calendar/universe/
+catalog_ref/feature_selection/ordered_features/feature_parents/training_labels/evaluation_labels`。
+`scope={path,file_digest,scope_bundle_ref}` 引用原保存 request/result/source_proof 包装件，
+并验证三部分及其 refs；calendar/universe/Snapshot/PIT 必须与其 result 同值。
+普通 Feature/Label 文件描述符为 `{path,file_digest,feature_ref或label_ref}`；path 必须是
+显式固定绝对路径。`feature_parents` 每项为 `{features,input_evidence,sessions}`，
+其中 `features` 是上述 Feature 描述符，`input_evidence={path,file_digest,input_evidence_ref}`，
+`sessions` 是完整原 Feature 父件日期。Qlib 保存源的 Snapshot/PIT/universe 也核对一致。
+`training_labels` 每项为 `{raw,normalized,sessions,raw_projection}`，raw/normalized 为
+普通 Label 描述符，sessions 为完整原 normalized 父件日期；raw_projection 为 exact bool。
+true 时只重建原 raw 精确日期投影及其 `parent_label_ref/feature_parent_ref/date_projection`
+身份；false 时 normalized.raw_label_ref 直接绑定完整 raw.label_ref。`evaluation_labels`
+是完整原 OOS raw Label 描述符，保持原 outcome cutoff/ref；不借该件作训练。
+
+原 Core plan/facts/context 的输入 plain dict 构造和资格判定提取为共享 helper：原
+归一化阶段仍由 Core execute，fold loader 用同一 helper 校验保存输入值、availability、
+eligibility、norm 参数和 context cutoff；不计算 zscore。全部原 normalized 日期的 Feature
+资格投影可访问，包含新窗口外日期；输出 slice 只取本折所需日期。入模行同时要求
+原 valid=true、target 有限及排除原因一致；缺未成熟尾部 Label 时，以完整实际 calendar
+证明 endpoint 在 fit 后并保留 LABEL_NOT_MATURE，全证券训练 grid 不缩减。
 
 `fold_spec` 固定为 `stock_ml_fold_spec_v1`，准确字段为
 `training_window={unit:'feature_sessions',length:65,end:'previous_fit_session'}`、
@@ -460,6 +481,12 @@ definition 绑定 input_manifest_ref、fold_spec、所有准确输入文件/内�
 新文件的字节 hash，显式引用旧父件且不复制/删减旧 proof。临时目录完成校验后原子发布，
 同 definition 的完整保存件才 HIT；HIT 不查询/训练/推理，失败临时件不是 HIT，不覆盖旧结果。
 SignalEvidence 只消费原02-29 20:30 OOS raw Label，账户/收益准入与此证据分开。
+fold 顶层另存 `engine_admission={neutral_validation:'NOT_PERFORMED_BY_BUILDER',
+runtime:'UNSUPPORTED_V2'}`：构建器不调用 Engine 中立 validator 或账户。独立验收显式
+调用公共 `validate_stock_predictions(StockPredictionFrame.from_dict(saved.predictions()))`；
+通过证据由 owner receipt 保存，不倒写 fold。当次合成软件输入已通过已审 Engine
+`ac20e086` 的同一中立入口（随后合并 `330903c6`）；真实两折输出尚未验证。
+Engine v2 中立结构/时钟支持与 v2 planner/Runtime 账户消费分开，后者本轮明确拒绝。
 
 新增准备最多两次公共查询：同固定 Snapshot/02-08 20:30 cutoff/purpose=label_outcomes，
 读取02-02/05/06/07/08的 market_daily(open,close) 与 adjustment_factors(factor)，原 Data
