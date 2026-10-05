@@ -12,8 +12,9 @@
 
 2026-10-05 实现状态：保存 Signal 与固定 MarketReplay 已由公共 run_backtest 消费；
 Core 规划组合，Runtime 唯一核算现金/持仓/费用/NAV，Evaluation 消费保存账户，
-Research/UI 不另建账户路径。当前股票公开组合政策只接受 Top5，§6.1 的显式
-TopK 是待实现增量。无账户依赖的同一保存 Signal 可供多个独立账户/策略消费，但策略与
+Research/UI 不另建账户路径。§6.1 的显式 TopK 已由
+[Engine PR #8](https://github.com/sinnergarden/axiom-engine/pull/8) 实现并合并；旧 Top5
+仍按原版本加载。无账户依赖的同一保存 Signal 可供多个独立账户/策略消费，但策略与
 账户状态各属自己的账本；要展示真实 Top3/Top5 账户结果须分别保存身份，
 不能以变更初始资金冒充策略变化。
 
@@ -222,11 +223,11 @@ budget_basis=available_cash_plus_previous_close_positions_excluding_receivables�
 卖单和买单分别按 security_id 升序执行，现金不足不依同日价格或收益改换次序。
 实际现金、费用、容量及 T+1 可能使成交权重偏离目标，不用当日 open 反算前日目标。
 
-#### 同一冻结预测的显式 TopK 策略参数（父审合同，待实现）
+#### 同一冻结预测的显式 TopK 策略参数（已实现）
 
-`BacktestRequest_v3` 已有精确 `portfolio_policy.top_k` 字段，但当前校验只接受 5，
-`plan_stock_portfolio` 也把资格门槛、选取数和等权预算写死为 5；仅更改原信号或初始资金
-不能构成另一组合策略。增量接受**显式正整数** k，`type(k) is int`，拒绝 bool，
+`BacktestRequest_v3.portfolio_policy.top_k` 与同一 `plan_stock_portfolio`
+现接受**显式正整数** k；仅更改原信号或初始资金不能构成另一组合策略。
+`type(k) is int`，拒绝 bool，
 且 `1≤k≤len(冻结 execution_universe)`；不能把 Notebook 本次的 3/5 演示值
 写成产品上限，也不能超出固定证券资格范围。历史 feature session 有效合格成员少于
 k 时，沿原政策保存 NO_DECISION/INSUFFICIENT_ELIGIBLE_MEMBERS 和要求的 k，
@@ -673,7 +674,7 @@ v2 限制文案需反映已提供 CAGR，不能继续携带旧“无年化”描
 来源核对（2026-10-04）：[GIPS Handbook for Firms](https://www.gipsstandards.org/standards/gips-standards-for-firms/gips-standards-handbook-for-firms/) §2.A.12 与 §8.C.1 discussion 支持几何复利年化及不足一年不年化。Actual/Actual 按日历年拆分与初始财富归属是本 profile 的明确约定，不称 GIPS 合规。本轮不增加波动率或 Sharpe。
 
 <a id="saved-account-analysis"></a>
-### 11.3 已保存账户的有界分析评价（设计已批准，待实现）
+### 11.3 已保存账户的有界分析评价（已实现并有界验收）
 
 本节只为一个已有、完整的 BacktestRun 与同一 run 绑定的已保存 v2 评价增加新
 `evaluation_spec_v3 / evaluation_report_v3 / axiom.evaluation/3`。旧账户、旧 v1/v2
@@ -684,13 +685,14 @@ spec/report、金额分桶、来源与实验登记不覆写；新报告复制已
 benchmarks: dict[str, BenchmarkSeries | None], spec: EvaluationSpec) -> EvaluationReport`，
 只消费已保存的账户/
 评价及独立的真实基准输入；`save_backtest_evaluation` 与
-`load_backtest_evaluation` 继续负责独立新路径保存和按版本只读验证。这里描述合同，
-不宣称接口已经实现。
+`load_backtest_evaluation` 继续负责独立新路径保存和按版本只读验证。
+[Engine PR #9](https://github.com/sinnergarden/axiom-engine/pull/9) 已实现并合并。
 
 `benchmarks` 精确包含 `CSI300/SSE_COMPOSITE/NASDAQ100` 三键；CSI300 必须与
 base_report 的原 `benchmark_ref/benchmark_input` 完全一致，不能静默替换原评价基准。
-尚无已核来源的另外两腿显式传 None，输出 SOURCE_UNAVAILABLE。新原生指数输入
-继续由 Data owner 固定来源合同后交接，不让 UI/Research 查询供应商。
+SSE_COMPOSITE 使用下文已准入的 Data 固定原生输入；NASDAQ100 尚无已核来源，
+显式传 None，输出 SOURCE_UNAVAILABLE。新原生指数输入继续由 Data owner 固定
+来源合同后交接，不让 UI/Research 查询供应商。
 `risk_free` 必须是精确三字段 dict（currency/annual_effective_rate/source），currency 必须为 CNY，金额率
 为有限 decimal 字符串，source 为非空字符串。`analysis_evaluation_spec` 返回固定
 `EvaluationSpec`，其身份含显式 rf；评价入口拒绝不同 run 三元组的 base_report。
@@ -868,9 +870,9 @@ save_backtest_evaluation(report, new_report_path)
 `save_backtest_evaluation/load_backtest_evaluation`，不增加账户或 Data 隐式调用。
 显式 TopK 仍走原 `plan_stock_portfolio` 和 `run_backtest`；Notebook 如仅展示
 目标可调用 Core 两次，如比较已成交结果则不同 k 须各有独立账户 run。
-这两个增量入口在 Engine 源码/定向验收完成前均为设计状态。
+这两个增量入口已完成父审、源码独立复核与定向验收。
 
-**上证事后比较最小准入（2026-10-05，待父审/源码验收）。** Data 已交接
+**上证事后比较最小准入（2026-10-05，已实现并有界验收）。** Data 已交接
 `benchmark_daily` 原生保存 DataBatch（仅 close），证券 `000001.SH`、单位
 `index points`、原 `series_kind=price_index`，不是全收益指数；独立新观察 Snapshot、
 `operational_pit_v1`、`historical_exploration` 和共同观察 cutoff C 保留原值。
@@ -885,7 +887,9 @@ byte SHA/长度、完整 receipt/ref、原 Snapshot/query/C 与每条 close 的�
 receipt 中 byte ref；不查询 Reader 或供应商、不改写 Data 原生 payload。
 
 准入检查 close 单位、唯一完整 query 键、timezone-aware 原收据/usable_from≤C、
-当前观察政策/用途、原始行与逐键 metadata。C 可以晚于账户交易日期，必须披露为
+当前观察政策/用途、原价无 adjustment_anchor 的 query、receipt 的
+domain/snapshot_id/contract_id/reader_version 与 batch context 相等、原始行与逐键
+metadata。C 可以晚于账户交易日期，必须披露为
 当前观察的事后对照。receipt 中 run 三元组/首末日期/前 anchor 必须对应所消费的
 原 v2；CSI300 仍逐字绑定原 v2输入，两个账户仍只读。新增 SSE input/ref 后另保存
 v3 报告；旧 v3（SSE=None）、旧 v1/v2 均可加载，不改旧报告或身份。
@@ -900,8 +904,7 @@ Nasdaq100 继续 `SOURCE_UNAVAILABLE`，整体
 
 Data 显示投影消费另走 `build_fill_display(run, *, display)` 与独立保存/加载入口，
 消费 [Data §7.3.5 固定设计](https://github.com/sinnergarden/axiom-docs/blob/b36f6a75e0a55c1c407026e38f3704485a22d1fb/docs/design/02_axiom_data.md) 的
-`review_display_v1`；对应章节合入 main 后归回相对入口。准确入口如下
-（本段仍为待源码验收设计）：
+`review_display_v1`；对应章节合入 main 后归回相对入口。准确入口如下：
 
 ```python
 display = read_review_display(directory, *, manifest_sha256=receipt_hash)
@@ -937,6 +940,22 @@ run 三元组、Data display_ref、消费事实 ref、实现版本；内容保�
 仍由 manifest 文件 ref 绑定，不重复内嵌到结果。save 拒绝冲突覆盖；loader 仅校验
 合同、ref/hash、链接与保存字段，不读 Data 或重算坐标。原 run、fill.price/fee/cash/
 positions/NAV 及身份保持不变，显示不能成为决策或模型输入。
+
+**本轮完成边界（2026-10-05）。** 显示消费
+[Engine PR #10](https://github.com/sinnergarden/axiom-engine/pull/10) 与上证比较/基准收益百分比
+[Engine PR #11](https://github.com/sinnergarden/axiom-engine/pull/11) 均已父审、独立 review 并合并。
+最终联合验收固定源码
+[`023c001`](https://github.com/sinnergarden/axiom-engine/commit/023c001b2f7ce9332168780761212f5be87d3e83)
+和 implementation_ref `sha256:6cf5a0b8886270634b6f0a907c3e7385f4196d7a28d728c28fc9492ae41f1605`。
+合成边界与 19 项相关回归通过；这是工程合同验证，不是收益有效性结论。
+另对**已保存真实账户**只读验收：ETF 长账户 1762 sessions、280/280 原 fill 坐标可用；
+当前 UI 股票 Jan 账户 22 sessions、40/40 原 fill 坐标可用。股票新结果绑定当前账户原
+run 三元组，Data 保存原生输入经 owner 核对等价后给出独立 consumer binding；不替换
+旧账户或旧报告 ref。两组 CSI300/SSE 比较均 COMPLETE，NASDAQ100 为
+SOURCE_UNAVAILABLE，总报告 PARTIAL。原 run、v2 评价、Data 显示及基准输入的
+SHA/mtime/大小全部不变，旧评价指标与原账本值原样保留；验收禁止 Data 查询/transform、
+账户执行、旧 evaluator 和 loader 指标/坐标重算。新产物独立保存，旧 v3 未覆写。
+UI/Research 只读消费这些 owner 保存值；最终像素与用户复验另由其 owner 验收。
 
 以下为其余通用目标接口，不因上面的有界 profile 而宣称全部实现：
 
