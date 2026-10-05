@@ -115,7 +115,8 @@ other_label=n.metadata.get('axiom',{}).get('peer_label',other_label)
 subtitle=html.escape(n.metadata.get('axiom',{}).get('subtitle','沪深300 / 2020 年起 / 假设数据演示'))
 table_navigation='''<script>
 function markWideTables(){document.querySelectorAll('.table-scroll').forEach(function(t){var note=t.previousElementSibling;if(!note||!note.classList.contains('wide-table-note')){note=document.createElement('p');note.className='wide-table-note';note.textContent='宽表可左右滚动查看完整列；也可聚焦表格后使用方向键。';t.before(note);}note.hidden=!(t.clientWidth>0&&t.scrollWidth>t.clientWidth);});}
-window.addEventListener('load',markWideTables);window.addEventListener('resize',markWideTables);document.addEventListener('toggle',markWideTables,true);
+function restoreSection(){var id=window.location.hash.slice(1);if(!/^section-[0-9]+$/.test(id))return;var section=document.getElementById(id);if(!section)return;section.querySelectorAll('details').forEach(function(d){d.open=true;});section.scrollIntoView({behavior:'instant',block:'start'});}
+window.addEventListener('load',function(){markWideTables();restoreSection();});window.addEventListener('hashchange',restoreSection);window.addEventListener('resize',markWideTables);document.addEventListener('toggle',markWideTables,true);
 </script>'''
 doc='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+title+'</title><style>'+style+'</style></head><body><header><b>'+title+'</b><p>'+subtitle+'</p><a style="color:#c5e8ff" href="'+other+'">'+other_label+'</a></header><div class="layout"><nav>'+''.join(nav)+'</nav><main>'+''.join(body)+'</main></div>'+table_navigation+'</body></html>'
 out=path.with_suffix('.html'); out.write_text(doc)
