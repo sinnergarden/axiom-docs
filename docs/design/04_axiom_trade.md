@@ -435,12 +435,17 @@ canonical digest。clock_policy 为
 `{contract_version:stock_prediction_clock_policy_v1,feature_cutoff_local_time:20:30:00,
 inference_cutoff_local_time:21:00:00,decision_local_time:08:55:00,
 execution:next_exchange_session_open,clock_basis:declared_simulation}`。
-本次只接受 1–4 个非重叠 fold，真实工程验收使用 3–4 折。每个 frame 保留原
+合同接受非空、有序、有限的非重叠 fold 列表，不设 4 折产品上限；3–4 折仅为本次
+真实工程验收的运行预算。入口按实际 fold_count、prediction_row_count、market_row_count
+及输入字节规模做资源预检，超出调用方本次预算在创建 ledger 前给明确拒绝原因，
+不因未来五年/256 fold 范围而更换接口。每个 frame 保留原
 signal_run_ref/Feature/model/fold refs、完整 union、member、validity、分数和全部行；
 所有 fold 使用同一冻结有序 prediction union，不静默补行或裁掉池外持仓。
 
 trade_schedule 每项固定
-`{trade_session,feature_session,signal_run_ref,fold_spec_ref}`；覆盖完整 OOS account session，
+`{trade_session,feature_session,signal_run_ref,fold_spec_ref}`；覆盖请求账户区间内的每个
+实际交易 session，不能仅覆盖有调仓的周首日。每个 trade_session 映射到相应原 frame
+的严格前一 feature session；
 feature_session 必须是 calendar 中 trade_session 的严格前一项，匹配该 fold_spec 的
 oos_trade_sessions/inference_cutoff_by_session。重叠、洞、重复、缺原预测组、原 model
 元数据 hash 不符、fit/model/推理时钟冲突或 union 不同，均在创建 ledger 前拒绝。
@@ -456,6 +461,8 @@ admission_ref/admission_evidence/stock_action_policy，仅以 `prediction_schedu
 整手、容量、T+1、NO_DECISION 和周首调仓政策沿用 §6.1。初始空仓只在窗口开始一次；
 跨 fold 不清仓、不重置现金、不拼接独立账户 NAV。`run_backtest(BacktestRequest)` 在原
 session loop 取已固定的 fold/frame，调用同一 Core planner、_simulate 和 AccountLedger。
+周调仓仅在 §6.1 既有 weekly_first_trading_session 政策触发，fold/model 切换不额外
+触发换仓；非调仓日仍保存该 session 的原 frame/group 映射及连续账户观测。
 保存元组为 backtest_run_v4/axiom.backtest/4/axiom.stock_portfolio/2；这只是新输入和
 时钟合同版本，不增加执行器或 Qlib 回测路径。
 run.signal_ref 取 schedule_ref；每个 decision.signal_ref 仍取当次原 frame.signal_run_ref，
@@ -486,6 +493,18 @@ Top5 独立 account_id/run 三元引用；feature/label/fit/predict/供应商调
 评价/成交显示的输入准入；旧 v1/v2/v3 读取保持原值，不重放或升级旧身份。
 Engine 账户评价仍负责原 CAGR/DD/Sharpe/Calmar：3–4 周不足一年，CAGR/Sharpe 及
 依赖 CAGR 的 Calmar 按原资格为 null，不用 IC 替代账户表现。
+
+**一次准入和性能验收。** schedule、逐 fold model/原预测及共享 native 输入闭包在
+run 入口各校验一次，建立按 trade_session 定位的已准入 frame/group 索引。session
+loop 只定位已准入组，逐次核当前账户版本和决策 context，不重新扫描全部 fold、
+验证完整 model/frame payload 或解析大 proof；独立公共 Core 调用仍完整校验输入，
+不开放调用方伪造“已准入”标记。实现优先复用既有解码/验证与 pure planner，不先选定
+全局缓存框架，不因优化丢 proof、改数值、改变来源身份或放宽拒绝条件。
+
+验收记录 admission_seconds/session_loop_seconds、闭包解码与各 frame/model 校验
+次数、实际 fold/row/字节规模和 RSS；3–4 折运行中的完整校验次数不得随 account
+session 数线性重复，TopK 两个运行分别满足入口一次准入。fresh 外部公共 loader
+按保存合同重新校验闭包一次，返回原保存结果，不训练、预测、账户回放或补算。
 
 Research 的 SignalEvaluation 可独立于策略/账户比较多个保存 Signal，负责 IC/RankIC/
 ICIR 等定义、Label refs、maturity、对齐、编排和保存；多 Signal 共用一次 Label 读取
