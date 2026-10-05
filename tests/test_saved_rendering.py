@@ -1,10 +1,13 @@
 """Presentation preserves saved teaching values and avoids execution."""
 from pathlib import Path
 import json
+import runpy
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
+from types import SimpleNamespace
 
 import nbformat
 
@@ -13,6 +16,22 @@ RENDERER = Path(__file__).resolve().parents[1] / "examples" / "render_notebook.p
 
 
 class SavedRenderingTest(unittest.TestCase):
+    def test_execute_uses_docs_root_for_an_external_notebook(self):
+        observed = {}
+        class Client:
+            def __init__(self, notebook, **kwargs):
+                observed.update(kwargs)
+            def execute(self):
+                pass  # Inspect kernel resources without starting any kernel.
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder)/'saved_reader.ipynb'
+            nbformat.write(nbformat.v4.new_notebook(cells=[
+                nbformat.v4.new_code_cell('raise RuntimeError("must not execute")')]), path)
+            with patch.object(sys, 'argv', [str(RENDERER), '--execute', '--notebook', str(path)]), \
+                 patch.dict(sys.modules, {'nbclient': SimpleNamespace(NotebookClient=Client)}):
+                runpy.run_path(str(RENDERER), run_name='__main__')
+            self.assertEqual(observed['resources']['metadata']['path'], str(RENDERER.parents[1]))
+
     def render(self, *, presentation="primary", visible=(0,), evidence="real"):
         identity = "cnstock.000001.SZ.19910403"
         cell = nbformat.v4.new_code_cell("raise RuntimeError('must not execute')")

@@ -11,7 +11,8 @@ args = parser.parse_args()
 path = Path(args.notebook)
 if not path.is_absolute():
     path = Path(__file__).parent / path
-root = path.parents[2]
+path = path.resolve()
+root = Path(__file__).resolve().parents[1]
 n=nbformat.read(path,as_version=4)
 if args.execute:
     NotebookClient(n,timeout=240,kernel_name=n.metadata.get('kernelspec',{}).get('name','python3'),resources={'metadata':{'path':str(root)}}).execute()

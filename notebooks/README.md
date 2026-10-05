@@ -1,11 +1,11 @@
 # 两种阅读路线
 
-新增 [ML 工程 Notebook 初稿](ml_engineering_tutorial.ipynb)及[生成 HTML](ml_engineering_tutorial.html)：
+[ML 工程 Notebook](ml_engineering_tutorial.ipynb)及[生成 HTML](ml_engineering_tutorial.html)：
 先看整体 owner 图、固定真实短样本、registry、成熟 label/Dataset/model、保存 Signal、
-Engine 唯一账户、UI 与缓存边界。固定配置与两周控制试点已有实际证据；Notebook 默认只读本地保存回执，
+Engine 唯一账户、UI 与缓存边界。真实65-session滑动两折已通过；旧固定配置/成熟控制保留历史；Notebook 默认只读本地保存回执，
 全年/多年 ML 暂停。详细合同仍链接统一设计正文，HTML 从 Notebook 生成，不独立编辑。
 
-唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
+Data两种路线的唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
 
 Researcher 沿一次研究准备工作展开：先看一只证券六天的价格，扩成矩阵，处理缺失与价格尺度，再加入当时可见的财报，保存并复用特征，最后交给下游。Developer 沿一次接入工作展开：保存响应、转换字段、检查并发布，再加入财报与基金，继续日更，处理范围变化、失败恢复和交接。
 
@@ -72,10 +72,11 @@ python examples/build_library_tutorials.py --source-ref <已提交的教程版�
 上述关键章节已用现有 Mac Chrome 实际查看折叠前后展示，记录见 [Chrome 抽查](../reports/tutorial-chrome-review.json)。宽表会提示横向滚动，也可聚焦后用方向键浏览完整列。
 
 
-ML 工程页从 Docs 仓库根目录打开。默认四个代码单元只读取本地已保存教学回执；
-设置 `AXIOM_ML_TEACHING_RECEIPT` 为 owner 提供的回执文件，
-`AXIOM_ML_TEACHING_RECEIPT_REF` 为其完整 `sha256:` 文件引用。
-重建、weekly 和账户函数只定义，不由页面隐式调用；新运行必须使用新的受控目标。
-本轮固定配置/weekly 与同 Signal Top3/Top5 对照已通过；TopK 首次 RSS 停止及分进程恢复证据保留。
-执行输出仅在本地副本保存。五年 256 周条件估算使用固定训练日期与已准备 Feature；总计划另加三个未测项，
-详见 [ML 工程 §12](ml_engineering_tutorial.html#section-12)，没有全年/五年实跑或有限总耗时上界。
+ML工程页默认四代码单元只读取冻结教学回执与新fold交付回执。
+设置 `AXIOM_ML_TEACHING_RECEIPT` / `AXIOM_ML_TEACHING_RECEIPT_REF`，以及
+`AXIOM_ML_FOLD_DELIVERY` / `AXIOM_ML_FOLD_DELIVERY_REF` 为owner指定路径和完整字节sha256。
+显式函数仅定义，默认不调用业务，也不为展示重复解析大proof；已保存结果由owner和独立reader核验。
+新两fold是65session真实滑动；旧January v1 Top3/Top5账户另列，新v2仅中立验证、账户拒绝。
+执行输出只在本地副本保存。256周warm约42.72min要求父件全准备且proof规模相近；
+每cutoffLabel/norm、冷准备、证明扩张、账户与展示另计，总上界未知。历史固定窗66min不当最终滑窗估计。
+详见 [ML工程§12](ml_engineering_tutorial.html#section-12)，无全年/五年实跑。

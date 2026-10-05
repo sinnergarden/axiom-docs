@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Axiom · ML 工程验收</title><style>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Axiom · ML 工程：真实滑动训练与保存信号</title><style>
 html {scroll-behavior:smooth} body{margin:0;background:#f4f6fa;color:#202b3c;font:16px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
 header{background:#14283d;color:#f3f7fc;padding:24px max(26px,calc((100vw - 1120px)/2))} header b{font-size:24px} header p{margin:4px 0;color:#c5d4e6}
 .layout{max-width:1450px;margin:auto;display:grid;grid-template-columns:245px minmax(0,1fr);gap:28px;padding:28px}
@@ -13,30 +13,37 @@ details{border-top:1px solid #e4e9ef;padding-top:12px;margin-top:18px} summary{c
 .wide-table-note{font-size:12px;color:#577087;margin:14px 0 0}.table-scroll:focus-visible{outline:2px solid #328778;outline-offset:3px}
 @media(max-width:980px){.layout{display:block;padding:14px}nav{position:static;height:auto;max-height:220px;margin-bottom:18px}section{padding:18px}h1{font-size:26px}}
 @media print{nav,details{display:none}.layout{display:block}body{background:white}section{break-inside:auto;border:0}pre{white-space:pre-wrap}.table-scroll{overflow:visible}}
-</style></head><body><header><b>Axiom · ML 工程验收</b><p>首建/HIT · 两周控制 · 同 Signal 两策略 · 五年条件预算</p><a style="color:#c5e8ff" href="researcher_tutorial.html">已有 Data / Researcher 教程</a></header><div class="layout"><nav><a href="#section-1">1. 数据与计算走哪条路</a><a href="#section-2">2. 固定真实短样本：先知道正在读什么</a><a href="#section-3">3. Feature ID 与依赖：表从 registry 自动生成</a><a href="#section-4">4. Data / Qlib / FeatureBuild：准备一次，校验后复用</a><a href="#section-5">5. 五 session label：成熟之后才能进入训练</a><a href="#section-6">6. Dataset 与模型：实际首建，然后实际 HIT</a><a href="#section-7">7. 保存 Signal：分数与账户目标分开</a><a href="#section-8">8. Engine 唯一账户 / Evaluation：同 Signal 换组合</a><a href="#section-9">9. UI：保存值进入同一个网页入口</a><a href="#section-10">10. 重跑边界与已有测量：每种成本分开看</a><a href="#section-11">11. 每周训练控制试点：训练时钟改变，日期保持固定</a><a href="#section-12">12. 五年计划：固定规模条件估算与未测成本</a><a href="#section-13">13. 工程附录：预算、失败和候选合同</a></nav><main><section id="section-1" class="markdown"><h1>ML 工程：一次准备，保存信号，多次账户消费</h1>
-<p>从固定真实样本出发，这一页沿输入、Feature、成熟标签、模型、保存 Signal、账户和展示走完一条短流程。固定配置首建/HIT、两周控制试点与同 Signal Top3/Top5 对照已通过；全年和五年尚未运行。收益和参数优劣不作为工程通过条件。</p>
-<p>正文合同归 <a href="../docs/design/05_axiom_research.md">Research</a>、<a href="../docs/design/03_axiom_core.md">Core</a>、<a href="../docs/design/04_axiom_trade.md">Trade</a>。本教程展示如何消费这些合同。</p>
+</style></head><body><header><b>Axiom · ML 工程：真实滑动训练与保存信号</b><p>两折65-session滑动 · 三阶段时钟 · v1 TopK复用 / v2中立验证 · 256周条件预算</p><a style="color:#c5e8ff" href="researcher_tutorial.html">已有 Data / Researcher 教程</a></header><div class="layout"><nav><a href="#section-1">1. 数据与计算走哪条路</a><a href="#section-2">2. 冻结样本：每一份结果属于自己的输入</a><a href="#section-3">3. Feature ID 与依赖：由 registry 生成表</a><a href="#section-4">4. Data / Qlib / FeatureBuild：保存事实，不改旧时钟</a><a href="#section-5">5. 成熟标签与三阶段时钟</a><a href="#section-6">6. Dataset 与模型：两个真实移动窗口</a><a href="#section-7">7. 保存 Signal：完整网格，分数与账户准入分开</a><a href="#section-8">8. Engine 唯一账户 / Evaluation：同 Signal 换组合</a><a href="#section-9">9. UI：保存值进入同一个网页入口</a><a href="#section-10">10. 重跑边界与已有测量：每种成本分开看</a><a href="#section-11">11. 保存后只读：验证、HIT 与重跑边界</a><a href="#section-12">12. 五年计划：真实滑窗样本的条件 warm 估计</a><a href="#section-13">13. 工程附录：历史尝试与当前边界</a></nav><main><section id="section-1" class="markdown"><h1>ML 工程：保存输入，真实滑动训练，分开消费信号</h1>
+<p>这一页沿冻结输入、registry Feature、成熟标签、65-session 滑动 Dataset、模型与保存 Signal 展开。<strong>两个真实滑动 fold 已保存并通过独立复审</strong>。另用同一个旧 v1 Signal 的 Top3/Top5 对照说明账户复用；新 v2 Signal 目前仅通过中立验证，不能送入账户。全年和五年尚未运行，收益与参数优劣不作为工程通过条件。</p>
+<p>合同归 <a href="../docs/design/05_axiom_research.md#stock-saved-fold-clock-contract">Research §4.7</a>、<a href="../docs/design/03_axiom_core.md">Core</a>、<a href="../docs/design/04_axiom_trade.md">Trade</a>。本页读取 owner 保存证据，不重新执行业务。</p>
 <h2>1. 数据与计算走哪条路</h2>
-<p><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTIwIiBoZWlnaHQ9Ijk3NSIgdmlld0JveD0iMCAwIDE1MjAgOTc1IiByb2xlPSJpbWciIGFyaWEtbGFiZWxsZWRieT0idGl0bGUgZGVzYyI+Cjx0aXRsZSBpZD0idGl0bGUiPkF4aW9tIOW3suWunueOsCBNTCDlt6XnqIvpk77kuI7lsJrmnKrlrp7njrDovrnnlYw8L3RpdGxlPjxkZXNjIGlkPSJkZXNjIj7lrp7nur/kuLrlm7rlrprmoLfmnKzlt7Llrp7njrDpk77ot6/vvJvomZrnur/kuLrop4TliJLkuK3nmoTpgJrnlKjmjqjnkIbjgIHnu4TlkIjmjqXlj6PkuI7mu5rliqjmgaLlpI3jgILmjqjnkIbnm67liY3lvZIgUmVzZWFyY2jvvIzotKbmiLflj6rnlLEgRW5naW5lIFJ1bnRpbWUg6K6h566X44CCPC9kZXNjPgo8ZGVmcz48bWFya2VyIGlkPSJhcnJvdyIgbWFya2VyV2lkdGg9IjgiIG1hcmtlckhlaWdodD0iOCIgcmVmWD0iNyIgcmVmWT0iNCIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNMCwwIEw4LDQgTDAsOCBaIiBmaWxsPSIjNDY1YTcyIi8+PC9tYXJrZXI+PC9kZWZzPgo8c3R5bGU+dGV4dHtmb250LWZhbWlseTotYXBwbGUtc3lzdGVtLEJsaW5rTWFjU3lzdGVtRm9udCwnUGluZ0ZhbmcgU0MnLCdNaWNyb3NvZnQgWWFIZWknLHNhbnMtc2VyaWY7ZmlsbDojMjAzMDQ3fS50aXRsZXtmb250LXNpemU6MzJweDtmb250LXdlaWdodDo3MDB9LnN1Yntmb250LXNpemU6MTdweDtmaWxsOiM1MzY2N2N9Lm93bmVye2ZvbnQtc2l6ZToxNnB4O2ZvbnQtd2VpZ2h0OjY1MH0ubmFtZXtmb250LXNpemU6MjRweDtmb250LXdlaWdodDo2NTB9LmxpbmV7Zm9udC1zaXplOjE4cHh9LmVkZ2V7Zm9udC1zaXplOjE1cHg7ZmlsbDojNDY1YTcyfS5yYWlse2ZpbGw6bm9uZTtzdHJva2U6IzQ2NWE3MjtzdHJva2Utd2lkdGg6MjttYXJrZXItZW5kOnVybCgjYXJyb3cpfS5wbGFue2ZpbGw6I2Y5ZmFmYztzdHJva2U6Izg0OTJhNjtzdHJva2Utd2lkdGg6MjtzdHJva2UtZGFzaGFycmF5OjcgNX0uc21hbGx7Zm9udC1zaXplOjE2cHh9PC9zdHlsZT4KPHJlY3Qgd2lkdGg9IjE1MjAiIGhlaWdodD0iOTc1IiBmaWxsPSIjZjVmN2ZiIi8+Cjx0ZXh0IHg9IjQ4IiB5PSI1MSIgY2xhc3M9InRpdGxlIj7lhYjlm7rlrprkuovlrp7kuI7orqHnrpfvvIzlho3mtojotLnkv53lrZjkv6Hlj7c8L3RleHQ+Cjx0ZXh0IHg9IjQ4IiB5PSI4MyIgY2xhc3M9InN1YiI+5bel56iL5p625p6EIMK3IDIwMjYtMTAtMDUgwrcg5a6e57q/77ya5Zu65a6a5qC35pys5bey5a6e546wICAg6Jma57q/77ya55uu5qCH5ZCI5ZCM5b6F5a6M5oiQPC90ZXh0Pgo8dGV4dCB4PSI0OCIgeT0iMTEyIiBjbGFzcz0ic3ViIj7lrp7pmYXor5XngrnvvJrlm7rlrprphY3nva7pppblu7ovSElUIMK3IOS4pOWRqOiuree7g+aOp+WItiDCtyDlkIwgU2lnbmFsIFRvcDMvVG9wNe+8m+WbuuWumuadpea6kOingeeJiOacrOihqDwvdGV4dD4KPHJlY3QgeD0iNDgiIHk9IjE0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzBjN2M3NCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjQ4IiB5PSIxNDUiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMwYzdjNzQiLz4KPHRleHQgeD0iNjYiIHk9IjE3NiIgY2xhc3M9Im93bmVyIiBzdHlsZT0iZmlsbDojMGM3Yzc0Ij5EQVRBPC90ZXh0Pgo8dGV4dCB4PSI2NiIgeT0iMjExIiBjbGFzcz0ibmFtZSI+UmF3IOWTjeW6lDwvdGV4dD4KPHRleHQgeD0iNjYiIHk9IjI0MCIgY2xhc3M9ImxpbmUiPuWOn+WTjeW6lOS4juWunumZhSByZWNlaXB0PC90ZXh0Pgo8dGV4dCB4PSI2NiIgeT0iMjY1IiBjbGFzcz0ibGluZSI+6aaW5qyh5YeG5aSH77yb5LiN6YeN5aSN5L6b5bqU5ZWG6YeH6ZuGPC90ZXh0Pgo8cmVjdCB4PSI0MTQiIHk9IjE0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzBjN2M3NCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjQxNCIgeT0iMTQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjciIHJ4PSIzIiBmaWxsPSIjMGM3Yzc0Ii8+Cjx0ZXh0IHg9IjQzMiIgeT0iMTc2IiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiMwYzdjNzQiPkRBVEE8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iMjExIiBjbGFzcz0ibmFtZSI+Q2Fub25pY2FsIC8gU25hcHNob3Q8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iMjQwIiBjbGFzcz0ibGluZSI+57uP5rWO6ZSu44CBcmV2aXNpb27jgIHljZXkvY0gLyDouqvku708L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iMjY1IiBjbGFzcz0ibGluZSI+5LiN5Y+v5Y+Y54mI5pys5LiO5Y+v6KeB5oCnPC90ZXh0Pgo8cmVjdCB4PSI3ODAiIHk9IjE0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzBjN2M3NCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9Ijc4MCIgeT0iMTQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjciIHJ4PSIzIiBmaWxsPSIjMGM3Yzc0Ii8+Cjx0ZXh0IHg9Ijc5OCIgeT0iMTc2IiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiMwYzdjNzQiPkRBVEE8L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iMjExIiBjbGFzcz0ibmFtZSI+5Zu65a6aIGN1dG9mZiDkuovlrp48L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iMjQwIiBjbGFzcz0ibGluZSI+UXVlcnlTcGVjIOKGkiBEYXRhQmF0Y2g8L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iMjY1IiBjbGFzcz0ibGluZSI+5ZCr5oiQ5ZGYIC8g5pel5Y6GIC8g6KGM5oOFIC8g6KGM5YqoPC90ZXh0Pgo8cmVjdCB4PSIxMTQ2IiB5PSIxNDUiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMwYzdjNzQiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSIxMTQ2IiB5PSIxNDUiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMwYzdjNzQiLz4KPHRleHQgeD0iMTE2NCIgeT0iMTc2IiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiMwYzdjNzQiPkRBVEE8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjIxMSIgY2xhc3M9Im5hbWUiPlFsaWIg5a+85Ye6PC90ZXh0Pgo8dGV4dCB4PSIxMTY0IiB5PSIyNDAiIGNsYXNzPSJsaW5lIj7lm7rlrpogYmluICsgbWFuaWZlc3QgLyDmnaXmupA8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjI2NSIgY2xhc3M9ImxpbmUiPuagvOW8j+mAgumFje+8m+S4jeiuoeeul+mihOa1i+eJueW+gTwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0zMjggMjEyIEg0MTQiLz48dGV4dCB4PSIzNzEiIHk9IjEzMSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPkRhdGHvvJrlk43lupQg4oaSIOinhOiMg+S6i+WunjwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik02OTQgMjEyIEg3ODAiLz48dGV4dCB4PSI3MzciIHk9IjEzMSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPkRhdGHvvJpTbmFwc2hvdCArIFF1ZXJ5PC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTEwNjAgMjEyIEgxMTQ2Ii8+PHRleHQgeD0iMTEwMyIgeT0iMTMxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+RGF0Ye+8mkRhdGFCYXRjaCDihpIgYmluPC90ZXh0Pgo8cmVjdCB4PSI0OCIgeT0iMzgwIiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMzE2NmJkIiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNDgiIHk9IjM4MCIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzMxNjZiZCIvPgo8dGV4dCB4PSI2NiIgeT0iNDExIiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiMzMTY2YmQiPlJFU0VBUkNIICsgQ09SRTwvdGV4dD4KPHRleHQgeD0iNjYiIHk9IjQ0NiIgY2xhc3M9Im5hbWUiPkZlYXR1cmVCdWlsZDwvdGV4dD4KPHRleHQgeD0iNjYiIHk9IjQ3NSIgY2xhc3M9ImxpbmUiPmNhdGFsb2cgSUQgLyDkvp3otZYg4oaSIEZlYXR1cmVQbGFuPC90ZXh0Pgo8dGV4dCB4PSI2NiIgeT0iNTAwIiBjbGFzcz0ibGluZSI+UmVzZWFyY2gg57yW5o6S77ybQ29yZSDlhbHkuqvmiafooYw8L3RleHQ+CjxyZWN0IHg9IjQxNCIgeT0iMzgwIiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMzE2NmJkIiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNDE0IiB5PSIzODAiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMzMTY2YmQiLz4KPHRleHQgeD0iNDMyIiB5PSI0MTEiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzMxNjZiZCI+UkVTRUFSQ0ggKyBDT1JFPC90ZXh0Pgo8dGV4dCB4PSI0MzIiIHk9IjQ0NiIgY2xhc3M9Im5hbWUiPuaIkOeGnyBMYWJlbCAvIERhdGFzZXQ8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iNDc1IiBjbGFzcz0ibGluZSI+5a6e6ZmFIGYrMSBvcGVuIOKGkiBmKzUgY2xvc2U8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iNTAwIiBjbGFzcz0ibGluZSI+5oiQ54af6Zeo5qebIC8g5oiq6Z2iIG5vcm0gLyDorq3nu4PplK48L3RleHQ+CjxyZWN0IHg9Ijc4MCIgeT0iMzgwIiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMzE2NmJkIiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNzgwIiB5PSIzODAiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMzMTY2YmQiLz4KPHRleHQgeD0iNzk4IiB5PSI0MTEiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzMxNjZiZCI+UkVTRUFSQ0g8L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iNDQ2IiBjbGFzcz0ibmFtZSI+TGlnaHRHQk0gLyBNb2RlbDwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSI0NzUiIGNsYXNzPSJsaW5lIj7lm7rlrprnn6npmLUg4oaSIOWOn+eUnyBib29zdGVyPC90ZXh0Pgo8dGV4dCB4PSI3OTgiIHk9IjUwMCIgY2xhc3M9ImxpbmUiPmZpdCAvIGluZmVyZW5jZSDlvZPliY3lnKggUmVzZWFyY2g8L3RleHQ+CjxyZWN0IHg9IjExNDYiIHk9IjM4MCIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzMxNjZiZCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjExNDYiIHk9IjM4MCIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzMxNjZiZCIvPgo8dGV4dCB4PSIxMTY0IiB5PSI0MTEiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzMxNjZiZCI+UkVTRUFSQ0g8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjQ0NiIgY2xhc3M9Im5hbWUiPuS/neWtmCBTaWduYWw8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjQ3NSIgY2xhc3M9ImxpbmUiPnByZWRpY3Rpb25fcmF3IC8g5peg6YeP57qyPC90ZXh0Pgo8dGV4dCB4PSIxMTY0IiB5PSI1MDAiIGNsYXNzPSJsaW5lIj7lrozmlbTplK4gLyBtZW1iZXIgLyB2YWxpZGl0eSAvIOaXtumSnzwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0xMjg2IDI4MyBWMzMyIEgxODggVjM4MCIvPjx0ZXh0IHg9Ijc1NCIgeT0iMzU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+RGF0YSDihpIgUmVzZWFyY2jvvJpRbGliIOaVsOWAvCArIOWbuuWumuS6i+WuniAvIGN1dG9mZiAvIOWOhuWPsuaIkOWRmDwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik05MjAgMjgzIFYzMTkgSDU1NCBWMzgwIi8+PHRleHQgeD0iNjk2IiB5PSIyOTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5EYXRhIOKGkiBMYWJlbO+8muWOn+eUn+S7t+agvCAvIOWboOWtkCAvIOWunumZheaXpeWOhjwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0zMjggNDQ5IEg0MTQiLz48dGV4dCB4PSIzNzEiIHk9IjU0MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPlJlc2VhcmNo77yaRmVhdHVyZSArIExhYmVsPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTY5NCA0NDkgSDc4MCIvPjx0ZXh0IHg9IjczNyIgeT0iNTQyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+UmVzZWFyY2jvvJrnn6npmLUgLyDmiJDnhp/plK48L3RleHQ+CjxwYXRoIGNsYXNzPSJyYWlsIiBkPSJNMTA2MCA0NDkgSDExNDYiLz48dGV4dCB4PSIxMTAzIiB5PSI1NDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5SZXNlYXJjaO+8mmJvb3N0ZXIgKyBGZWF0dXJlPC90ZXh0Pgo8cmVjdCB4PSI0OCIgeT0iNjQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjNzg1NmI4IiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNDgiIHk9IjY0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzc4NTZiOCIvPgo8dGV4dCB4PSI2NiIgeT0iNjc2IiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiM3ODU2YjgiPkVOR0lORSDCtyBDT1JFPC90ZXh0Pgo8dGV4dCB4PSI2NiIgeT0iNzExIiBjbGFzcz0ibmFtZSI+VG9wSyDlhrPnrZYgLzI8L3RleHQ+Cjx0ZXh0IHg9IjY2IiB5PSI3NDAiIGNsYXNzPSJsaW5lIj7lhrvnu5PpooTmtYsgKyDlvZPliY3otKbmiLcgLyDml7bpkp88L3RleHQ+Cjx0ZXh0IHg9IjY2IiB5PSI3NjUiIGNsYXNzPSJsaW5lIj7nqLPlrpogdGllLWJyZWFrIOKGkiDnm67moIcgLyDmhI/lm748L3RleHQ+CjxyZWN0IHg9IjQxNCIgeT0iNjQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMzc1MjY3IiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNDE0IiB5PSI2NDUiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMzNzUyNjciLz4KPHRleHQgeD0iNDMyIiB5PSI2NzYiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzM3NTI2NyI+RU5HSU5FIMK3IFJVTlRJTUU8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iNzExIiBjbGFzcz0ibmFtZSI+5ZSv5LiA6LSm5oi3IFJ1bnRpbWU8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iNzQwIiBjbGFzcz0ibGluZSI+TWFya2V0UmVwbGF5ICsg5oSP5Zu+IOKGkiBmaWxsczwvdGV4dD4KPHRleHQgeD0iNDMyIiB5PSI3NjUiIGNsYXNzPSJsaW5lIj7njrDph5EgLyDmjIHku5MgLyDotLnnlKggLyBOQVY8L3RleHQ+CjxyZWN0IHg9Ijc4MCIgeT0iNjQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMGM3Yzc0IiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNzgwIiB5PSI2NDUiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMwYzdjNzQiLz4KPHRleHQgeD0iNzk4IiB5PSI2NzYiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzBjN2M3NCI+RU5HSU5FIMK3IEVWQUxVQVRJT048L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iNzExIiBjbGFzcz0ibmFtZSI+5L+d5a2YIEV2YWx1YXRpb248L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iNzQwIiBjbGFzcz0ibGluZSI+5L+d5a2YIHJ1biArIOWfuuWHhiAvIOihjOWKqCAvIHNwZWM8L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iNzY1IiBjbGFzcz0ibGluZSI+5LiN6YeN5paw5ouf5ZCI5oiW55Sf5oiQ6aKE5rWLPC90ZXh0Pgo8cmVjdCB4PSIxMTQ2IiB5PSI2NDUiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiNhYTc0MjAiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSIxMTQ2IiB5PSI2NDUiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiNhYTc0MjAiLz4KPHRleHQgeD0iMTE2NCIgeT0iNjc2IiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiNhYTc0MjAiPlVJPC90ZXh0Pgo8dGV4dCB4PSIxMTY0IiB5PSI3MTEiIGNsYXNzPSJuYW1lIj7lj6ror7sgVUkgLyBQYWdlczwvdGV4dD4KPHRleHQgeD0iMTE2NCIgeT0iNzQwIiBjbGFzcz0ibGluZSI+5YWs5YWxIFJlYWRlciDihpIg5bGV56S65oqV5b2xPC90ZXh0Pgo8dGV4dCB4PSIxMTY0IiB5PSI3NjUiIGNsYXNzPSJsaW5lIj5IVE1MIOaJk+W8gCAvIOWIh+mhteS4jei3keS4muWKoTwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0xNDI2IDQ1OSBIMTQ4MiBWNTk0IEgxODggVjY0NSIvPjx0ZXh0IHg9IjgwNCIgeT0iNTgxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+UmVzZWFyY2gg4oaSIENvcmXvvJrlhrvnu5MgU2lnbmFs77yb5pi+5byPIFRvcEsg5bey5ZCI77yM5penIC8xIFRvcDUg5L+d55WZPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTc4MCAyNzAgSDIwIFY3MjAgSDQxNCIvPjx0ZXh0IHg9IjIxNyIgeT0iNjIzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+RGF0YSDihpIgUnVudGltZe+8muWGu+e7kyBNYXJrZXRSZXBsYXk8L3RleHQ+CjxwYXRoIGNsYXNzPSJyYWlsIiBkPSJNMTA2MCAyNzAgSDEwODggVjYxOCBIOTIwIFY2NDUiLz48dGV4dCB4PSIxMjcwIiB5PSI2MTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5EYXRhIOKGkiBFdmFsdWF0aW9u77ya5Z+65YeGIC8g5YiG57qi6IyD5Zu0PC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTMyOCA3MTcgSDQxNCIvPjx0ZXh0IHg9IjM3MSIgeT0iODA5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+Q29yZSDihpIgUnVudGltZe+8muaEj+WbvjwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik02OTQgNzE3IEg3ODAiLz48dGV4dCB4PSI3MzciIHk9IjgwOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPlJ1bnRpbWUg4oaSIEV2YWzvvJpzYXZlZCBydW48L3RleHQ+CjxwYXRoIGNsYXNzPSJyYWlsIiBkPSJNMTA2MCA3MTcgSDExNDYiLz48dGV4dCB4PSIxMTAzIiB5PSI4MDkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5Pd25lcnMg4oaSIFVJ77yac2F2ZWQgcmVmczwvdGV4dD4KPHJlY3QgY2xhc3M9InBsYW4iIHg9IjQ4IiB5PSI4NDUiIHdpZHRoPSI2ODgiIGhlaWdodD0iODIiIHJ4PSIxMiIvPjx0ZXh0IHg9IjY2IiB5PSI4NzciIGNsYXNzPSJvd25lciI+6KeE5YiS77yaQ29yZSBNb2RlbEhhbmRsZSAvIOmAmueUqCBTaWduYWxQbGFuPC90ZXh0Pjx0ZXh0IHg9IjY2IiB5PSI5MDYiIGNsYXNzPSJsaW5lIj7pgJrnlKjmjqjnkIYgQUJJIOacquaIkO+8m1RvcEsgdjIg5bey5ZCI77yb5ZCMIFNpZ25hbCDlr7nnhafpgJrov4c8L3RleHQ+CjxyZWN0IGNsYXNzPSJwbGFuIiB4PSI3NjYiIHk9Ijg0NSIgd2lkdGg9IjY2MCIgaGVpZ2h0PSI4MiIgcng9IjEyIi8+PHRleHQgeD0iNzg0IiB5PSI4NzciIGNsYXNzPSJvd25lciI+6KeE5YiS77ya5YWs5byAIHJvbGxpbmcgLyDml6XmnJ/liIbniYcgLyBjaGVja3BvaW50IOaBouWkjTwvdGV4dD48dGV4dCB4PSI3ODQiIHk9IjkwNiIgY2xhc3M9ImxpbmUiPuacrOi9rui3qCBmb2xkIOe8luaOkiDiiaAg6YCa55So5bmz5Y+w77yb5LiN5ZCv5Yqo5YWo5bm0IC8g5aSa5bm0PC90ZXh0Pgo8cGF0aCBkPSJNODMyIDUxOCBWNTU5IEg3MjAgVjg0NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjODQ5MmE2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1kYXNoYXJyYXk9IjcgNSIvPjx0ZXh0IHg9IjQ4IiB5PSI5NTgiIGNsYXNzPSJzbWFsbCI+57yT5a2Y5LiN5piv5YWN5qCh6aqM77ya5L+d5a2Y5Lu25LuN6Kej5p6QIC8g5qC46aqM5a6M5pW06K+B5piO77yb5L+h5Y+35aSN55So5LuF6YCC55So5LqO5peg6LSm5oi35L6d6LWW6aKE5rWL77yM5LiN6Leo6LSm5pys57yT5a2Y562W55Wl54q25oCB44CCPC90ZXh0Pjwvc3ZnPgo=" alt="Axiom ML 架构" /></p>
-<p>实线表示已有有界实现；虚线表示通用 ModelHandle/SignalPlan、公开滚动与有界缓存目标。模型训练与推理目前由 Research 编排，Core 提供共享 Feature/组合计算，Runtime 唯一处理账户。</p>
-</section><section id="section-2" class="markdown"><h2>2. 固定真实短样本：先知道正在读什么</h2>
-<p>January 基线有 314 个固定预测 ID、六特征和真实交易日；账户执行范围仍为已准入的 SZSE 主板子集。完整来源、历史成员、cutoff 与缺失限制随 owner 保存件保留。这不是以后各月完整 CSI300。</p>
-<p>下面读取本轮保存的教学回执，展示规模、成熟边界和实际次数。它不重新训练或读取 Data。独立执行的完整输入与身份留在调用者本地；公开 source 只接收环境变量，不包含机器路径或私人结果。</p>
+<p><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTIwIiBoZWlnaHQ9Ijk3NSIgdmlld0JveD0iMCAwIDE1MjAgOTc1IiByb2xlPSJpbWciIGFyaWEtbGFiZWxsZWRieT0idGl0bGUgZGVzYyI+Cjx0aXRsZSBpZD0idGl0bGUiPkF4aW9tIOW3suWunueOsCBNTCDlt6XnqIvpk77kuI7lsJrmnKrlrp7njrDovrnnlYw8L3RpdGxlPjxkZXNjIGlkPSJkZXNjIj7lrp7nur/kuLrlm7rlrprmoLfmnKzlj4rkuKTmiphzYXZlZC1mb2xk5bey5a6e546w6ZO+6Lev77yb6Jma57q/5Li66KeE5YiS5Lit55qE6YCa55So5o6o55CG44CB57uE5ZCI5o6l5Y+j5LiO5rua5Yqo5oGi5aSN44CC5o6o55CG55uu5YmN5b2SIFJlc2VhcmNo77yM6LSm5oi35Y+q55SxIEVuZ2luZSBSdW50aW1lIOiuoeeul+OAgjwvZGVzYz4KPGRlZnM+PG1hcmtlciBpZD0iYXJyb3ciIG1hcmtlcldpZHRoPSI4IiBtYXJrZXJIZWlnaHQ9IjgiIHJlZlg9IjciIHJlZlk9IjQiIG9yaWVudD0iYXV0byI+PHBhdGggZD0iTTAsMCBMOCw0IEwwLDggWiIgZmlsbD0iIzQ2NWE3MiIvPjwvbWFya2VyPjwvZGVmcz4KPHN0eWxlPnRleHR7Zm9udC1mYW1pbHk6LWFwcGxlLXN5c3RlbSxCbGlua01hY1N5c3RlbUZvbnQsJ1BpbmdGYW5nIFNDJywnTWljcm9zb2Z0IFlhSGVpJyxzYW5zLXNlcmlmO2ZpbGw6IzIwMzA0N30udGl0bGV7Zm9udC1zaXplOjMycHg7Zm9udC13ZWlnaHQ6NzAwfS5zdWJ7Zm9udC1zaXplOjE3cHg7ZmlsbDojNTM2NjdjfS5vd25lcntmb250LXNpemU6MTZweDtmb250LXdlaWdodDo2NTB9Lm5hbWV7Zm9udC1zaXplOjI0cHg7Zm9udC13ZWlnaHQ6NjUwfS5saW5le2ZvbnQtc2l6ZToxOHB4fS5lZGdle2ZvbnQtc2l6ZToxNXB4O2ZpbGw6IzQ2NWE3Mn0ucmFpbHtmaWxsOm5vbmU7c3Ryb2tlOiM0NjVhNzI7c3Ryb2tlLXdpZHRoOjI7bWFya2VyLWVuZDp1cmwoI2Fycm93KX0ucGxhbntmaWxsOiNmOWZhZmM7c3Ryb2tlOiM4NDkyYTY7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWRhc2hhcnJheTo3IDV9LnNtYWxse2ZvbnQtc2l6ZToxNnB4fTwvc3R5bGU+CjxyZWN0IHdpZHRoPSIxNTIwIiBoZWlnaHQ9Ijk3NSIgZmlsbD0iI2Y1ZjdmYiIvPgo8dGV4dCB4PSI0OCIgeT0iNTEiIGNsYXNzPSJ0aXRsZSI+5YWI5Zu65a6a5LqL5a6e5LiO6K6h566X77yM5YaN5raI6LS55L+d5a2Y5L+h5Y+3PC90ZXh0Pgo8dGV4dCB4PSI0OCIgeT0iODMiIGNsYXNzPSJzdWIiPuW3peeoi+aetuaehCDCtyAyMDI2LTEwLTA1IMK3IOWunue6v++8muWbuuWumuagt+acrOW3suWunueOsCAgIOiZmue6v++8muebruagh+WQiOWQjOW+heWujOaIkDwvdGV4dD4KPHRleHQgeD0iNDgiIHk9IjExMiIgY2xhc3M9InN1YiI+5a6e6ZmF6K+V54K577ya55yf5a6eNjUtc2Vzc2lvbua7keWKqOS4pOaKmCDCtyDkuInpmLbmrrXml7bpkp8gwrcg5pendjEgU2lnbmFsIFRvcDMvVG9wNe+8m+WbuuWumuadpea6kOingeeJiOacrOihqDwvdGV4dD4KPHJlY3QgeD0iNDgiIHk9IjE0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzBjN2M3NCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjQ4IiB5PSIxNDUiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMwYzdjNzQiLz4KPHRleHQgeD0iNjYiIHk9IjE3NiIgY2xhc3M9Im93bmVyIiBzdHlsZT0iZmlsbDojMGM3Yzc0Ij5EQVRBPC90ZXh0Pgo8dGV4dCB4PSI2NiIgeT0iMjExIiBjbGFzcz0ibmFtZSI+UmF3IOWTjeW6lDwvdGV4dD4KPHRleHQgeD0iNjYiIHk9IjI0MCIgY2xhc3M9ImxpbmUiPuWOn+WTjeW6lOS4juWunumZhSByZWNlaXB0PC90ZXh0Pgo8dGV4dCB4PSI2NiIgeT0iMjY1IiBjbGFzcz0ibGluZSI+6aaW5qyh5YeG5aSH77yb5LiN6YeN5aSN5L6b5bqU5ZWG6YeH6ZuGPC90ZXh0Pgo8cmVjdCB4PSI0MTQiIHk9IjE0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzBjN2M3NCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjQxNCIgeT0iMTQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjciIHJ4PSIzIiBmaWxsPSIjMGM3Yzc0Ii8+Cjx0ZXh0IHg9IjQzMiIgeT0iMTc2IiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiMwYzdjNzQiPkRBVEE8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iMjExIiBjbGFzcz0ibmFtZSI+Q2Fub25pY2FsIC8gU25hcHNob3Q8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iMjQwIiBjbGFzcz0ibGluZSI+57uP5rWO6ZSu44CBcmV2aXNpb27jgIHljZXkvY0gLyDouqvku708L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iMjY1IiBjbGFzcz0ibGluZSI+5LiN5Y+v5Y+Y54mI5pys5LiO5Y+v6KeB5oCnPC90ZXh0Pgo8cmVjdCB4PSI3ODAiIHk9IjE0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzBjN2M3NCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9Ijc4MCIgeT0iMTQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjciIHJ4PSIzIiBmaWxsPSIjMGM3Yzc0Ii8+Cjx0ZXh0IHg9Ijc5OCIgeT0iMTc2IiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiMwYzdjNzQiPkRBVEE8L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iMjExIiBjbGFzcz0ibmFtZSI+5Zu65a6aIGN1dG9mZiDkuovlrp48L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iMjQwIiBjbGFzcz0ibGluZSI+UXVlcnlTcGVjIOKGkiBEYXRhQmF0Y2g8L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iMjY1IiBjbGFzcz0ibGluZSI+5ZCr5oiQ5ZGYIC8g5pel5Y6GIC8g6KGM5oOFIC8g6KGM5YqoPC90ZXh0Pgo8cmVjdCB4PSIxMTQ2IiB5PSIxNDUiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMwYzdjNzQiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSIxMTQ2IiB5PSIxNDUiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMwYzdjNzQiLz4KPHRleHQgeD0iMTE2NCIgeT0iMTc2IiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiMwYzdjNzQiPkRBVEE8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjIxMSIgY2xhc3M9Im5hbWUiPlFsaWIg5a+85Ye6PC90ZXh0Pgo8dGV4dCB4PSIxMTY0IiB5PSIyNDAiIGNsYXNzPSJsaW5lIj7lm7rlrpogYmluICsgbWFuaWZlc3QgLyDmnaXmupA8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjI2NSIgY2xhc3M9ImxpbmUiPuagvOW8j+mAgumFje+8m+S4jeiuoeeul+mihOa1i+eJueW+gTwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0zMjggMjEyIEg0MTQiLz48dGV4dCB4PSIzNzEiIHk9IjEzMSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPkRhdGHvvJrlk43lupQg4oaSIOinhOiMg+S6i+WunjwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik02OTQgMjEyIEg3ODAiLz48dGV4dCB4PSI3MzciIHk9IjEzMSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPkRhdGHvvJpTbmFwc2hvdCArIFF1ZXJ5PC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTEwNjAgMjEyIEgxMTQ2Ii8+PHRleHQgeD0iMTEwMyIgeT0iMTMxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+RGF0Ye+8mkRhdGFCYXRjaCDihpIgYmluPC90ZXh0Pgo8cmVjdCB4PSI0OCIgeT0iMzgwIiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMzE2NmJkIiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNDgiIHk9IjM4MCIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzMxNjZiZCIvPgo8dGV4dCB4PSI2NiIgeT0iNDExIiBjbGFzcz0ib3duZXIiIHN0eWxlPSJmaWxsOiMzMTY2YmQiPlJFU0VBUkNIICsgQ09SRTwvdGV4dD4KPHRleHQgeD0iNjYiIHk9IjQ0NiIgY2xhc3M9Im5hbWUiPkZlYXR1cmVCdWlsZDwvdGV4dD4KPHRleHQgeD0iNjYiIHk9IjQ3NSIgY2xhc3M9ImxpbmUiPmNhdGFsb2cgSUQgLyDkvp3otZYg4oaSIEZlYXR1cmVQbGFuPC90ZXh0Pgo8dGV4dCB4PSI2NiIgeT0iNTAwIiBjbGFzcz0ibGluZSI+UmVzZWFyY2gg57yW5o6S77ybQ29yZSDlhbHkuqvmiafooYw8L3RleHQ+CjxyZWN0IHg9IjQxNCIgeT0iMzgwIiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMzE2NmJkIiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNDE0IiB5PSIzODAiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMzMTY2YmQiLz4KPHRleHQgeD0iNDMyIiB5PSI0MTEiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzMxNjZiZCI+UkVTRUFSQ0ggKyBDT1JFPC90ZXh0Pgo8dGV4dCB4PSI0MzIiIHk9IjQ0NiIgY2xhc3M9Im5hbWUiPuaIkOeGnyBMYWJlbCAvIERhdGFzZXQ8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iNDc1IiBjbGFzcz0ibGluZSI+5a6e6ZmFIGYrMSBvcGVuIOKGkiBmKzUgY2xvc2U8L3RleHQ+Cjx0ZXh0IHg9IjQzMiIgeT0iNTAwIiBjbGFzcz0ibGluZSI+5oiQ54af6Zeo5qebIC8g5oiq6Z2iIG5vcm0gLyDorq3nu4PplK48L3RleHQ+CjxyZWN0IHg9Ijc4MCIgeT0iMzgwIiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjEzOCIgcng9IjE0IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjMzE2NmJkIiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNzgwIiB5PSIzODAiIHdpZHRoPSIyODAiIGhlaWdodD0iNyIgcng9IjMiIGZpbGw9IiMzMTY2YmQiLz4KPHRleHQgeD0iNzk4IiB5PSI0MTEiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzMxNjZiZCI+UkVTRUFSQ0g8L3RleHQ+Cjx0ZXh0IHg9Ijc5OCIgeT0iNDQ2IiBjbGFzcz0ibmFtZSI+TGlnaHRHQk0gLyBNb2RlbDwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSI0NzUiIGNsYXNzPSJsaW5lIj7lm7rlrprnn6npmLUg4oaSIOWOn+eUnyBib29zdGVyPC90ZXh0Pgo8dGV4dCB4PSI3OTgiIHk9IjUwMCIgY2xhc3M9ImxpbmUiPmZpdCAvIGluZmVyZW5jZSDlvZPliY3lnKggUmVzZWFyY2g8L3RleHQ+CjxyZWN0IHg9IjExNDYiIHk9IjM4MCIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzMxNjZiZCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjExNDYiIHk9IjM4MCIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzMxNjZiZCIvPgo8dGV4dCB4PSIxMTY0IiB5PSI0MTEiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6IzMxNjZiZCI+UkVTRUFSQ0g8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjQ0NiIgY2xhc3M9Im5hbWUiPuS/neWtmCBTaWduYWw8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjQ3NSIgY2xhc3M9ImxpbmUiPnYx6LSm5oi35YeG5YWlIC8gdjLkuK3nq4vpqozor4E8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjUwMCIgY2xhc3M9ImxpbmUiPuWujOaVtOmUriAvIG1lbWJlciAvIHZhbGlkaXR5IC8g5pe26ZKfPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTEyODYgMjgzIFYzMzIgSDE4OCBWMzgwIi8+PHRleHQgeD0iNzU0IiB5PSIzNTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5EYXRhIOKGkiBSZXNlYXJjaO+8mlFsaWIg5pWw5YC8ICsg5Zu65a6a5LqL5a6eIC8gY3V0b2ZmIC8g5Y6G5Y+y5oiQ5ZGYPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTkyMCAyODMgVjMxOSBINTU0IFYzODAiLz48dGV4dCB4PSI2OTYiIHk9IjI5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPkRhdGEg4oaSIExhYmVs77ya5Y6f55Sf5Lu35qC8IC8g5Zug5a2QIC8g5a6e6ZmF5pel5Y6GPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTMyOCA0NDkgSDQxNCIvPjx0ZXh0IHg9IjM3MSIgeT0iNTQyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+UmVzZWFyY2jvvJpGZWF0dXJlICsgTGFiZWw8L3RleHQ+CjxwYXRoIGNsYXNzPSJyYWlsIiBkPSJNNjk0IDQ0OSBINzgwIi8+PHRleHQgeD0iNzM3IiB5PSI1NDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5SZXNlYXJjaO+8muefqemYtSAvIOaIkOeGn+mUrjwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0xMDYwIDQ0OSBIMTE0NiIvPjx0ZXh0IHg9IjExMDMiIHk9IjU0MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPlJlc2VhcmNo77yaYm9vc3RlciArIEZlYXR1cmU8L3RleHQ+CjxyZWN0IHg9IjQ4IiB5PSI2NDUiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiM3ODU2YjgiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI0OCIgeT0iNjQ1IiB3aWR0aD0iMjgwIiBoZWlnaHQ9IjciIHJ4PSIzIiBmaWxsPSIjNzg1NmI4Ii8+Cjx0ZXh0IHg9IjY2IiB5PSI2NzYiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6Izc4NTZiOCI+RU5HSU5FIMK3IENPUkU8L3RleHQ+Cjx0ZXh0IHg9IjY2IiB5PSI3MTEiIGNsYXNzPSJuYW1lIj5Ub3BLIOWGs+etliAvMjwvdGV4dD4KPHRleHQgeD0iNjYiIHk9Ijc0MCIgY2xhc3M9ImxpbmUiPuWGu+e7k+mihOa1iyArIOW9k+WJjei0puaItyAvIOaXtumSnzwvdGV4dD4KPHRleHQgeD0iNjYiIHk9Ijc2NSIgY2xhc3M9ImxpbmUiPueos+WumiB0aWUtYnJlYWsg4oaSIOebruaghyAvIOaEj+WbvjwvdGV4dD4KPHJlY3QgeD0iNDE0IiB5PSI2NDUiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMzNzUyNjciIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI0MTQiIHk9IjY0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzM3NTI2NyIvPgo8dGV4dCB4PSI0MzIiIHk9IjY3NiIgY2xhc3M9Im93bmVyIiBzdHlsZT0iZmlsbDojMzc1MjY3Ij5FTkdJTkUgwrcgUlVOVElNRTwvdGV4dD4KPHRleHQgeD0iNDMyIiB5PSI3MTEiIGNsYXNzPSJuYW1lIj7llK/kuIDotKbmiLcgUnVudGltZTwvdGV4dD4KPHRleHQgeD0iNDMyIiB5PSI3NDAiIGNsYXNzPSJsaW5lIj5NYXJrZXRSZXBsYXkgKyDmhI/lm74g4oaSIGZpbGxzPC90ZXh0Pgo8dGV4dCB4PSI0MzIiIHk9Ijc2NSIgY2xhc3M9ImxpbmUiPueOsOmHkSAvIOaMgeS7kyAvIOi0ueeUqCAvIE5BVjwvdGV4dD4KPHJlY3QgeD0iNzgwIiB5PSI2NDUiIHdpZHRoPSIyODAiIGhlaWdodD0iMTM4IiByeD0iMTQiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMwYzdjNzQiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI3ODAiIHk9IjY0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iIzBjN2M3NCIvPgo8dGV4dCB4PSI3OTgiIHk9IjY3NiIgY2xhc3M9Im93bmVyIiBzdHlsZT0iZmlsbDojMGM3Yzc0Ij5FTkdJTkUgwrcgRVZBTFVBVElPTjwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSI3MTEiIGNsYXNzPSJuYW1lIj7kv53lrZggRXZhbHVhdGlvbjwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSI3NDAiIGNsYXNzPSJsaW5lIj7kv53lrZggcnVuICsg5Z+65YeGIC8g6KGM5YqoIC8gc3BlYzwvdGV4dD4KPHRleHQgeD0iNzk4IiB5PSI3NjUiIGNsYXNzPSJsaW5lIj7kuI3ph43mlrDmi5/lkIjmiJbnlJ/miJDpooTmtYs8L3RleHQ+CjxyZWN0IHg9IjExNDYiIHk9IjY0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIxMzgiIHJ4PSIxNCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iI2FhNzQyMCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjExNDYiIHk9IjY0NSIgd2lkdGg9IjI4MCIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iI2FhNzQyMCIvPgo8dGV4dCB4PSIxMTY0IiB5PSI2NzYiIGNsYXNzPSJvd25lciIgc3R5bGU9ImZpbGw6I2FhNzQyMCI+VUk8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9IjcxMSIgY2xhc3M9Im5hbWUiPuWPquivuyBVSSAvIFBhZ2VzPC90ZXh0Pgo8dGV4dCB4PSIxMTY0IiB5PSI3NDAiIGNsYXNzPSJsaW5lIj7lhazlhbEgUmVhZGVyIOKGkiDlsZXnpLrmipXlvbE8L3RleHQ+Cjx0ZXh0IHg9IjExNjQiIHk9Ijc2NSIgY2xhc3M9ImxpbmUiPkhUTUwg5omT5byAIC8g5YiH6aG15LiN6LeR5Lia5YqhPC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTE0MjYgNDU5IEgxNDgyIFY1OTQgSDE4OCBWNjQ1Ii8+PHRleHQgeD0iODA0IiB5PSI1ODEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5SZXNlYXJjaCDihpIgQ29yZe+8muS7hXYx6L+b5YWl6LSm5oi377ybdjLku4XkuK3nq4vpqozor4E8L3RleHQ+CjxwYXRoIGNsYXNzPSJyYWlsIiBkPSJNNzgwIDI3MCBIMjAgVjcyMCBINDE0Ii8+PHRleHQgeD0iMjE3IiB5PSI2MjMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5EYXRhIOKGkiBSdW50aW1l77ya5Ya757uTIE1hcmtldFJlcGxheTwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0xMDYwIDI3MCBIMTA4OCBWNjE4IEg5MjAgVjY0NSIvPjx0ZXh0IHg9IjEyNzAiIHk9IjYxOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPkRhdGEg4oaSIEV2YWx1YXRpb27vvJrln7rlh4YgLyDliIbnuqLojIPlm7Q8L3RleHQ+CjxwYXRoIGNsYXNzPSJyYWlsIiBkPSJNMzI4IDcxNyBINDE0Ii8+PHRleHQgeD0iMzcxIiB5PSI4MDkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJlZGdlIj5Db3JlIOKGkiBSdW50aW1l77ya5oSP5Zu+PC90ZXh0Pgo8cGF0aCBjbGFzcz0icmFpbCIgZD0iTTY5NCA3MTcgSDc4MCIvPjx0ZXh0IHg9IjczNyIgeT0iODA5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0iZWRnZSI+UnVudGltZSDihpIgRXZhbO+8mnNhdmVkIHJ1bjwvdGV4dD4KPHBhdGggY2xhc3M9InJhaWwiIGQ9Ik0xMDYwIDcxNyBIMTE0NiIvPjx0ZXh0IHg9IjExMDMiIHk9IjgwOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImVkZ2UiPk93bmVycyDihpIgVUnvvJpzYXZlZCByZWZzPC90ZXh0Pgo8cmVjdCBjbGFzcz0icGxhbiIgeD0iNDgiIHk9Ijg0NSIgd2lkdGg9IjY4OCIgaGVpZ2h0PSI4MiIgcng9IjEyIi8+PHRleHQgeD0iNjYiIHk9Ijg3NyIgY2xhc3M9Im93bmVyIj7op4TliJLvvJpDb3JlIE1vZGVsSGFuZGxlIC8g6YCa55SoIFNpZ25hbFBsYW48L3RleHQ+PHRleHQgeD0iNjYiIHk9IjkwNiIgY2xhc3M9ImxpbmUiPumAmueUqOaOqOeQhiBBQkkg5pyq5oiQ77ybVG9wS+WGs+etli8yIOW3suWQiO+8m+WQjCBTaWduYWwg5a+554Wn6YCa6L+HPC90ZXh0Pgo8cmVjdCBjbGFzcz0icGxhbiIgeD0iNzY2IiB5PSI4NDUiIHdpZHRoPSI2NjAiIGhlaWdodD0iODIiIHJ4PSIxMiIvPjx0ZXh0IHg9Ijc4NCIgeT0iODc3IiBjbGFzcz0ib3duZXIiPuinhOWIku+8mumAmueUqHNjaGVkdWxlIC8g5YiG54mHIC8gY2hlY2twb2ludOaBouWkjTwvdGV4dD48dGV4dCB4PSI3ODQiIHk9IjkwNiIgY2xhc3M9ImxpbmUiPuWFrOW8gHNhdmVkLWZvbGTlt7Llrp7njrDvvJvpgJrnlKhzdHJlYW1pbmfmgaLlpI3mnKrmiJA8L3RleHQ+CjxwYXRoIGQ9Ik04MzIgNTE4IFY1NTkgSDcyMCBWODQ0IiBmaWxsPSJub25lIiBzdHJva2U9IiM4NDkyYTYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWRhc2hhcnJheT0iNyA1Ii8+PHRleHQgeD0iNDgiIHk9Ijk1OCIgY2xhc3M9InNtYWxsIj7nvJPlrZjkuI3mmK/lhY3moKHpqozvvJrkv53lrZjku7bku43op6PmnpAgLyDmoLjpqozlrozmlbTor4HmmI7vvJvkv6Hlj7flpI3nlKjku4XpgILnlKjkuo7ml6DotKbmiLfkvp3otZbpooTmtYvvvIzkuI3ot6jotKbmnKznvJPlrZjnrZbnlaXnirbmgIHjgII8L3RleHQ+PC9zdmc+Cg==" alt="Axiom ML 架构" /></p>
+<p>实线是已有有界实现；虚线是通用 ModelHandle、schedule、streaming 与恢复目标。Research 用共享后端训练/推理，Core 执行既有 Feature 算子；Engine Runtime 唯一处理账户。<strong>v1 → TopK / Runtime；v2 → 中立校验，账户未准入。</strong></p>
+</section><section id="section-2" class="markdown"><h2>2. 冻结样本：每一份结果属于自己的输入</h2>
+<p>新主线使用已有固定 Snapshot、314 个 union ID、六个版本化特征和真实交易日历。两个 fit 分别为 2024-02-02、2024-02-08；OOS 为 Feb5–8、Feb19–23。Feature/raw/normalized Label 父件保持原路径、文件 hash、内容 ref 与时钟。</p>
+<p>旧 January v1 模型/Signal 与 Top3/Top5 账户是另一组保存结果；不能把新 v2 预测替换进去后沿用旧账户身份。数据可见性仍是 best-effort vendor 证据，不声明历史实时完备性。</p>
 </section><section class="example" data-cell-id="7b2bc102"><div class="example-label">加载本地保存回执</div><pre class="code">import hashlib
 import json
 import os
 from pathlib import Path
 
-receipt_path = Path(os.environ[&quot;AXIOM_ML_TEACHING_RECEIPT&quot;])
-expected = os.environ[&quot;AXIOM_ML_TEACHING_RECEIPT_REF&quot;]
-raw = receipt_path.read_bytes()
-assert &quot;sha256:&quot; + hashlib.sha256(raw).hexdigest() == expected
-receipt = json.loads(raw)
+
+def read_frozen_receipt(path_env, ref_env):
+    path = Path(os.environ[path_env])
+    raw = path.read_bytes()
+    assert &quot;sha256:&quot; + hashlib.sha256(raw).hexdigest() == os.environ[ref_env]
+    return json.loads(raw)
+
+
+receipt = read_frozen_receipt(&quot;AXIOM_ML_TEACHING_RECEIPT&quot;, &quot;AXIOM_ML_TEACHING_RECEIPT_REF&quot;)
+fold_receipt = read_frozen_receipt(&quot;AXIOM_ML_FOLD_DELIVERY&quot;, &quot;AXIOM_ML_FOLD_DELIVERY_REF&quot;)
 assert receipt[&quot;contract_version&quot;] == &quot;private_ml_teaching_acceptance_v1&quot;
-print(&quot;样本：固定 January 314 ID、六特征；weekly 使用固定 11 月至 1 月日期&quot;)
-print(&quot;当前读取保存回执，不重跑 Data、Feature、模型或账户。&quot;)
-</pre></section><section id="section-3" class="markdown"><h2>3. Feature ID 与依赖：表从 registry 自动生成</h2>
-<p>下面表来自已合 Research 的 <code>stock_ml_v1.json</code>，不另维护手写公式源。ID 按语义分组，不要求连续；列顺序由本模型实际 feature_selection 决定。表的选择与版本已按保存模型和公共 catalog 核对；编译器校验 lookback 与 Core 依赖闭包。</p>
+assert fold_receipt[&quot;status&quot;] == &quot;PASS_OWNER_AND_INDEPENDENT_SAVED_REVIEW&quot;
+assert len(fold_receipt[&quot;folds&quot;]) == 2
+print(&quot;新主线：两折真实65-session滑动，读取保存证据；旧v1 TopK另列。&quot;)
+print(&quot;本页没有 Data、Feature、fit、predict 或账户调用。&quot;)
+</pre></section><section id="section-3" class="markdown"><h2>3. Feature ID 与依赖：由 registry 生成表</h2>
+<p>表从已合 Research 的 <code>stock_ml_v1.json</code> 自动生成，逐项核对本次保存 ModelRelease 的 selection / 版本 / 列顺序。稀疏 ID 按语义分组，不重新编号；公式、依赖与 lookback 继续由公共 catalog 和 Core 合同定义。</p>
 <table>
 <thead>
 <tr>
@@ -106,63 +113,135 @@ print(&quot;当前读取保存回执，不重跑 Data、Feature、模型或账�
 </tr>
 </tbody>
 </table>
-<p><a href="https://github.com/sinnergarden/axiom-research/blob/90b378a6e7d8283b0b021c537a95c5468b9161bc/src/axiom_research/catalogs/stock_ml_v1.json">固定 catalog 源</a>。</p>
-</section><section id="section-4" class="markdown"><h2>4. Data / Qlib / FeatureBuild：准备一次，校验后复用</h2>
-<p>Data 将 Raw 规范为固定 Snapshot。QuerySpec 冻结字段、成员、日历、PIT 与逐 session cutoff；Qlib 导出生成格式数值及完整来源证明，尚未计算预测 Feature。Research catalog 编译既有 Core FeaturePlan，由共享执行器生成 FeatureBuild。</p>
-<p>本次使用完整原 Feature parent 与证明，无供应商调用，也没有重算 Feature。保存件加载仍有解析/hash/ref 成本：首建从保存输入生成模型，第二次相同目标的 HIT 也需校验文件。冷 Data/Qlib 准备引用历史实测，不能冒称本次冷跑。</p>
-</section><section id="section-5" class="markdown"><h2>5. 五 session label：成熟之后才能进入训练</h2>
-<p>标签是实际日历的 f+1 开盘到 f+5 收盘收益。每个 fit clock 只接纳已成熟、当时成员且六特征有效的样本；归一化使用同一天完整有效截面的 cs_zscore（ddof=0、无 clip）。模型预测是该标准化目标的无量纲分数。</p>
-<p>January 原 fit 为 2023-12-28 20:30 +08，最后成熟 Feature 日为 12-21，训练 16,200 行。一个已保存日期的算术例：原收益 −0.01608579，截面均值 −0.01783237、标准差 0.03731907，标准化值约 0.04680116。这里解释原 Core 输出，没有另算 Feature 或归一化执行器。</p>
-<p>两周控制试点的训练日期同为 2023-11-01—2024-01-31，但 02-02 fit 最后成熟日是 01-26，02-08 fit 可到 01-31。训练时钟之外的 outcome 不进入 Dataset。</p>
-</section><section id="section-6" class="markdown"><h2>6. Dataset 与模型：实际首建，然后实际 HIT</h2>
-<p><code>build_stock_ml_from_saved_features</code> 复用固定同配置 Feature/raw Label，第一次新目标重新生成 norm/Dataset 并 fit/infer；第二次完全相同目标通过真实 builder 命中。它不是跨配置滚动 builder。</p>
+<p><a href="https://github.com/sinnergarden/axiom-research/blob/4e2e0e1a5d382fc33f30ccec658976ff649141b1/src/axiom_research/catalogs/stock_ml_v1.json">固定 registry 源</a>。本轮没有重新执行 Feature Core，也没有增加特征或优化参数。</p>
+</section><section id="section-4" class="markdown"><h2>4. Data / Qlib / FeatureBuild：保存事实，不改旧时钟</h2>
+<p>Data 负责固定 Snapshot/PIT/cutoff 事实与 Qlib 格式导出；Research 按 catalog 编译 FeaturePlan，由既有 Core 执行。跨仓合同复用，不再造 Feature 执行器。</p>
+<p>本次 fold 从完整 Feature 父件选择完整日期截面，并保留原 <code>knowledge_cutoff=20:30</code> 和依赖 availability。文件字节 digest 与解析内容 ref 分别验证；旧带空格 JSON 合法且保持原样。加载仍完整解析父证明，不是 streaming，日期 slice 也不替代完整来源核验。</p>
+<p>Data PR15/18/40 的审批门槛仍按父任务记录未解决；本稿仅链接状态，不收入其未批准实现，也不通过 Docs 合并绕过审批。</p>
+</section><section id="section-5" class="markdown"><h2>5. 成熟标签与三阶段时钟</h2>
+<p>目标仍是实际日历中 <code>s+1</code> 开盘至 <code>s+5</code> 收盘的五 session 收益，截面 zscore 由原归一化 Core 算子完成，ddof=0、排除成员/缺值等政策不变。fit 只能读取当时成熟的有限 target；未来 outcome 仅用于事后 IC/RankIC，不进入训练。</p>
 <table>
 <thead>
 <tr>
-  <th>实际阶段</th>
-  <th style="text-align:right">Wall time</th>
-  <th style="text-align:right">fit / infer</th>
-  <th style="text-align:right">Data / FeatureCore</th>
+  <th>时钟</th>
+  <th>本有界 profile</th>
+  <th>必须满足的关系</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td>新目标首建</td>
-  <td style="text-align:right">13.14 s</td>
-  <td style="text-align:right">1 / 1</td>
-  <td style="text-align:right">0 / 0</td>
+  <td>Feature knowledge / available</td>
+  <td>原 Feature 20:30；依赖 available 原值</td>
+  <td>available ≤ Feature knowledge ≤ inference</td>
 </tr>
 <tr>
-  <td>同目标 HIT</td>
-  <td style="text-align:right">4.95 s</td>
-  <td style="text-align:right">0 / 0</td>
-  <td style="text-align:right">0 / 0</td>
+  <td>fit knowledge / 模拟模型可用</td>
+  <td>fit 当日 20:30 → 声明 20:45</td>
+  <td>fit &lt; model available &lt; inference</td>
+</tr>
+<tr>
+  <td>inference / prediction publication</td>
+  <td>预测 Feature 日期 21:00</td>
+  <td>prediction knowledge = available，同 aware instant</td>
 </tr>
 </tbody>
 </table>
-<p>首建内部 norm/Dataset 约 5.61 s，fit 68.50 ms、infer 12.36 ms；内部阶段嵌套，不能再与总时间相加。两次完整过程 18.43 s，峰值约 1.17 GiB，新产物约 279 MiB。HIT 的 4.95 s 说明保存件校验仍有 I/O。</p>
-<p>以下函数对应已执行的公开调用；本 Notebook 默认只读取已保存回执，避免为了展示再次训练。另开新受控试验时才调用此函数。</p>
-</section><section class="example" data-cell-id="63afd9b0"><div class="example-label">同配置首建/HIT 的保存实测</div><pre class="code">def first_build_then_hit(experiment_path, new_destination):
-    from axiom_research import build_stock_ml_from_saved_features
-    first_metrics, hit_metrics = {}, {}
-    first = build_stock_ml_from_saved_features(
-        experiment_path, destination=new_destination, metrics=first_metrics)
-    second = build_stock_ml_from_saved_features(
-        experiment_path, destination=new_destination, metrics=hit_metrics)
-    assert not first_metrics[&quot;cache_hit&quot;] and hit_metrics[&quot;cache_hit&quot;]
-    assert first.identity == second.identity
-    assert first_metrics[&quot;train_calls&quot;] == first_metrics[&quot;predict_calls&quot;] == 1
-    assert all(hit_metrics[k] == 0 for k in (
-        &quot;train_calls&quot;, &quot;predict_calls&quot;, &quot;data_read_calls&quot;, &quot;feature_core_calls&quot;))
-    return first_metrics, hit_metrics
+<p>20:45 / 21:00 是声明的历史模拟时钟；本机耗时不能证明当时已完成训练。每个 OOS trade 日严格使用前一实际 session 的 Feature/预测。</p>
+<p>两折各有 4 个未成熟 Feature 日期，完整 314 ID 留在排除证据中：<code>LABEL_NOT_MATURE=1,256</code>；成熟截面的非成员排除为 <code>NOT_MEMBER=854</code>。不缩短65日期窗口、不填缺值、不把声明窗口当全部训练键。</p>
+</section><section id="section-6" class="markdown"><h2>6. Dataset 与模型：两个真实移动窗口</h2>
+<p>公开入口 <code>build_stock_ml_fold_from_saved_inputs</code> 按固定实际 calendar，在 fit 前选 <strong>65 个 Feature sessions</strong>，只用截至 fit 的成熟有效 target。原 LightGBM 参数与共享后端保持不变：100 trees、seed=42、单线程，无搜索或 early stopping。</p>
+<table>
+<thead>
+<tr>
+  <th>Fold / fit</th>
+  <th>65-session Feature 窗口</th>
+  <th>实际成熟窗口 / sessions</th>
+  <th style="text-align:right">训练行</th>
+  <th>OOS trade 日</th>
+  <th style="text-align:right">预测行 / valid</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Feb5 / Feb2</td>
+  <td>2023-11-02—2024-02-01</td>
+  <td>Nov2—Jan26 / 61</td>
+  <td style="text-align:right">18,300</td>
+  <td>Feb5—8</td>
+  <td style="text-align:right">1,256 / 1,200</td>
+</tr>
+<tr>
+  <td>Feb19 / Feb8</td>
+  <td>2023-11-08—2024-02-07</td>
+  <td>Nov8—Feb1 / 61</td>
+  <td style="text-align:right">18,300</td>
+  <td>Feb19—23</td>
+  <td style="text-align:right">1,570 / 1,500</td>
+</tr>
+</tbody>
+</table>
+<p>窗口真实移动4个sessions。每折保存 Feature/Label slice、Dataset、native booster、ModelRelease v2、Prediction v2 与原 Signal evidence；definition 绑定所有原父件与实现来源。</p>
+<table>
+<thead>
+<tr>
+  <th>首次构建测量</th>
+  <th style="text-align:right">Fold Feb5</th>
+  <th style="text-align:right">Fold Feb19</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>builder 完整父件验证</td>
+  <td style="text-align:right">4.147 s</td>
+  <td style="text-align:right">4.264 s</td>
+</tr>
+<tr>
+  <td>三个矩阵转换合计</td>
+  <td style="text-align:right">0.00534 s</td>
+  <td style="text-align:right">0.00589 s</td>
+</tr>
+<tr>
+  <td>fit / inference</td>
+  <td style="text-align:right">0.05672 / 0.00225 s</td>
+  <td style="text-align:right">0.05331 / 0.00282 s</td>
+</tr>
+<tr>
+  <td>文件发布</td>
+  <td style="text-align:right">0.110 s</td>
+  <td style="text-align:right">0.118 s</td>
+</tr>
+<tr>
+  <td>staged public loader</td>
+  <td style="text-align:right">4.900 s</td>
+  <td style="text-align:right">5.253 s</td>
+</tr>
+<tr>
+  <td>首次 builder 总时间</td>
+  <td style="text-align:right"><strong>10.178 s</strong></td>
+  <td style="text-align:right"><strong>9.846 s</strong></td>
+</tr>
+</tbody>
+</table>
+<p>内部阶段属于总时间，不再与它相加。两折完整构建/自验恢复流程50.78 s、峰值RSS1.87 GiB；含首次训练前失败累计62.23 s，监控结束累计文件40.27 MiB。独立复审额外只读载入两折，不包含在上述业务时钟内。</p>
+<p>原同配置 helper 的13.14 s首建 /4.95 s HIT作为历史控制保留；它不是本次滑动 API，也不替代本表。</p>
+</section><section class="example" data-cell-id="63afd9b0"><div class="example-label">同配置首建/HIT 的保存实测</div><pre class="code">def read_saved_fold(saved_fold_path):
+    from axiom_research import load_stock_ml_fold
+    saved = load_stock_ml_fold(saved_fold_path)
+    return saved.to_dict(), saved.model(), saved.predictions()
 
-for row in receipt[&quot;fixed_config&quot;][&quot;stages&quot;]:
-    print(row[&quot;stage&quot;], round(row[&quot;elapsed_seconds&quot;], 3), &quot;s&quot;, row[&quot;metrics&quot;])
-</pre></section><section id="section-7" class="markdown"><h2>7. 保存 Signal：分数与账户目标分开</h2>
-<p>公开 January Signal 保留 model/Feature 引用、完整键、成员、validity 与模拟可用时点，不保存账户持仓路径或撮合结果。Engine 消费严格前一实际 session 的预测，不能回填未来模型分数。</p>
-<p>纯预测 Signal 可供独立账户复用。新组合生成新的计划和账本；账户路径、退出与风控状态各属自己的账户。两周试点目前是私有 native booster/预测回执，尚非通用公开 ModelRelease/SignalRun，不将它交给账户冒充完整滚动策略。</p>
+
+# 该公开 loader 已在 owner / 独立复审中调用。本页不重复解析大 proof，只读其冻结回执。
+for fold in fold_receipt[&quot;folds&quot;]:
+    print(fold[&quot;first_trade_session&quot;], &quot;Feature窗口&quot;, fold[&quot;training_window&quot;],
+          &quot;成熟窗口&quot;, fold[&quot;actual_training_window&quot;], &quot;训练&quot;, fold[&quot;training_rows&quot;],
+          &quot;预测/valid&quot;, fold[&quot;prediction_rows&quot;], fold[&quot;valid_predictions&quot;])
+    print(&quot;saved fold&quot;, fold[&quot;fold_ref&quot;], &quot;Signal&quot;, fold[&quot;signal_run_ref&quot;])
+</pre></section><section id="section-7" class="markdown"><h2>7. 保存 Signal：完整网格，分数与账户准入分开</h2>
+<p>新件为 <code>stock_prediction_run_v2</code>：<code>signal_stage=prediction_raw</code>、<code>score_semantics=forward_5_session_cs_zscore_prediction</code>、无量纲。分数是归一化 target 的预测，不是收益百分比。完整 union 的每日期314行都保留 member/valid/invalid_reason；非成员等无效行 score=null。</p>
+<p>逐行保留原 Feature knowledge/availability，增加声明模型可用时钟，预测 knowledge=available=21:00。保存输入、模型与 fold_spec refs 固定，旧 v1 不改。两折均通过公共 <code>validate_stock_predictions</code>，独立加载 saved booster 的预测与原保存分数逐值相等。</p>
+<p><strong>这只完成 v2 中立准入。planner / Runtime 明确拒绝 v2 账户消费。</strong> 以下账户章节使用原 January v1 Signal，不把这两份新预测转换成 v1 或绑定旧账户。</p>
 </section><section id="section-8" class="markdown"><h2>8. Engine 唯一账户 / Evaluation：同 Signal 换组合</h2>
-<p><strong>同一保存 Signal 的 Top3/Top5 对照已通过。</strong> 两份新账户与原 v2 评价均已保存，五个调仓日目标均不同。Data、供应商、Feature、fit、predict 调用全部为 0；完整输入与评价引用在本地回执逐项核对。</p>
+<p><strong>同一旧 January v1 保存 Signal 的 Top3/Top5 对照已通过。</strong> 两份独立账户与原 EvaluationReport v2 均已保存（评价v2与Prediction v2是不同合同），五个调仓日目标均不同。Data、供应商、Feature、fit、predict 调用全部为 0；完整输入与评价引用在本地回执逐项核对。</p>
 <table>
 <thead>
 <tr>
@@ -274,7 +353,7 @@ def evaluate_saved_topk(saved_run_path, saved_reference_evaluation, new_destinat
     return output / &quot;evaluation.json&quot;
 
 
-# 账户和评价各用一个新进程；本页不调用上述业务函数。
+# 历史 v1 Signal 对照的调用；不支持新 Prediction v2。本页不调用业务函数。
 print(&quot;TopK 对照状态：&quot;, receipt[&quot;topk&quot;][&quot;status&quot;])
 for result in receipt[&quot;topk&quot;][&quot;outputs&quot;]:
     print(&quot;Top&quot;, result[&quot;top_k&quot;], &quot;决策&quot;, result[&quot;decision_count&quot;], &quot;成交&quot;, result[&quot;fills&quot;])
@@ -313,14 +392,14 @@ print(&quot;账户调用 / 评价尝试 / 完整评价：&quot;,
   <td>公共调用命中后 Data / Core / fit / predict 为 0；仍完整加载核验</td>
 </tr>
 <tr>
-  <td>同一独立预测 Signal 改组合</td>
+  <td>同一已准入 v1 独立预测 Signal 改组合</td>
   <td>Data / Feature / Model / Signal</td>
   <td>Core 组合 / Runtime / Evaluation；同 Signal Top3/Top5 本轮通过，上游 0 次</td>
 </tr>
 <tr>
   <td>改 label / 模型语义</td>
   <td>未受影响 Feature / 原事实</td>
-  <td>新 Dataset / model / Signal；现公开保存输入 helper 限同 config</td>
+  <td>新 Dataset / model / Signal；旧 helper 限同 config；新 saved-fold 绑定独立窗口/时钟与全部父件</td>
 </tr>
 <tr>
   <td>改 Feature 公式 / 字段、Snapshot、PIT/cutoff</td>
@@ -371,134 +450,133 @@ print(&quot;账户调用 / 评价尝试 / 完整评价：&quot;,
 </tbody>
 </table>
 <p>OS 页缓存未清空，单阶段时间有嵌套，不能相加为另一个总时间；没有全年吞吐保证。</p>
-</section><section id="section-11" class="markdown"><h2>11. 每周训练控制试点：训练时钟改变，日期保持固定</h2>
-<p>两个 OOS 窗口为 <strong>2024-02-05—02-08、2024-02-19—02-23</strong>，fit 为严格前一实际 session <strong>02-02/02-08 20:30 +08</strong>。两周训练 Feature 日期均为 <strong>2023-11-01—2024-01-31</strong>，各 65 个实际日期，只重新筛各周已成熟样本；日期窗口相同，成熟样本数不同。这不是每周移动三个月训练窗口的实测。</p>
+</section><section id="section-11" class="markdown"><h2>11. 保存后只读：验证、HIT 与重跑边界</h2>
 <table>
 <thead>
 <tr>
-  <th>fit</th>
-  <th>最后成熟 Feature 日</th>
-  <th style="text-align:right">成熟日期 / 声明日期</th>
-  <th style="text-align:right">训练行</th>
-  <th style="text-align:right">有效预测行</th>
-  <th style="text-align:right">OOS / 预测 Feature 日期数</th>
+  <th>两折实际自验</th>
+  <th style="text-align:right">Fold Feb5</th>
+  <th style="text-align:right">Fold Feb19</th>
+  <th style="text-align:right">新 fit / predict</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td>2024-02-02</td>
-  <td>2024-01-26</td>
-  <td style="text-align:right">62 / 65</td>
-  <td style="text-align:right">18,600</td>
-  <td style="text-align:right">1,200</td>
-  <td style="text-align:right">4 / 4</td>
+  <td>fresh public load</td>
+  <td style="text-align:right">4.753 s</td>
+  <td style="text-align:right">4.761 s</td>
+  <td style="text-align:right">0 / 0</td>
 </tr>
 <tr>
-  <td>2024-02-08</td>
-  <td>2024-01-31</td>
-  <td style="text-align:right">65 / 65</td>
-  <td style="text-align:right">19,500</td>
-  <td style="text-align:right">1,500</td>
-  <td style="text-align:right">5 / 5</td>
+  <td>Engine neutral v2 validator</td>
+  <td style="text-align:right">0.032 s</td>
+  <td style="text-align:right">0.041 s</td>
+  <td style="text-align:right">0 / 0</td>
+</tr>
+<tr>
+  <td>saved booster 独立预测</td>
+  <td style="text-align:right">0.183 s</td>
+  <td style="text-align:right">0.185 s</td>
+  <td style="text-align:right">0 / 1（每折）</td>
+</tr>
+<tr>
+  <td>完全相同定义 HIT</td>
+  <td style="text-align:right">9.496 s</td>
+  <td style="text-align:right">9.780 s</td>
+  <td style="text-align:right">0 / 0</td>
 </tr>
 </tbody>
 </table>
-<p>第一周预测 Feature 日期为 02-02/02-05/02-06/02-07，第二周为 02-08/02-19/02-20/02-21/02-22；均对应严格前一 session。两折各 fit/infer 一次，事后标签共同在 <strong>02-29 20:30 +08</strong> 读取，与训练时钟分离。完整日期 parent 保留原 refs，不伪造一个混合的公开 FeatureBuild；这些私有教学预测也没有冒充原 January 公共 SignalRun。</p>
-<p>成功流程 <strong>30.94 s、峰值 RSS 4.46 GiB</strong>；矩阵分别约 <strong>1.05/1.11 MiB</strong>。保存 proof 校验阶段采样峰值约 0.68 GiB，Data outcome 与 norm 阶段约 4.46 GiB，fit 阶段 RSS 仍保留之前分配；矩阵小不能解释为进程内存小。本次不是流式 loader 验收。</p>
-</section><section class="example" data-cell-id="3506c4a3"><div class="example-label">两周成熟边界与实际次数</div><pre class="code"># 教学编排调用已有公开 Data/Research/Core，不是另一个特征执行器。
-# 仅新的受控试验调用；默认读取本轮已保存统计，不重复 fit/infer。
-def two_week_control(frozen_input_manifest, new_destination):
-    from examples.weekly_ml_pilot import run_weekly_pilot
-    return run_weekly_pilot(frozen_input_manifest, new_destination)
-
-for fold in receipt[&quot;weekly&quot;][&quot;folds&quot;]:
-    print(fold[&quot;fit_cutoff&quot;], &quot;训练&quot;, fold[&quot;training_rows&quot;],
-          &quot;最后成熟日&quot;, fold[&quot;last_mature_feature_session&quot;],
-          &quot;预测&quot;, fold[&quot;prediction_rows&quot;])
-print(&quot;本轮含失败尝试的 Data 读取：&quot;, receipt[&quot;cumulative_counts&quot;][&quot;Data_reads&quot;])
-</pre></section><section id="section-12" class="markdown"><h2>12. 五年计划：固定规模条件估算与未测成本</h2>
-<p><strong>65.15–66.87 分钟只代表暖流程的固定日期控制情景，不能当五年滑动训练总耗时。</strong> 输入条件是同硬件、314 个固定 ID、六特征、已准备 Feature、固定 65 个训练日期，以及当前短样本的本地源/proof 体积。五年真实移动窗口会改变日期、成员、证明和 I/O；本轮没有启动全年或五年任务。</p>
-<p>从已有保存日历枚举 <strong>2021-01-01—2025-12-31</strong>，实际首日为 2021-01-04，末日为 2025-12-31：共有 <strong>1,212 sessions / 256 个有交易日的 ISO 周</strong>，全周休市不算 fold。平均每周 <strong>4.734375</strong> 日，与两周控制平均 4.5 日不同。此日历只用于计数，不证明五年股票源或历史成员覆盖。</p>
-<p>以下均从同一成功控制流程的保存分阶段回执拆分，单位为秒；没有额外运行。<code>V=2.87385</code> 为公开实验、scope 和三个 parent 的完整核验之和；共享事后 labels 为 <code>9.98296</code>、norm 为 <code>0.90769</code>；两周训练 labels/norm/matrix/fit/infer 各自总和为 <code>7.56586 / 7.96881</code>。</p>
+<p>HIT 与 loader 仍完整核验原父件：owner 流程总共10次，每次父件投影验证4.15–4.69 s；独立review再只读载入两次。旧 spaced proof 的逻辑 digest fallback每次约0.010 s，并保留其序列化峰值阶段。保存件可读不要求当前实现版本；实现整体digest发生变化时也不能为了展示再build一个新身份。</p>
+<p>首次真实尝试只完成2个 Data outcome读取与1个Feb1截面归一化，然后在旧JSON格式校验处停止，fit=0。修复经父亲审后复用保存准备件；恢复Data/norm/Feature/供应商/账户均0，fit/infer各2，另2次独立saved predict。16个原/准备父件hash、mtime、大小不变。</p>
+<p>旧 weekly成熟控制保持Nov1—Jan31日期固定，曾以不同cutoff得到62/65个成熟session；它的66分钟情景只保留历史，不再称真实滑动估计。公开saved-fold已实现；通用schedule/多年份/streaming恢复平台仍未实现。</p>
+</section><section class="example" data-cell-id="3506c4a3"><div class="example-label">两周成熟边界与实际次数</div><pre class="code"># 已保存两折的校验结果；不调用 builder、不重训、不重推理。
+for fold in fold_receipt[&quot;folds&quot;]:
+    assert fold[&quot;neutral_validation&quot;] == &quot;PASS&quot;
+    assert fold[&quot;independent_predict&quot;] == &quot;EXACT_EQUAL&quot;
+    assert fold[&quot;cache_fit_predict_calls&quot;] == [0, 0]
+    assert fold[&quot;engine_runtime&quot;] == &quot;UNSUPPORTED_V2&quot;
+    print(fold[&quot;first_trade_session&quot;], &quot;中立校验PASS / 独立预测相等 / HIT零fit,predict&quot;)
+print(&quot;恢复业务调用：&quot;, fold_receipt[&quot;execution_counts&quot;])
+print(&quot;含首次准备的累计调用：&quot;, fold_receipt[&quot;cumulative_execution_counts&quot;])
+</pre></section><section id="section-12" class="markdown"><h2>12. 五年计划：真实滑窗样本的条件 warm 估计</h2>
+<p>实际保存日历在2021-01-01—2025-12-31有<strong>1,212 sessions /256个有交易日的ISO周</strong>，平均每周4.734375日；全周休市不计fold。这是日历计数，不证明五年股票来源或历史成员完备。</p>
+<p><strong>前提：每周fit所需原Feature、raw/normalized Label父件已准备就绪，314 ID、65-date窗口、原参数与本次证明规模近似不变。</strong> 新观测来自真正移动的两折，已包含builder完整父件核验、矩阵、fit/infer、写件和staged loader。</p>
 <table>
 <thead>
 <tr>
-  <th>暖流程分项</th>
-  <th>条件外推公式（分钟）</th>
-  <th style="text-align:right">256 周参考值</th>
+  <th>条件成本</th>
+  <th>从保存秒数外推</th>
+  <th style="text-align:right">256周参考</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td>每周训练准备 / norm / matrix / fit / infer</td>
-  <td><code>256 × mean(7.56586, 7.96881) / 60</code></td>
-  <td style="text-align:right">33.14 min</td>
+  <td>已准备父件的saved-fold首次构建</td>
+  <td><code>256 × mean(10.178307,9.846465)/60</code></td>
+  <td style="text-align:right"><strong>42.72 min</strong></td>
 </tr>
 <tr>
-  <td>共享事后 labels / norm</td>
-  <td><code>256 × (9.98296 + 0.90769) / 2 / 60</code></td>
-  <td style="text-align:right">23.23 min</td>
+  <td>两个观测最小/最大情景</td>
+  <td><code>256 × [min,max]/60</code></td>
+  <td style="text-align:right"><strong>[42.01,43.43] min</strong></td>
 </tr>
 <tr>
-  <td>原 parent/proof 核验</td>
-  <td><code>256 × V / 2 / 60</code></td>
-  <td style="text-align:right">6.13 min</td>
+  <td>若逐周照做本次全部自验（fresh load/HIT/独立预测等）</td>
+  <td><code>256/2 × 50.501216/60</code></td>
+  <td style="text-align:right">107.74 min</td>
 </tr>
 <tr>
-  <td>import、检查、序列化与监控剩余时间</td>
-  <td><code>66.01 − 上述三项</code></td>
-  <td style="text-align:right">3.50 min</td>
-</tr>
-<tr>
-  <td>整个短流程</td>
-  <td><code>256 / 2 × 30.94023 / 60</code></td>
-  <td style="text-align:right"><strong>66.01 min</strong></td>
+  <td>单列native fit+infer（已含于首建，不再加）</td>
+  <td><code>256 × mean(0.05672+0.00225,0.05331+0.00282)</code></td>
+  <td style="text-align:right">14.73 s</td>
 </tr>
 </tbody>
 </table>
-<p>fit/infer 已包含在训练分项内；仅这两个阶段的外推合计约 <strong>16.63 秒</strong>，不能再加一次，也不能替代总流程。训练分项取两个观测的最小/最大值、其余三项固定，得到 <strong>[65.15, 66.87] min</strong>。这是两周控制情景区间，不是统计置信界、真实五年滑动运行时或承诺上界。</p>
-<p>完整计划必须写为：</p>
-<p><code>T_total = T_唯一冷准备 + T_暖控制[65.15,66.87] min + T_五年账户及评价 + T_导出展示</code></p>
+<p>这是保存父件充分准备、固定证明规模的场景，区间不是统计置信界或多年承诺。全部自验情景不等于必要生产步骤；两折平均4.5个OOS日与五年日历均值不同，预测侧成本未作线性容量保证。</p>
+<p>完整计划仍必须另计：</p>
+<p><code>T_total = T_唯一Data/Qlib/Feature冷准备 + T_每fit_cutoff的Label准备/归一化 + T_saved_fold_warm[42.01,43.43]min + ΔT_来源证明与成员范围扩张 + T_账户及评价 + T_导出展示</code></p>
 <table>
 <thead>
 <tr>
-  <th>总计划成本</th>
-  <th>本轮是否已测</th>
-  <th>估计限制</th>
+  <th>未测成本</th>
+  <th>本轮证据 / 限制</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td>唯一日期的 Data / Qlib / Feature 冷准备</td>
-  <td><strong>未测五年规模</strong></td>
-  <td>旧 314 ID × 56 日 Qlib 的 37.72 s 只说明短样本格式准备，不含全部冷链</td>
+  <td>五年唯一日期Data/Qlib/Feature冷准备</td>
+  <td>旧37.72 s的314 ID×56日Qlib不含全冷链；本轮未重跑</td>
 </tr>
 <tr>
-  <td>暖 weekly 控制</td>
-  <td>两周实测，256 周条件外推</td>
-  <td>固定日期与体积；不证明移动训练、五年成员、source proof 增长或流式 loader</td>
+  <td>每个未来cutoff的Label准备/归一化</td>
+  <td>本两折复用已有归一化父件，只补一个Feb1截面；不能把新cutoff全链填0</td>
 </tr>
 <tr>
-  <td>五年账户及评价</td>
-  <td><strong>未测</strong></td>
-  <td>January TopK 仅证明两策略消费同 Signal；恢复 106.65 s 不能线性承诺五年 Runtime</td>
+  <td>扩张后的完整proof解析 / I/O / 内存</td>
+  <td>当前每次读取完整父件；不存在已证明的streaming或多年常驻内存界</td>
 </tr>
 <tr>
-  <td>导出展示</td>
-  <td><strong>未测完整流程</strong></td>
-  <td>Reader 小样本加载时间不等于网页导出与浏览器耗时</td>
+  <td>五年账户/评价</td>
+  <td>新v2预测还未账户准入；旧v1 TopK短月不证明该成本</td>
+</tr>
+<tr>
+  <td>导出 / UI / 浏览器</td>
+  <td>与owner计算分开；本次只读HTML渲染不代表多年报告成本</td>
 </tr>
 </tbody>
 </table>
-<p>因此总计划区间为 <strong>[65.15,66.87] min + 三个未测项</strong>，目前没有可证的有限总上界。模型算术很小，成熟筛选/norm 与源/proof I/O 已占主要成本；历史 union 与 source proof 扩张会增加校验及驻留内存。正式按日期分片加载、阶段缓存与恢复合同仍待实现，不能用短样本准备后速度掩盖冷准备或增长成本。</p>
-</section><section id="section-13" class="markdown"><details><summary>工程附录：预算、失败和候选合同</summary><h2>13. 工程附录：预算、失败和候选合同</h2>
+<p>因此<strong>完整五年总分钟数和有限上界均未知</strong>，没有启动全年/五年执行。</p>
+<h3>历史固定窗口估计</h3>
+<p>此前Nov1—Jan31固定日期控制的65.15–66.87 min（中心66.01）包含其共享outcome/norm与原证明流程。它不是新滑窗的最终warm估计，成本边界不同，也不能把66→42.72称为提速。本稿保留原场景与失败历史供核对。</p>
+</section><section id="section-13" class="markdown"><details><summary>工程附录：历史尝试与当前边界</summary><h2>13. 工程附录：历史尝试与当前边界</h2>
 <p>初始授权为同配置 1 次 fit/infer + 第二次 HIT、两周各 1 次 fit/infer、公共 label outcome 查询最多 8 次、供应商 0；账户最多 2 次。一个重进程，硬 RSS 6 GiB、自有 PID 在 5.5 GiB 停止；每阶段 120 s、业务时钟 480 s、累计新产物 1 GiB。</p>
 <p>两次 weekly 失败均发生在查询证据序列化，各只读 1 个价格 batch、未训练。修复后两周共享事后 outcome 来源，成功流程 6 次读取；累计 8，失败目录保留。业务并非一次无错完成，缓存首建和 weekly 也分别计时。</p>
 <p>TopK 首次评价采样峰值 <strong>5.82 GiB</strong>，触发 own-PID guard 后退出，Top5 账户已完整保存、Top3 尚未开始；该失败记录及产物没有覆盖。审准的恢复仅补缺少阶段，四个独立进程共用额外 480 s，不重跑 Top5，仍沿用相同 RSS/累计文件上限。实际恢复 <strong>106.65 s / 4.78 GiB</strong>，累计文件约 <strong>674 MiB</strong>，全部进程退出。</p>
 <table>
 <thead>
 <tr>
-  <th>累计次数（含失败与恢复）</th>
+  <th>历史固定窗/TopK累计（不含新滑动fold）</th>
   <th style="text-align:right">实际</th>
 </tr>
 </thead>
@@ -527,6 +605,7 @@ print(&quot;本轮含失败尝试的 Data 读取：&quot;, receipt[&quot;cumulat
 </table>
 <p>仅 TopK 的 Data/供应商/Feature/fit/predict 均为 0；label/norm 使用既有 Core 算子，不能把“Feature Core 0”解释为所有 Core 计算 0。Notebook 当前四个默认代码单元只读取保存回执、定义函数，零业务调用；私有输出副本与全部原输入保留，本公开 source 不包含私人产物。</p>
 <p>缓存 key 与 proof 有界加载的最小候选见 <a href="../docs/design/05_axiom_research.md#ml-engineering-review-proposals">Research §8.4.1</a>：实际计划决定上下文；两日期 shard 只为本次配置；顶层调用重验、调用内 proof blob 验一次后共享并释放。落盘本身不证明 streaming，正式 rolling/resume 尚未实现。冷 Qlib 准备沿用历史证据，未重跑。</p>
+<p>新真实saved-fold单独预算480s/100MiB：首次准备失败11.45s、恢复50.78s，均未触发预算；恢复阶段Data/norm为0；含首次准备累计Data=2、归一化=1，旧失败与原保存件保留。新fold累计2个build fit/infer、2个独立saved predict，不与上表历史3次训练混算。默认四代码单元只读两份冻结回执、定义显式函数，0业务调用。</p>
 </details></section><section id="cell-17" class="markdown"><details><summary>缓存与常驻内存：当前风险</summary><h3>缓存与常驻内存：当前风险</h3>
 <table>
 <thead>
@@ -538,7 +617,7 @@ print(&quot;本轮含失败尝试的 Data 读取：&quot;, receipt[&quot;cumulat
 </thead>
 <tbody>
 <tr>
-  <td>Research builder 把 Research Python、Data Python 与 Core Python 的整体实现 digest 纳入身份；非语义代码改动也可能 MISS，保存输入再利用仍限同配置</td>
+  <td>Research builder 把 Research Python、Data Python 与 Core Python 的整体实现 digest 纳入身份；非语义代码改动也可能 MISS，旧helper限同配置；新saved-fold绑定独立窗口/时钟及全父件</td>
   <td>后续按实际计算依赖与语义版本拆分身份；保留完整实现来源用于审计。变更前先冻结哪些修改应失效，避免默默宽松复用</td>
   <td>同输入加载旧保存件仍通过；当前 MISS 如实报告。先列失效矩阵，教程不直接改生产 cache</td>
 </tr>
@@ -549,7 +628,7 @@ print(&quot;本轮含失败尝试的 Data 读取：&quot;, receipt[&quot;cumulat
 </tr>
 </tbody>
 </table>
-<p>目标方向已接受，具体最小新 API 仍待冻结；两折不证明完整平台或 streaming 已实现。
+<p>目标方向已接受，saved-fold已冻结并完成两折；语义cache分层与有界proof新API仍待冻结；两折不证明完整平台或 streaming 已实现。
 四项候选的准确边界统一见 <a href="../docs/design/05_axiom_research.md#ml-engineering-review-proposals">Research §8.4.1</a>：阶段依赖身份保留实际计算实现与完整审计；首轮按两个完整日期分片、原 proof blob 独立保存并每次核验。它们尚未实施，本教学不先大改缓存或 loader。</p>
 </details></section><section id="cell-18" class="markdown"><details><summary>SysQ：借经验，明确已有差异</summary><h3>SysQ：借经验，明确已有差异</h3>
 <table>
@@ -562,7 +641,7 @@ print(&quot;本轮含失败尝试的 Data 读取：&quot;, receipt[&quot;cumulat
 <tbody>
 <tr>
   <td>Feature per-window write-through；命中后读原窗口 frame，再训练</td>
-  <td>已有固定单折保存输入复用。本轮跨 fold 的完整日期 parent 编排是有界验收脚本，尚非公开 rolling 缓存平台</td>
+  <td>已有固定单折保存输入复用。本轮已有公开saved-input fold入口与真实滑窗；通用rolling缓存/schedule平台仍未实现</td>
 </tr>
 <tr>
   <td>SignalStore / LabelStore / 实验索引；信号分析与 signal-driven backtest 分开</td>
