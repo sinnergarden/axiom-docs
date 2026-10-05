@@ -717,15 +717,17 @@ benchmark/period_metrics` 原值保留。
 基准 key 固定 `CSI300`（默认）、`SSE_COMPOSITE`、`NASDAQ100`。CSI300 复用旧 v2
 评价已固定的价格指数证据；另外两个需 Data owner 提供真实证券身份、币种、价格或
 全收益口径、原生交易日历、时区、Snapshot/Query/Reader、每条 close 的
-available_at 和来源引用。不能猜指数代码、价格、汇率、日期或缺值。账户
-session 的对齐只选评价 cutoff 前已可见、且不晚于该 session 的最近原生收盘，
-逐点保存 `account_session/native_session/close/available_at/is_stale/source_refs`
-及缺失原因；可否使用陈旧价与最长跨度须依据 Data 来源固定，不能隐式前填。
+available_at 和来源引用。不能猜指数代码、价格、汇率、日期或缺值。账户 session 的显示投影只按日期标签精确匹配原生 `native_session`，同日无保存点
+显式缺失/null，不选择前日、不前填。保留原生交易日历、当地 session 与实际
+`available_at`、close、source_refs；NASDAQ100 本币曲线为事后回看，不宣称与
+A 股账户同一瞬间可知。跨市场真正 as-of/FX 比较须后续另定，不在本轮加入 stale
+政策。每点保存 `account_session/native_session/close/available_at/source_refs` 和
+缺失原因，非匹配日期的 native_session/close 均为 null。
 每个指数保存原币种归一化走势；人民币账户与同币种价格指数的相对财富
 `(NAV_t/initial_NAV)/(B_t/anchor_close)-1` 仅标为**价格指数代理比较**，因为
 账户含分红而指数不含。NASDAQ100 如为美元且无同窗口实际汇率来源，仍可展示其
 美元本币走势，但人民币账户相对收益存 null/`FX_REQUIRED`，不称超额收益。
-缺原生边界或中间点分别保存 MISSING_BOUNDARY/MISSING_OBSERVATION，
+缺原生边界或同日点分别保存 MISSING_BOUNDARY/MISSING_OBSERVATION，
 不把缺口变为 0；来源无法核实则该腿 unavailable，不冒充已完成多基准验收。
 `benchmark_comparisons` 按上述三个 key 各存 input_ref、currency、return_basis、
 status 与逐点 native_session/close/normalized_index/account_relative_wealth/
