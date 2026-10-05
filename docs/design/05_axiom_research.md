@@ -354,7 +354,7 @@ receipt 中跳过阶段的 0 当作冷构建耗时。原生 total/build seconds 
 <a id="stock-saved-fold-clock-contract"></a>
 ### 4.7 保存输入的有界滑动 fold 与独立时钟
 
-状态：**合同经父任务时钟亲审通过，软件候选待固定 head 源码亲审；业务执行未开始**（2026-10-05）。本轮只补两个
+状态：**合同与首版软件经父任务亲审；真实验收在旧证明格式校验处停止，兼容修复待固定 head 亲审，未自动重试**（2026-10-05）。本轮只补两个
 真正滑动的 weekly fold；旧固定日期试点及其失败/通过证据保留，全年/多年仍暂停。
 不建设通用 schedule、自动搜参、多年缓存或平台。现有 Data Reader/价格调整、Research
 Label/归一化和原生 LightGBM 后端继续复用，不新增 Feature 执行器或账户路径。
@@ -405,6 +405,9 @@ catalog_ref/feature_selection/ordered_features/feature_parents/training_labels/e
 显式固定绝对路径。`feature_parents` 每项为 `{features,input_evidence,sessions}`，
 其中 `features` 是上述 Feature 描述符，`input_evidence={path,file_digest,input_evidence_ref}`，
 `sessions` 是完整原 Feature 父件日期。Qlib 保存源的 Snapshot/PIT/universe 也核对一致。
+`file_digest` 绑定原文件全部字节，`input_evidence_ref` 绑定解析内容的规范化 JSON hash；
+旧证明的空格、缩进或末尾换行不改变内容 ref，也不改写原件。规范格式可直接流式核验
+内容 hash；其他格式复用已解析证明核验内容，仍在读取前后检查原文件 digest。
 `training_labels` 每项为 `{raw,normalized,sessions,raw_projection}`，raw/normalized 为
 普通 Label 描述符，sessions 为完整原 normalized 父件日期；raw_projection 为 exact bool。
 true 时只重建原 raw 精确日期投影及其 `parent_label_ref/feature_parent_ref/date_projection`
