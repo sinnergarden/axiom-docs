@@ -194,12 +194,12 @@
     "axiom-ui": {
       "repository": "sinnergarden/axiom-ui",
       "git_commit": "969145dcff6685116623d61bcf77b151f49dae4c",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "branch": "publish/ui-readonly",
-      "status": "remediated_version_published_2026_10_05; parent_review_and_owner_online_QA_passed; user_retest_pending; historical_user_product_acceptance_FAILED",
+      "status": "remediated_version_published_2026_10_05; parent_source_actual_screenshots_live_publication_identity_verified; owner_online_interactive_QA_passed; user_retest_pending; historical_user_product_acceptance_FAILED",
       "wheel_status": "owner final local wheel assets independently verified; no installed or distributed wheel claim",
       "legacy_local_directory": "old_non_git_copy_retained_pending_navigation_migration",
-      "screenshot_qa": "remediated version published 2026-10-05; parent review and owner online QA passed; user retest pending",
+      "screenshot_qa": "remediated version published 2026-10-05; parent source, actual screenshots and live publication identity verified; owner online interactive QA passed; user retest pending",
       "previous_daily_source": {
         "git_commit": "d5f097e46580b2794d08ececddccb123d292d3ea",
         "version": "0.1.0",
@@ -258,12 +258,12 @@
         "gh_pages_commit": "8ec244d45ead4843bf8eaae6255d6d12547a167a",
         "publication_file_sha256": "e787a5d1ce493ddccd09270104931dbc9d79d657ad5a401e389c57316eb928d2",
         "deployed_on": "2026-10-05",
-        "status": "PUBLISHED; parent live HTTP/source review and owner online QA passed; user retest pending",
+        "status": "PUBLISHED; parent source, actual screenshots and live publication identity verified; owner online interactive QA passed; user retest pending",
         "notebook_status": "new ML saved-sliding tutorial in Docs PR16; original UI owner may prepare sanitized candidate from sole Notebook; parent review before publication",
         "evidence_reports": [
           "reports/public-site-final-candidate-20261005.json"
         ],
-        "evidence_source": "Parent live HTTP verification; UI owner saved candidate acceptance; not a new Research browser QA"
+        "evidence_source": "Parent source and actual screenshot review plus live HTTP publication identity verification; UI owner online interactive QA; not a new Research browser QA"
       },
       "previous_public_site_delivery": {
         "git_commit": "f0e913bfaa01dee7903a7f397d17a96c7634f8fb",
@@ -566,7 +566,7 @@
     "no multi-year stock feature/model/account scale benchmark or one-day guarantee; saved stock decoding retains measured time and memory cost",
     "bounded deterministic ETF recipe, fixed stock model and two-fold performance acceptance only; no arbitrary FeaturePlans, derived TTM projection or general model selection/OOS platform",
     "UNKNOWN retained; ETF/stock observed daily execution is explicit approximation and strict controls retained; not live rules",
-    "no live Broker, SQLite crash recovery, complete stock quantity-action/delisting support or complete BFF/browser product; parent visual review performed; historical user UI product acceptance FAILED; remediated version published 2026-10-05 and parent/owner online QA passed; user retest pending"
+    "no live Broker, SQLite crash recovery, complete stock quantity-action/delisting support or complete BFF/browser product; parent visual review performed; historical user UI product acceptance FAILED; remediated version published 2026-10-05 and parent source/actual screenshots/live publication identity verified; owner online interactive QA passed; user retest pending"
   ],
   "as_of": "2026-10-05",
   "pending_implementations": {
@@ -612,11 +612,11 @@
       "source_commit": "4bdd8f0316d58b28cad6fe63bc399c73a15cd562",
       "merge_commit": "969145dcff6685116623d61bcf77b151f49dae4c",
       "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/6",
-      "status": "remediated_version_published_2026_10_05; parent_review_and_owner_online_QA_passed; user_retest_pending; historical_user_product_acceptance_FAILED",
+      "status": "remediated_version_published_2026_10_05; parent_source_actual_screenshots_live_publication_identity_verified; owner_online_interactive_QA_passed; user_retest_pending; historical_user_product_acceptance_FAILED",
       "final_product_acceptance": false,
       "parent_source_review": "passed",
-      "parent_online_review": "passed_for_remediated_published_version",
-      "owner_online_QA": "PASS",
+      "parent_online_review": "source, actual screenshots and live publication identity verified",
+      "owner_online_QA": "PASS: owner online interactive QA",
       "user_acceptance": "PENDING_RETEST",
       "previous_user_acceptance": "FAILED",
       "previous_unremediated_source": {
