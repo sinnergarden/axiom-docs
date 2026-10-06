@@ -257,10 +257,14 @@ releases/       Feature/Model/Strategy 发布包与研究决策
 
 ```text
 提出假设 → 固定数据和研究配置 → Feature/Label → 训练
-→ OOS SignalRun → 信号评估 → 调用 Trade 统一回测 → 比较与发布
+→ 保存模型与原始 OOS Prediction → 保存组合 Signal
+→ 信号评价 → 调用 Trade 统一回测 → 保存独立策略账户与评价
+→ 比较与发布
 ```
 
-信号评估不是第二套回测。修改仓位、换仓、退出规则时，优先复用 SignalRun，不重复训练；更换数据或 Feature 时则构建对应新版本，不能偷换缓存。
+这条链按阶段保存和复用：Feature/Label 固定矩阵输入，Model 保存训练结果，原始 Prediction 保留模型与 fold 来源，组合 Signal 保存输入预测和组合规则，信号评价绑定评价目标与样本，策略账户绑定各自的执行与风控配置。修改仓位、换仓或退出规则时复用已保存的 Signal，由 Runtime 生成独立账户；修改组合权重时复用原始 Prediction；修改模型参数时复用兼容的 Feature/Target 矩阵。各阶段沿用现有产物和公共入口。
+
+Data 负责事实修订、PIT 选择与 Qlib 事实视图；Research 从这些固定事实构建派生 Feature/Target 矩阵，管理 FitPlan、训练、实验和保存编排；Core 提供唯一共享的纯算子、信号组合与统计数学。Data 的 Qlib 视图用于消费固定事实，Research 的 prepared 矩阵用于窗口训练，两者始终指向同一事实来源。Runtime 使用同一 planner、模拟成交与 ledger 推进回测和未来 shadow；UI 读取各 owner 保存的结果。
 
 实验分组、版本、运行关联及标签/收藏/搁置记录由 Research 管理；向消费者提供保存的特征/模型分数及版本、信号评价和 Engine 结果引用，不因定义信号另建执行路径。
 

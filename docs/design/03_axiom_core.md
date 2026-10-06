@@ -235,7 +235,11 @@ buffer digest codec固定：day-major float64 little-endian（null槽canonical0�
 
 允许单模型、规则信号、多个模型或已保存 SignalRun 的组合。固定输入 alias、source stage、horizon、键对齐、缺失/过期规则、变换版本与 reference universe。
 
-支持基础算术、rank、zscore、条件组合即可。Research 可用受控 SQL/表达式编译计划；Core 执行已验证表示，不直接 `eval()` 任意字符串，也不读取数据库。
+首个组合增量限于已保存 Prediction 的固定权重加法，权重必须是有限数值，例如 `0.6 × P60 + 0.4 × P180`；这些周期只说明配方，不声明当前已有对应预测。需要 rank 或 zscore 时显式调用已有 Core 算子，冻结变换版本、参数与参考截面。Research 负责加载、计划与保存，Core 接收已验证的输入执行纯计算；首版使用少量明确参数，后续能力按用例逐项扩展，不新增 registry、workflow 或任意表达式 DSL。
+
+组合按相同 `(security_id, session)` 精确对齐，保留完整声明范围和缺失原因。任何必需输入缺失、无效或尚不可用，或计算结果非有限数值，输出相应 invalid；禁止静默填零、前向填充、因缺输入重分配权重或再次标准化。预测生成时采用的 rank/zscore 参考截面固定保存，事后 Label 缺失只影响评价配对，不能据此重算预测或组合。输出的可用时点须覆盖全部输入和已冻结变换的可用时点，并计入声明的发布延迟；模型、fold 和每份输入引用完整保留。
+
+首版可暂缓 sqrt。启用时，负数明确返回 invalid；若需要保留符号的开方，另定义 `signed_sqrt` 算子及其语义。拟合组合权重属于后续 Research 训练编排，只能用拟合时已经成熟的目标和 base 模型的 OOS 预测；每次拟合保存允许使用的预测区间，禁止全期拟合后回填历史。
 
 每条 signal 有 `score_semantics`，例如 rank_score、standardized_return_prediction、calibrated_probability。没有校准证据不生成“80% 会涨”的解释字段。
 
