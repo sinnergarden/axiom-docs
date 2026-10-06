@@ -892,6 +892,12 @@ submitted_quantity，卖出还不得超过可卖量。因此合法科创板200�
 stock_execution_rules_ref 和 quantity_rule_effective_from，
 数量相等关系可从真实 intent→order→fill 检查，不能由期末仓位倒推。
 
+v6摘要保留`metrics.unfilled_order_count`为submitted后仍有未成交量的订单数，另存
+`unsubmitted_order_count`（unsubmitted_quantity>0的订单数）、`unsubmitted_quantity`
+（未提交总股数）及`incomplete_order_count`（未提交或提交后未成交量>0的去重订单数）。
+同一订单可同时有未提交和未成交量，前两种订单数不能直接相加。完全拒绝的请求保存
+submitted=filled=unfilled=0、unsubmitted=requested，未完成订单数仍计入1；旧保存值不补写。
+
 `stock_fee_schedule` 返回
 `{contract_version:"stock_fee_schedule_v1",currency:"CNY",money_unit:"CNY_fen",
 intervals,sources,verified_from,verified_through,limitations}`。每个 interval 精确为
@@ -982,6 +988,10 @@ membership_batch=None)`。两个新参数均缺省时精确保留原market_repla
 成员原文加入已有source_evidence/coverage_bundle闭合，不重查Data。run v6显式只准入
 该v4投影和同一规则ref，逐session需要的域仍由同一个Runtime及Ledger判定；保存原生
 缺值及metadata，不为生命周期另外造一份行情或撮合器。
+
+完成本次Runtime准入后，既有rules_index在同一调用内供私有Core planner与撮合复用。
+周首调仓继续核对当次候选、定仓参考、账户版本和时钟，不重复全规则网格及来源身份准入；
+公共Core独立调用仍完整校验规则闭包。该复用不写入保存wire，也不成为跨调用信任缓存。
 
 首个完整CSI300短账户继续使用已有 native unadjusted 行情和行动证据策略。UNKNOWN、
 未知行动及未解释 factor 转换按原政策阻塞。现金 EX 与 factor 的解释、送转增股及其
@@ -1440,7 +1450,10 @@ UI 仅读取保存值。
 
 `execution_trace` 按原 decision 数组序号保存 trade/feature session、原 status、
 selected_security_ids/targets/trace 与精确链接 `intent_id→order_id→fill_id[]`；
-订单未成交时 fill_ids=[]，`requested_quantity` 精确来自 order.quantity，
+订单未成交时 fill_ids=[]，旧股票/ETF trace的`requested_quantity`来自原order.quantity；
+v6取原order.requested_quantity，并新增原order的`submitted_quantity/unsubmitted_quantity`，
+与原filled/unfilled一并保存五段数量，校验requested=submitted+unsubmitted及
+submitted=filled+unfilled。已有旧格式报告仍按原wire读取，不推导或补写新字段。
 保留原 decision 的单数或复数 selected 字段。没有保存的 sequence/field 均为 null，
 不推定订单 committed_sequence；保留原 order.status/reason、requested/filled/
 unfilled_quantity、execution_admission 与成交价/费/sequence。资格内历史分数
