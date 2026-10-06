@@ -1085,6 +1085,18 @@ digest，不能把 Document identity、原 signal_run_ref 和文件字节 hash �
 | market_input | `{contract_version:"stock_market_input_refs_v1",market_ref,model_snapshot_id,execution_snapshot_id,warmup_sessions,price_basis:"unadjusted",projection_version:"market_replay_v4",native_inputs}`。native_inputs 每项为 `{role,artifact,native_ref}`，role 仅为 `prediction_basis` 或 `execution`，同一原件可被两种用途引用而不复制文件。native_ref 是完整原 DataBatch identity；原 QuerySpec、Snapshot、purpose、cutoff、Reader version、单位、null/reason 仍由其闭包提供。 |
 | prediction_input | `{contract_version:"stock_prediction_input_refs_v1",prediction_ref,frames}`。frames 每项为 `{fold_ref,fold_spec_ref,model_ref,feature_ref,signal_run_ref,fold_spec_artifact,model_metadata_artifact,prediction_artifact}`；三个 artifact 分别定位原 fold spec、原 model metadata 与原中立 v2 Frame。metadata 中的父引用可以保留，父训练 payload 不读取。frames 按原 OOS 顺序排列，无重叠、空档或缺失的严格前一 session。 |
 
+已有保存 fold 若将 spec 嵌在 `stock_ml_fold_v2` 的 `definition.fold_spec`，
+fold_spec_artifact 的 manifest_uri 可采用原本地 `fold.json#definition/fold_spec`；
+这个 selector 只允许上述固定子对象路径。该 ArtifactRef 的 content_digest 仍等于原
+fold_spec_ref，不能代替完整父 fold 身份。source 对原 wrapper 作有界流式扫描，另核
+同目录 `manifest.json` 的 `files["fold.json"]` 字节 hash、wrapper 的 unsigned
+content_digest、definition_ref 与原 fold_ref，并核对其 model/feature/signal refs
+和请求中原 refs 一致。选中 spec 可作为小对象读取，未选中的训练输入闭包不会整树
+decode，也不调用会递归载入训练父件的完整 Research fold loader。
+
+原 canonical JSON 保存文件允许附带一个末尾 LF。对象内容身份仍按 canonical JSON
+核验，文件字节 hash 包含这个 LF；两个 hash 分别保留，不修改原文件或重签 Signal。
+
 market 的 execution 原件完整覆盖 §6.4 的状态、原价、限价、factor、PIT membership、
 record/ex 两种公司行动读取及其不确定性。prediction_basis 只覆盖本次账户输入配对
 所需的原生事实与既定预热，不把模型训练矩阵当执行行情。完整审计保留原双端值、单位、
