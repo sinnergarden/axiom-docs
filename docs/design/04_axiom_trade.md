@@ -1019,6 +1019,221 @@ membership_batch=None)`。两个新参数均缺省时精确保留原market_repla
 全成员先排名、实际入选科创板按其规则执行。多年 ML 和全历史账户另受各自数据与
 资源验收限制；本节提交只代表可审的设计候选。
 
+<a id="stock-bounded-v7-proposal"></a>
+### 6.5 多年股票账户的窄引用输入与结果片（2026-10-06，draft，未实现）
+
+本候选只为已有股票策略的多年工程测试限制输入驻留和序列化成本。固定源码
+[`5d98d70`](https://github.com/sinnergarden/axiom-engine/blob/5d98d70eb4f13d88c263e4a2029f84e3e22e63a1/src/axiom_engine/runtime/backtest.py)
+仍一次准入全部 fold/native evidence/market，结果内嵌完整 plan，loader 再验证该图；
+只把输出按月保存不足以解决这些成本。候选新增一个小型输入 manifest、一个股票输入
+source 和一个结果 sink，接入原 Runtime session 实现、Core planner、模拟成交、费用函数
+及同一个 AccountLedger。以下签名和字段供父审；源码、5 GiB 长窗资源核验和多年账户
+均未完成。实际时钟 shadow、SQLite、任意相位暂停和进程崩溃恢复仍按 §2.1 的后续边界。
+
+#### 公共入口与 owner
+
+```python
+run_stock_backtest(manifest: BacktestRequest, *, source: StockInputSource,
+                   sink: StockResultSink, block_sessions: int,
+                   limits: dict) -> BacktestRun
+audit_stock_backtest_source(manifest: BacktestRequest, *, source: StockInputSource,
+                            block_sessions: int, limits: dict) -> dict
+load_stock_backtest_projection(path, *, artifact_reader,
+                               limits: dict) -> SavedRunProjection
+```
+
+三个入口由 Engine/Runtime owner 实现。artifact_reader 只解析调用方明确提供的本地
+ArtifactRef 闭包，不发现新路径或联网追随 URI。第一个入口只是原执行循环的组装，不能另写一套
+按块撮合或账户核算。`audit_stock_backtest_source` 是独立只读的完整来源/数值准入入口，
+不创建 ledger；启动 v7 也在创建 ledger 前调用同一审计实现。第三个入口只校验保存件并
+读取评价所需业务输出。原 `run_backtest`、`save_backtest_run`、`load_backtest_run` 的
+v1–v6 路径与保存身份保留；v7 保存仍可用原 exclusive-create 保存函数，不改写旧件。
+
+Research 提供已经保存的中立 `StockPredictionFrame v2` OOS keyed rows、原
+fold/model/feature/source refs 和 clocks；Data 提供固定原生事实及 metadata。
+Engine 的 source 薄 adapter 只读这些固定输入，不查询供应商、不执行 Feature、fit 或
+predict。训练 matrix、Label payload 和 booster 不进入 Engine。预测的物理存储及读取
+接口由 [Research 的保存预测合同](05_axiom_research.md#stock-saved-fold-clock-contract)
+和矩阵主路径决定；这里的 ArtifactRef 可定位既有父 manifest 内的对象，不要求另存
+每 fold 的证据大图。Runtime 循环由一个 Engine owner 修改；接口冻结后 source 与
+sink/投影可在各自文件并行实施，Core/Runtime 仍是唯一账户执行链，Qlib 不执行账户。
+
+#### 小型 manifest 与准确引用形状
+
+请求使用 `BacktestRequest`，精确字段为：
+
+```text
+{contract_version:"backtest_request_v7", request_ref, account_id,
+ scope:{start_session,end_session,anchor_session,calendar,prediction_universe,
+        execution_universe,supported_universe_ref},
+ initial_account, portfolio_policy, profile_input, market_input, prediction_input,
+ stock_action_policy, clock_policy, limitations}
+```
+
+calendar 固定有序 exchange sessions，包含初始前一 session anchor；初始账户沿本股票
+路径的空持仓与正整数 CNY 分现金。portfolio_policy、stock_action_policy、时钟与
+§6.4 的 Core `/3`、profile v2 实验规则相同。所有 ArtifactRef 精确采用现有
+[P01 envelope](01_axiom_overview.md#32-ref-与-manifest-的最小要求)：
+`{artifact_type,artifact_id,contract_version,manifest_uri,content_digest}`。
+content_digest 校验引用对象的 canonical 内容；其 manifest 再绑定真实文件的字节
+digest，不能把 Document identity、原 signal_run_ref 和文件字节 hash 混称一个身份。
+
+| 输入段 | 精确字段与绑定 |
+|---|---|
+| profile_input | `{artifact,profile_ref,stock_execution_rules_ref,stock_fee_schedule_ref}`。artifact 定位原 `stock_daily_open_profile_v2`，profile_ref 等于该原文 Document identity；规则和费用 ref 与原 profile 内值逐字相同。完整小型配置在一次准入内读取并索引，不在每 fold 重复保存。 |
+| market_input | `{contract_version:"stock_market_input_refs_v1",market_ref,model_snapshot_id,execution_snapshot_id,warmup_sessions,price_basis:"unadjusted",projection_version:"market_replay_v4",native_inputs}`。native_inputs 每项为 `{role,artifact,native_ref}`，role 仅为 `prediction_basis` 或 `execution`，同一原件可被两种用途引用而不复制文件。native_ref 是完整原 DataBatch identity；原 QuerySpec、Snapshot、purpose、cutoff、Reader version、单位、null/reason 仍由其闭包提供。 |
+| prediction_input | `{contract_version:"stock_prediction_input_refs_v1",prediction_ref,frames}`。frames 每项为 `{fold_ref,fold_spec_ref,model_ref,feature_ref,signal_run_ref,fold_spec_artifact,model_metadata_artifact,prediction_artifact}`；三个 artifact 分别定位原 fold spec、原 model metadata 与原中立 v2 Frame。metadata 中的父引用可以保留，父训练 payload 不读取。frames 按原 OOS 顺序排列，无重叠、空档或缺失的严格前一 session。 |
+
+market 的 execution 原件完整覆盖 §6.4 的状态、原价、限价、factor、PIT membership、
+record/ex 两种公司行动读取及其不确定性。prediction_basis 只覆盖本次账户输入配对
+所需的原生事实与既定预热，不把模型训练矩阵当执行行情。完整审计保留原双端值、单位、
+可见时间、missing_reason、修订/观察/来源配对，以及 prediction.member 与原成员值的
+比较。warmup_sessions 与交易 calendar 分开；预热不会推进账户。
+
+native_inputs 与 frames 是小型引用表。日期取片是原对象的读取视图，不发布新的
+SignalRun，不把部分 rows 冒充完整父 Frame/DataBatch 并沿用其 hash。若一个父对象
+超过预算，source 必须已有受审的有界原文校验路径，否则在账本开始前拒绝；不能先
+`json.loads` 完整大图再声称分块。Research/Data 的原文件与源格式不因这张引用表而重写。
+
+#### 输入 source、两遍扫描与身份
+
+```python
+source.inventory(manifest) -> dict
+source.iter_blocks(manifest, *, block_sessions: int) -> Iterator[StockInputBlock]
+sink.append(*, session: str, phase: str, rows: dict,
+            committed_sequence: int) -> None
+sink.finish() -> list[ResultPartRef]
+```
+
+inventory 返回固定输入引用、文件字节数、声明行数和范围；这些声明须与实际文件和
+完整扫描比较。StockInputBlock 是 Engine 内部读取值，包含当前日期范围、原 market
+行/metadata/事件及原 v2 预测行/父 header/时钟，保留其来源绑定。它不是新策略或
+Research 产物格式。`block_sessions` 仅是正整数读取组织参数，拒 bool；相同父输入
+按日或按月交付都必须产生相同原行与引用。
+
+v7 limits 的精确字段为 `{max_folds,max_prediction_rows,max_market_rows,
+max_input_bytes,max_block_bytes,max_result_bytes}`，各值为正整数、拒 bool。
+max_input_bytes 检查去重后的完整固定输入文件体积；max_block_bytes 限制单次受控
+读取/解压后的输入体积；行数与输出体积另检。它们是操作预算，不是策略参数或 RSS
+保证；5 GiB 必须另测实际峰值。旧版本 limits 字段和语义不变。
+
+第一遍在 ledger 创建前完整检查所有文件、所有 fold 与全部 union×session 键，包括
+最后一块：身份/Query/purpose/PIT/时钟、原值/metadata/单位/投影、双端输入配对、
+成员/上市生命周期、规则/费用覆盖、factor 相邻变化、公司行动及重复/冲突事件。
+分片间保留前序事实以检验连续性，坏后块不能留到已经成交后才发现。该遍释放大表，
+只保留固定引用、紧凑索引、审计计数与跨界必要状态；序列化的 PASS 不代替实际检查。
+第二遍按原时钟执行，在使用每块前重核所读内容与第一遍固定引用。预取未来块不使
+其事实提前进入 Core。执行中发现输入替换须终止，不能封成 COMPLETE。
+
+identity_view 仅将上述已定义位置的 ArtifactRef 映射为
+`{artifact_type,artifact_id,contract_version,content_digest}`，删除 manifest_uri，
+保留其他全部字段和数组顺序；不递归删除证据正文中的来源或时间字段。
+H 使用现有 canonical JSON 的 UTF-8 bytes 做 SHA256，保留 `sha256:` 前缀。
+三个逻辑摘要及 run identity 精确为：
+
+```text
+market_ref = H(identity_view(market_input excluding market_ref))
+prediction_ref = H(identity_view(prediction_input excluding prediction_ref))
+request_ref = H(identity_view(request excluding request_ref))
+run_id = H({request_ref,core_version:"axiom.stock_portfolio/3",
+            runtime_version:"axiom.backtest/7",implementation_ref})
+```
+
+读取块大小、sink 分片大小、limits、墙钟日志与物理根目录均不进入逻辑 run_id。
+订单继续 `run_id + ":order:" + global_order_index`，fill 继续该 order_id 的 `:fill:0`；
+块边界不重置索引。输入 owner 重新发布原件、Query 或引用产生新输入身份，不属于
+改变读取块大小。v7 内两种块大小必须逐字相同业务 ID；v6/v7 的 run identity 不同，
+其比较须显式对应语义行，不能强求 order_id 字符串相同或改写旧 ID。
+
+#### 同一账户状态与引用式保存
+
+原 session 相位及事件顺序保持。跨块常驻同一个 ledger 的 cash、持仓/成本/可卖量、
+pending T+1 lots、receivables、幂等键和 sequence，以及 Runtime 的 quotes/marks、
+stale 日期/来源、record 权益、EX/PAY 状态、事件去重、原规则/费用索引、全局订单编号
+和生命周期计数。不能每月重建账户再拼曲线。未解释 factor、池外持仓缺必需能力或
+未知数量行动仍可保存 BLOCKED；分块不删股、不忽略行动，也不保证多年完成。
+
+结果元组为 `backtest_run_v7/axiom.backtest/7`，run 精确字段为：
+
+```text
+{contract_version,run_id,account_id,status,request_manifest,request_ref,
+ source_audit,source_audit_ref,signal_ref,market_ref,profile_ref,core_version,
+ runtime_version,implementation_ref,committed_sequence,initial_nav_minor,
+ final_account,stopped,lifecycle_admission,metrics,limitations,result_parts,
+ content_digest}
+```
+
+request_manifest 只保存上述小型请求，signal_ref 等于 prediction_ref；metrics、
+final_account 和生命周期字段沿原 v6 业务义。原运行三元组仍为
+`{run_id,content_digest,committed_sequence}`。
+source_audit 精确字段为 `{contract_version:"stock_input_audit_v1",request_ref,
+market_ref,prediction_ref,profile_ref,implementation_ref,counts,limitations}`，
+source_audit_ref 是其 Document identity。成功返回才产生该结果，准入失败抛出明确
+ContractError；counts 保存本次实际检查计数，不内嵌原大图。其 implementation_ref
+必须是本次 run 的同一固定实现；它不成为跨调用免审凭据。
+
+ResultPartRef 精确为 `{artifact,part_index,start_session,end_session,
+first_committed_sequence,last_committed_sequence,previous_part_digest,row_counts}`。
+artifact 定位 `stock_backtest_result_part_v1`，其内容为
+`{contract_version,run_id,part_index,rows,content_digest}`；rows 的精确键为
+`nav,positions,decisions,orders,fills,cash_ledger,position_ledger,session_phases`。
+前七组保留原保存行，session_phases 每项精确为
+`{session,phase,committed_sequence}`。本增量的 phase 仅为 SESSION_COMMITTED 或
+STOPPED_BEFORE_NAV，用于封存日末或阻断日原流水；不新增任意相位暂停接口。
+part 内容的 content_digest 覆盖除自身之外的全部字段，artifact.content_digest 则
+校验包含该字段的完整 Document。row_counts 对这些组逐一计数，part_index 从零连续，
+首片 previous_part_digest 为 null，其后等于上一片 artifact.content_digest。
+最后水位包括终止日已经提交但尚无 NAV 的原流水，不制造停止日 NAV。sink 只保存同一
+ledger 产生的行，原 ledger 的必要幂等状态不随输出缓冲释放。
+
+最终 manifest 只有在全部已产生结果片完整、顺序/字节/内容和水位闭合后才封存，
+content_digest 覆盖其全部内容除自身；临时片不是完成账户或可恢复 checkpoint。
+不同分片包装可改变 content_digest，但原业务行和逻辑 ID 不变。原 v1–v6 文件、
+loader 分支、profile 及 Signal 身份不迁移、不补字段。
+
+#### 保存投影、完整源审计及首个里程碑
+
+projection loader 校验 v7 元组、request/run/content 身份、输入引用闭包的 manifest/
+文件字节绑定、source_audit 内容绑定，以及结果片顺序、内容、row_counts、水位和
+decision→intent→order→fill/费用的保存关联；流式验文件，不重建全部 native/预测图。
+它不重跑 planner、撮合或 ledger，也不把核验已保存审计结果称为重新完成数值源审计。
+需要重新检查原生数值、PIT 或投影时，独立调用上述完整 source audit；启动新 v7 的
+第一遍安全准入始终完成这些检查，不因曾保存 PASS 而省略。
+
+SavedRunProjection 只含该 run 三元组及 refs、小型 calendar/anchor/profile/行动配置，
+以及已校验的 NAV、fills、positions、现金/持仓流水、decisions/orders。它不是伪造的
+v6 BacktestRun。v2/v3 共享同一份投影，复用原指标实现；episodes、集中度和 execution
+trace 所需业务行保留，缺字段仍按原 null/状态解释。完整行情、训练证据和所有预测
+不进入评价投影，也不由 UI 补算。投影可供读取 BLOCKED 的诊断，但 v2/v3 仍要求
+COMPLETE 账户，不把阻断期间的部分收益当完整评价；原不足年/缺值语义保留。
+原评价/显示引用须精确绑定新 run 三元组。评价入口保持原参数签名，仅增加对该
+Engine loader 产出的投影的准入，调用方式为：
+
+```python
+projection = load_stock_backtest_projection(path, artifact_reader=reader, limits=limits)
+v2 = evaluate_backtest(projection, benchmark=benchmark, spec=v2_spec,
+                       dividend_scope=scope)
+v3 = evaluate_saved_analysis(projection, v2, benchmarks=benchmarks, spec=v3_spec)
+```
+
+| 实施项 | Engine 净工时估算 | 必要验收 |
+|---|---:|---|
+| 小合同和身份固定 | 1–2h | 父审精确字段、source 交接与旧版本边界 |
+| source、完整准入与日期/成员/事件索引 | 3–5h | 坏末块先拒绝，键/值/来源/时钟及跨界检查 |
+| 原循环接入与 sink | 3–5h | 单 ledger、全局 ID/sequence、跨块状态及终止片 |
+| saved loader 与评价投影 | 1–2h | 验片与业务关联，v2/v3 共用小投影 |
+| 必要回归、独审和修订 | 4–6h | 等价边界、原保存件不变及独立小资源核验 |
+
+首个可审小里程碑约 6–10h 净工作：固定小合成输入的单块/两块交付跨月界、周决策
+和 T+1，逐字段核对业务 ID、提交/成交/费用、cash/position/NAV/sequence，并证明坏
+最后输入块在 ledger 创建前拒绝、坏结果尾片被 loader 拒绝。完整候选估算 12–20h，
+不含 Research/Data 输入准备、父审等待、资源窗口或多年实际运行。其后补 record/
+EX/PAY、factor/null、池外持仓、现金/STAR 数量约束与 BLOCKED 边界，再在另获窗口
+只读复用原短输入保存独立 v7 对照；v6/v7 按原 session、全局订单序号、security/side
+及原 event_id 对应，并建立 run 衍生 order/fill ID 的显式映射。费用/现金/NAV/水位须
+exact，来源、数量和 reason 不豁免。独审、draft PR 父审及 merge 后方可申请多年执行窗口。原输入无法有界校验或
+历史规则/行动覆盖不足会延长工期或导致真实 BLOCKED，不能用预算估算替代验收。
+
 ## 7. 账户与 Ledger 数据模型
 
 账户权威分两层：Trade ledger 是系统内部流水与状态；RealBroker 是外部订单/成交/账户的对账依据。差异产生显式记录和调整事件，不用券商快照直接覆盖旧账。
