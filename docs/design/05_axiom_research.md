@@ -643,6 +643,8 @@ shard_sessions 是正整数，粒度进入 definition，不构成全局产品上
 证券截面、成员、值/null、validity、原因、时钟、Core 和原批次证明。块按日期有序、互不
 重叠，完整 index 的日期及 `(security_id,session)` 网格必须无重无漏；记录行可按键重新
 索引，X/y 始终由同一合格键集合选择，不能依靠文件行序对齐。
+新完整 index 要求每日期 evidence 的 ID 集合与原 core_plan.sources.id 完全一致，并覆盖
+原五个行情输入字段和会员字段；字段、批次、原查询 context 与计划的来源绑定必须一致。
 
 新增组织文件 `index.json` 使用 `stock_feature_inputs_v1`，准确顶层字段为
 `contract_version`、`definition`、`definition_ref`、`feature_inputs_ref`、`content_digest`、
