@@ -284,7 +284,7 @@ index 仍为 opt-in stock_feature_inputs_v2，新源码进入已有 implementati
    原 per-day proof，放松旧 Query.sessions==H(t) 的规则。
 3. 新分支只读解析实际 Plan/Fact/Context/Frame JSON；核 Frame.plan_identity /
    fact_identity / context_identity 与实际 children 相等，并核 calendar_ref /
-   reference_ref / recipe_ref / schema / source_bindings。Frame.cutoff 等于已验
+   reference_ref / recipe_ref / schema / source_bindings。Frame.rows[i].cutoff 等于已验
    selection_context.cutoffs[t]；daily模式实际输入三件等于唯一selection三件。
    Fact的schema/sources/calendar、Context的完整history/output/reference grid
    与实际Plan闭包一致。receipt definition_ref/implementation_ref/catalog/selection/
