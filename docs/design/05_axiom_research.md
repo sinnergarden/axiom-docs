@@ -670,11 +670,15 @@ definition_ref 是 definition digest；feature_inputs_ref 绑定
 公开 fold 单次 load 内，同一 Raw descriptor/ref、完整 query、fit cutoff、日历、universe
 与 horizon 可共享一个已验证 Raw 对象及 keyed index；每个 normalized parent 仍独立
 核验原 Core/raw/Feature 关联并释放。不同 fit 的标签可见性和已选训练结果不复用。
+Raw 在这次 admission 建立日期桶和原行序号，块投影仅选择所需日期并恢复原 Raw 顺序，
+保持原 projected label_ref，避免对每个块再次扫描全部 Raw rows。
 本增量不改所有 fit Label 字典的缓存策略或训练矩阵；其驻留量先单独测量。
 
 同日最终 adjusted 和 membership wire 可在完整 adapter 核验后用于成员选择与证明 digest，
 将重复序列化从九次减至六次。共享对象仅在该日期内部使用，不向调用者暴露可修改的
 信任缓存；原 Reader、float32 投影、加入 amount 前后的批次仍保留各自 ref。
+float32 投影先按 `(security_id,session)` 重索引，再逐列核对 null 和精确舍入值并赋值；
+证券与日期键重复、缺失或修订不一致均拒绝，原记录顺序、wire 类型与来源时钟保留。
 验收覆盖分块与整体语义等价、跨块键边界、重复/缺行及 descriptor 日期乱序拒绝、按键
 对齐、半写恢复、损坏/变更输入/不同 cutoff 不命中，以及原 v1/fold 字节兼容和 loader 零写入。
 通过小型测试与独立 review 后才安排有界 Label/Qlib 成本测量，不启动完整 505 日或五年运行。
