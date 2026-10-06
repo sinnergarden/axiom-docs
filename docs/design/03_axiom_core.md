@@ -40,6 +40,14 @@ P02 的 Reader 返回 Data 所有的 DataBatch；P05 的 FactBatch 是 Core 所�
 
 稳定边界不代表不许改 Core。新增通用语义才升级 Core；某策略“60/180 如何加权、何时减仓”应由冻结插件或配置表达，不能堆成很多 `if strategy_name`。
 
+### 1.2 回测与 daily shadow 无业务差异的硬原则
+
+2026-10-06 新增用户原则：除为更快的 batch/cache 做等价优化外，Engine 怎么做回测，就必须怎么做 daily shadow，原则上不允许业务 diff。在同一冻结输入及其 source refs、逐 session 时钟/可见性、账户与策略状态、策略/风控/执行 profile、实现版本和随机种子（若有）下，两者共用原计算、决策、风控、订单、模拟 Broker 与账本规则，逐项输出一致；输入 adapter、运输分批及调度可以不同，不能另写一条近似计算或账户路径。
+
+Core 的 Feature/Signal、目标、约束、Intent、策略状态和 trace 均在此约束内；dtype、单位、缺失/拒绝原因、availability/source refs、参考截面及 tie-break 不能因 batch/shadow 模式改变。batch/cache 只能改变等价的计算组织与性能，不能省校验、变更可见性、引入未冻结随机状态或用数值容差掩盖业务差异。
+
+此条是新增设计与验收要求，不是已实现的 shadow 能力声明。当前 Core 已有共享执行和有界规划；完整账户逐 session 推进、盘后模拟结算与持久恢复的现状、缺口和验收顺序统一见 [Trade §2.1](04_axiom_trade.md#backtest-shadow-parity)。不据此扩建第二执行器，也不改变或重跑当前保存结果与正在进行的 Research ML 闭环。
+
 ## 2. 与其他模块交互（P05、P07、P08）
 
 ```text
