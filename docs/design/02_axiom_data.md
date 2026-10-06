@@ -213,6 +213,8 @@ issues = data.inspect(snapshot, required_scope=SCOPE)
 
 QuerySpec 固定 Snapshot、字段、scope、PIT/cutoff、价格/复权口径和派生配方；结果 context 再记录实际 Reader/派生实现版本。实验保存这个结构即为逻辑 ViewRef，不需要为查询发布另一个 artifact。按用途保留 Fact/Market 的区别；首次只实现真实消费者需要的方法。
 
+相邻研究窗口可在同一 Reader 的既有内存预算内复用未选版本的分区索引，保留原生完整 revisions，按固定 Snapshot、分区字节身份、字段/证券投影及 evidence 绑定；只复用解码和分组。每次请求仍按各输出 session 的 cutoff/PIT 选择 revision 与成员状态，复权仍使用当次 anchor 和 factor 版本。命中时保留文件完整性校验与返回值隔离；超预算退回原读取路径，不增加磁盘物化或无界常驻缓存，缓存启用与禁用的 DataBatch.to_json() 语义内容须完全一致。
+
 context 的 `contract_version` 标识 DataBatch 返回结构，独立于 Snapshot schema 与 Reader 实现版本；`generated_at` 是这次响应生成时间，不是行情新鲜度或历史可用时间。实际数据时间由 session、field_meta 和域覆盖表达。 本地 DataBatch 的 `to_json()` 保留可复现的语义内容；API 传输使用 `to_response()` 添加 context.generated_at，UI/P12 另有自己的响应生成时间。生成时间不进入逻辑 ViewRef 或缓存身份。UI 映射保留这些字段，同时使用自己的 P12 组合协议版本；未知必要字段/不兼容版本明确报错，不靠列位置或静默默认解释。
 
 Research/Runtime adapter 按同一合同映射为 Core FactBatch；Core 不读 Data 磁盘。Runtime 给决策与成交模拟注入不同 Reader 权限：开盘决策不能提前看完整日线，simulator 只能随时钟推进读取随后行情。UI 后端将同一结果转为 JSON，保存 query context；不重算 Feature、不联网补数。
