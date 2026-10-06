@@ -774,6 +774,15 @@ classification_source_keys,source_refs}`。delisting_date 可为 null，instrume
 板块冲突、CDR 混入、规则日期缺口或证据不闭合，都在账户变更前拒绝整个请求，不能
 通过缩小 union 继续运行。后续若 Data 提供原生分类，替换冻结输入即产生新规则身份。
 
+security_master 身份批次可作为冻结 Snapshot 中已保存供应商记录的回溯身份基准。
+该静态来源使用 Data 现有 operational_pit_v1 和 historical_exploration，cutoff 固定为
+本次纳入身份记录的真实 first_observed_at 上界；原生 query、可用时间、revision 和
+Raw 引用保存在 source_evidence，identity_input.limitations 明确这不证明 2024 年
+当时已公开的身份事实。该基准用于核对 canonical 身份、exchange、上市退市边界并
+支持有来源的派生板块映射。成员、交易能力、Feature 和 Signal 继续使用各自原有的
+session cutoff；该身份批次不改变它们的历史时钟。替换身份基准会产生新的
+identity_input_ref 和规则引用。
+
 quantity_rules 每行精确为
 `{board,effective_from,effective_to,buy_minimum,buy_increment,sell_minimum,
 sell_increment,full_residual_exit_allowed,limit_order_maximum,
