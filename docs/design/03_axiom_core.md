@@ -180,7 +180,7 @@ Pearson/Spearman使用同一批配对，ties取平均秩，日权重一致。Duc
 <a id="neutral-cs-batch-proposal"></a>
 ### 4.5 中立批量截面入口候选
 
-> 接口草稿、尚未实现；由 Engine/Core owner 固定和实现。既有 `execute_feature_plan`、FactBatch/FeatureFrame wire 和数学语义不变。调用侧 prepare/packed loader 见 [Research §8.2.1–8.2.2](05_axiom_research.md#821-固定输入矩阵与滚动训练)。
+> 此候选已在独立 Engine 提交 `999552fea6bc712f9400a2ab304f88d9ad2eea39` 实现并审阅，尚未合入 main。§4.6 的后续分支以它为基线并保留此入口，接入须固定实际完整代码提交，不能把候选当作 main 已发布能力。既有 `execute_feature_plan`、FactBatch/FeatureFrame wire 和数学语义不变。调用侧 prepare/packed loader 见 [Research §8.2.1–8.2.2](05_axiom_research.md#821-固定输入矩阵与滚动训练)。
 
 唯一新增入口候选：
 
@@ -228,6 +228,58 @@ def execute_cs_zscore_batch(
 buffer digest codec固定：day-major float64 little-endian（null槽canonical0、独立valid mask），bool0/1、UTC int64微秒及code词典/keys/source metadata严格canonical JSON；不通过object repr或未知scalar stringify作身份。读取packed父件验证上述codec/digest与selector闭包；不重新执行数学。
 
 新结果不是旧 FeatureFrame，不能将旧frame_ref重贴到新输入。调用侧保存到prepared-view内部表/分区，loader、FoldManifest独立绑定当前lineage。首版每fit可廉价批算一次而仅复用相同物理值文件；不新增数学缓存registry。有限数值容差、exact flags/keys/clocks及排名边界验收按Research §8.2.1；浮点顺序变化必须声明backend/实现与新身份。
+
+<a id="feature-plan-batch"></a>
+### 4.6 同一 Feature 数学的有界多输出候选
+
+实现候选固定在 Engine `0b98c1a`，直接基于已审但尚未合入main的 `999552f`，
+保留§4.5的cs_batch。当前已做小型合成与原Frame对照，供父亲读；真实Research
+接入仍待此次源码审准，不把该候选视为main已发布能力。
+
+候选公共入口为 `execute_feature_plan_batch(requests, *, reuse_budget_bytes)`。
+requests 是非空固定 tuple，每项为原 `(FeaturePlan, FactBatch, ExecutionContext)`。
+每项只请求一个输出日的完整证券网格，输出日严格递增；各项使用同一编译后的
+DAG、输入/输出 schema、算子参数、history policy 与证券列表，完整 membership
+可以变化。首版要求 sessions observation domain、空 event schema/events。
+H(t)、cutoff、adjustment anchor、原输入身份及来源绑定仍逐项独立，不能合并
+冲突键或用较晚 anchor 替代较早选择。列数来自 Plan，6、158、300 列沿同一
+执行路径，不在 Core 增加另一套 Feature 定义。
+
+返回精确为 `{frames,stats}`，frames 是与 requests 同序的普通 FeatureFrame tuple。
+每个 Frame 的完整 wire、identity、原 plan/fact/context identities、值、有效性、
+原因、availability 与 sources 必须与原输入单独执行 exact。旧入口与批入口
+共用同一私有执行路径，每个视图都完整验证并传播自己的依赖。Research 继续
+使用已有每日 proof、input_evidence 和实际 Frame/Plan source refs；本候选不增加
+Research selection、shared-panel receipt 或 execution-slice 实体。单日 shadow
+传一个 request，使用同一数学路径。
+
+reuse_budget_bytes 必须为 strict 非负 int，拒绝 bool；0 禁用全部数值 ID/key
+构造与复用。首版仅尝试 rolling std 和 cs_zscore scale 的较长数值单元
+（missing policy 后至少64个参与值）；便宜的 pointwise 和其他 reduction 保持
+原算法。调用内的数值 ID 绑定原完整键、列/节点、精确 float64 bits、null 与
+issue 有效状态；CS另绑定完整成员/industry及原 reference 顺序。复用 key保留
+全部有序依赖 ID，不能以近似 hash、窗口起止或最终 scalar 代替依赖。仍使用
+原 `_std`、`math.fsum` 和浮点顺序，每个视图独立执行 `_merge`、schema和cutoff
+检查。memo仅保存必要的精确key/数值ID及纯数值结果，不保存 `_Cell`、来源、
+availability或原因。它仅存在于一次调用中，结束或异常时释放。
+
+数值 ID backing、memo mapping、key构造/插入工作区均计入该预算，采用保守的
+Python graph charge与工作区预留；预算不足时清空复用状态或直接按原helper计算，
+不拒绝原本有效的视图。复用仅在CPython启用；其他backend沿原计算。首个视图
+填充memo，此后若某op无命中或测得开销超过估计节约，可在本次调用内保守禁用。
+这只改变性能统计，不改变 Frame。该预算不覆盖调用方持有的原输入、解析图、
+返回 Frame、Data/Research工作集或整个进程RSS；这些仍由调用方的有界输出块和
+合并 resident guard计入。没有零拷贝或全300列容量通过的承诺。
+
+stats是非业务诊断，包含views、逐helper的requested/computed/reused/disabled、
+key尝试/构造次数与charged bytes、numeric IDs数、key构造/算术/复用开销及总
+纳秒、预算峰、fallback/逐出和禁用原因。总时间包含准入、Frame构造及清理；
+budget peak为保守工作区charge而非RSS。stats不进入原Frame或Research每日证据
+身份，不能将一次公开调用或简单逐日wrapper loop本身作为批收益。验收须核实
+实际helper调用减少、完整Frame exact、总开销与实际RSS，并覆盖anchor数值变化、
+revision/null/visibility/cohort/顺序变化、零/不足预算和异常释放。重叠历史中间
+数值可能节约算术；新的输出窗口和截面仍按原算法计算，Data选择、复权、来源
+合并、原生hash及每日保存不会因此消失。合成收益不能替代真实接入验收。
 
 ## 5. 信号与策略协议
 
