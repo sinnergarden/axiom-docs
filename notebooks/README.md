@@ -7,6 +7,8 @@ Engine 唯一账户、UI 与缓存边界。真实65-session滑动两折已通过
 [`weekly_ml_pilot.py`](../examples/weekly_ml_pilot.py)仅为原Nov1—Jan31固定窗历史控制，新入口是
 `axiom_research.build_stock_ml_fold_from_saved_inputs`。详细合同仍链接统一设计正文，HTML 从 Notebook 生成，不独立编辑。
 
+第 14 节新增 CaseA/B/C 验收结构草案：同输入两个 TrainSpec、保存预测固定加权后统一评价、3–4 周 rolling 与 Top5。每项列目的、当前能力、差距、输入与输出。轻量检查和公共调用定义可独立阅读；业务调用仍待接口、源码复审及执行预算，新增输出全部留空。本轮只做结构和语法检查，既有 HTML 保留此前内容，待父审后从同一 Notebook 更新。
+
 Data两种路线的唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
 
 Researcher 沿一次研究准备工作展开：先看一只证券六天的价格，扩成矩阵，处理缺失与价格尺度，再加入当时可见的财报，保存并复用特征，最后交给下游。Developer 沿一次接入工作展开：保存响应、转换字段、检查并发布，再加入财报与基金，继续日更，处理范围变化、失败恢复和交接。

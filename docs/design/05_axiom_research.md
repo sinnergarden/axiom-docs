@@ -695,7 +695,9 @@ float32 投影先按 `(security_id,session)` 重索引，再逐列核对 null �
 
 Raw 和 Derived SignalRun 使用同一读取/评估/回测协议。必要字段：security_id、feature/decision session、knowledge_cutoff、simulated_available_at 或实际可用时点、score、score semantics、signal_stage、valid/invalid_reason、model/fold/source refs。
 
-SignalExpression 固定 inputs、join keys、算术/条件操作、归一化截面和缺失处理；用受控表达式或 SQL 编译计划，不允许任意 Python eval、动态网络或隐藏数据库输入。
+原始 Prediction 与组合 Signal 分层保存。首个组合用例复用保存预测做固定权重加法，变换与精确键对齐遵循 [Core §5.1](03_axiom_core.md#51-signalplan)，Research 管输入引用、运行编排和保存。模型超参通常先比较 1–2 次，随后固定 Signal 比较 4–5 版策略与风控；这些尝试放在同一个 idea 下，沿用现有实验记录，保留每次输入、输出、改动和失败原因。
+
+训练 target 与 evaluationLabel 各自定义和固定。例如以 60 日、180 日目标训练的两份预测，可以同时对同一 Y180 或同一 Y40 评价；每个比较组固定评价目标、版本、共同日期与证券以及共同成熟有效样本键，并另报各 Signal 的自然覆盖。40/180 是后续目标示例，M1 先使用真实已有的五交易日 Label。评价配对沿用已保存预测，生成时的 rank/zscore 参考截面保持固定。完整范围与按预测日期所属年份的下钻都应展示 IC、RankIC、分组标签收益和覆盖；ICIR 使用非年化口径，长 horizon 的重叠样本需保留时间依赖的显著性分析。IC 提升仍需由 Runtime 检验 Top5 扣费收益；分组标签收益作为排序诊断展示，NAV 来自独立保存的账户。
 
 ### 5.1 信号评估
 
@@ -1108,11 +1110,17 @@ View/build 不存在时报告明确缺口；不自动触发 Data collect/repair�
 
 ## 11. 最小实施路径
 
-R-M1：固定一份合格 Data scope、一个 FeatureRelease、60/180 中实际可用的明确 label、保存模型与 OOS SignalRun，接入信号评估和 Trade 回测。
+M1 先固定实际可用的 Data、Feature 和五交易日 Label，把保存模型、原始预测、组合信号、信号评价与 Runtime 账户逐段打通。每个小 case 尽早在 [既有 ML 工程 Notebook](../../notebooks/ml_engineering_tutorial.ipynb) 展示输入、结果和缺口，通过后继续 M1 多年工程验收。6、158、300 列的 case 均使用同一正式列式与窗口实现；列定义或接口尚缺时标 TODO，不以教学代码另写 join、IC 或账户来补齐。
 
-R-M2：补组合信号、受控对照、缓存/checkpoint、Feature/Signal 图层查询和发布包。
+1. **CaseA：同输入比较两个训练配置。** 目的是验证准备复用和模型参数变化的实际成本。当前有固定 LightGBM 后端、保存输入的 fold 及 HIT 小例，参数仍硬绑定；窄范围可配置 TrainSpec 尚缺，Research prepared 矩阵候选也仍在整改。输入为同一 Feature/Target 矩阵、窗口、成熟样本与两个真实 TrainSpec；输出为两份模型和原始 OOS Prediction，以及准备、HIT、fit、predict 的实际次数和分阶段耗时。首建、完全同配置重试、只改 TrainSpec 分别记录；当前仅完成结构准备，待接口后才执行训练对照。
 
-R-M3：在固定 baseline 上做一个头部排序试验和一个新信息试验；phase/成本/集中度报告随之完成。复杂模型、LLM 与自动研究逐项启用，不作为 R-M1 前提。
+2. **CaseB：保存预测组合后批量评价。** 目的是比较原始预测与固定加权 Signal，并验证更换评价定义只影响评价阶段。当前独立 SignalEval 候选已有真实短样本与合成测量；通用组合尚缺，矩阵 OOS-only 与共同评价 Label 适配由原 owner 补齐。输入为固定保存预测、显式权重及同一实际可用的五交易日 Label；输出为独立组合 Signal、共同样本和自然覆盖、整体及按年 IC/RankIC、分组标签收益与保存评价。60/180 模型和 Y40/Y180 留待实际目标与成熟范围具备后使用。
+
+3. **CaseC：3–4 周 rolling 与 Top5 账户。** 目的是验证连续窗口的正确性、恢复和资源成本。当前已有两折真实滑窗历史证据，Engine 有界窗口候选已获父任务源码审查通过；Research 矩阵整改和实际窗口运行仍待完成。输入为同一正式准备矩阵、固定日历和 fold 时钟、已准入预测、市场回放、执行配置及 50 万元初始账户；输出为每折保存模型/预测、唯一 Runtime 的 Top5 订单与 ledger、扣费 NAV 和账户评价，并报告阶段耗时、读写量、峰值 RSS 与恢复后的实际调用次数。
+
+三个 case 的轻量讲解和结构检查先交付；真实执行由 owner 在源码复审及预算明确后逐项完成。Data revision 索引、Core 批横截面、Research 矩阵、Runtime 窗口和 SignalEval 均复用既有增量与原 owner，逐段显示候选、已审源码、实测范围和剩余工作。
+
+M1 多年工程验收完成后才进入 M1.5，将主开发环境从 Mac 迁到 WSL，日期随完成情况确定。M2 研究目标为 CAGR 25%、最大回撤 25%、Sharpe 1–1.2；这些是待检验的策略目标。M3 使用隔离 shadow，用户已有的 10 万元手动 ETF 账户独立保留；平台回测统一以 50 万元起步。M4 全自动交易后置，复杂模型、LLM 与自动研究按具体用例逐项启用。
 
 ## 12. 最小验收标准
 
