@@ -41,6 +41,8 @@ Browser
 
 某次 Trade 运行自身生成的 FeatureBuild/SignalRun 从 Trade artifact 空间读，其合同仍是 Research 定义；不能只搜索 Research 文件夹导致“生产没有 Feature”。
 
+保存预测逐折股票账户沿 [Trade §6.2](04_axiom_trade.md) 与既有 Engine 公共 `load_backtest_run` / `load_backtest_evaluation` 读取 `backtest_run_v4` 及其独立评价；它与 v3 同属股票，保留股、元/股、冻结配置、起止日期、日线近似或阻断状态及原账户/评价身份。run 的 `signal_ref` 是保存调度 `schedule_ref`，逐折原 `signal_run_ref`、fold/model/feature refs 与 OOS 日期从已校验的 `prediction_schedule` 窄投影，决策仍展示其原信号；不把调度当某一折信号，不拼接折净值，也不从预测生成账户收益。公开页面只选择该窄摘要与必要账户显示字段，遇 v4 未知字段或私人预测/模型内容拒绝导出，完整预测行、模型和 Data 原生证据留在 Owner 文件；合成 v4 仅供本地读取和浏览器验收，真实运行按独立保存件及用户验收另行接入。
+
 ## 3. 信息架构与最小页面
 
 | 页面 | 第一屏内容 | 下钻 |
