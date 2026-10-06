@@ -593,6 +593,130 @@ Data 不读取账本来裁决成交，UI 不临时把成交标记挪到蜡烛上
    当前终态假设不升级历史 PIT，缺口不隐藏。通过后交付固定文件/查询 refs 与范围报告，
    不以文档通过代替实现验收，不触发全年或多年 ML 扩跑。
 
+#### 7.3.5 导出文件合同与 FRED 候选源核实
+
+状态：2026-10-05 导出文件合同已审；以下为当时固定版本的实现及验收记录，当前Engine/UI状态见各所属主章。Data显示导出实现见
+[PR40](https://github.com/sinnergarden/axiom-data/pull/40)，临时 synthetic Snapshot 的公共
+Reader集成等18项检查已通过，含名称/两类事件保存后加载、原始单位和缺失/非法因子原因；
+loader禁查询/禁变换检查通过。2026-10-05 用固定源码 `d1d8a55` 按保存run的plan生成
+ETF长窗（7只、2019-07-01—2026-09-30、12,334行）和股票Jan窗（83只执行证券、
+2024-01-02—01-31、1,826行），Data保存后核对及新进程公共loader通过。
+共同C为 `2026-10-05T06:17:55.480001Z`、政策为operational_pit_v1、A为各窗末日；
+这是事后显示观测截止，不是策略历史cutoff。ETF保留2个来源缺价，附7个名称、
+23条范围内分红记录及2个份额转换事件；股票原Snapshot缺name/source_code，该显示
+目录未绑定其他Snapshot名称；后续独立名称补采状态见下段。ETF/股票ohlcv文件分别
+123,327,134/18,201,397字节；
+本轮生成进程峰值RSS约4.36GB，新进程保存加载峰值约612MB，消费者仍需按预算读取。
+Engine成交显示映射、UI实际消费及完整来源覆盖仍待各owner验收；不将此次有界Data
+导出当作全历史认证。主设计的亲审不替代这些检查，新增来源也未因此获准接入。
+
+公共入口为 `Data.export_review_display(snapshot=..., price_query=..., factor_query=...,
+anchor_session=..., destination=..., security_query=None, event_queries=())`。两个日频查询
+分别固定 `market_daily` 与 `adjustment_factors`，选择 `historical_exploration`、同 Snapshot/
+政策/一个共同截止C，完整输入跨度终止于A；因子字段为 `factor`。量字段按证券单位
+明确选择 `volume_shares` 或 `volume_units`，并保留 `amount_cny`。名称若需要，显式给
+security_master 的 EventQuery；事件仅接受明确查询的 corporate_actions 与
+fund_share_conversions，均使用同C与政策，不隐式枚举来源或补采。
+
+| 固定文件 | 内容与消费方式 |
+|---|---|
+| `ohlcv.json` | `review_display_v1` 的 records/field_meta/context；键为security_id/session，open/high/low/close为共同锚点显示价，native_open/native_high/native_low/native_close为来源未复权价，display_scale为factor(t)/factor(A)。量额原单位保持，可选native_pre_close保留来源原口径 |
+| `securities.json`（显式可选） | 固定名称Reader完整batch，name_kind为snapshot_label，name_validity为unknown；上市日不当名称起点，已知观测晚于C的标签拒绝，缺名称证券在manifest单列 |
+| `events.json`（显式可选） | 按所选域保存完整公共events batch及revision/缺失/来源context；非全历史行动认证，不由价格/因子比推事件 |
+| `manifest.json` | 版本、固定来源查询/实现、Snapshot、A/C、政策、源限制及各文件相对uri/bytes/sha256；名称/事件未请求状态明示，不产生账户变化 |
+
+Engine按同一security/session/单位读取display_scale和原始成交，保存其B/S显示坐标；
+UI保留原成交与native价选择。该文件是事后显示产物，不能冒充新Reader请求、历史
+模型输入或账本。已有目录拒绝覆盖，失败无最终目录；普通Reader仍不要求导出。
+交付时另列实际绝对位置与文件refs，由消费者绑定自己的run；源事实可沿原QuerySpec/
+Snapshot/revision/receipt查回，不按mutable current重新发现。
+写入返回receipt另给manifest_file_ref，避免将manifest自身的摘要写回自身；公共
+`load_review_display(directory, manifest_sha256=已绑定的字节摘要)` 校验此manifest及其
+引用文件后返回保存内容，不查询生产根、不重算显示或账户。Engine/UI使用此只读入口。
+
+<a id="independent-security-labels"></a>
+##### 新观察名称的独立绑定
+
+本轮83只股票的新stock_basic观察不能塞入旧行情Snapshot：现有security_query严格
+要求同Snapshot/政策/C，而新名称的真实receipt晚于已保存显示C。采用保留现有OHLCV
+目录与旧run，另存一个独立、不可覆盖的名称公共投影；不重新构建旧账户或改旧事实。
+名称先写入独立Raw/receipt与typed canonical，构建新的名称Snapshot，由公共
+`Data.events` 显式查询security_master的name/source_code，取得原生DataBatch。
+只请求保存plan中的83个稳定身份；代码映射沿已绑定来源证据，逐项核上市日和交易所，
+缺项、身份冲突与中文名称未提供单列，不能把今日标签称作历史有效名称。
+
+拟定独立文件为 `security-labels/manifest.json` 与 `securities.json`，合同
+`review_security_labels_v1`、用途 `retrospective_label`。securities保留完整名称
+DataBatch和 `name_kind=observed_label`、未知名称有效期（起止均null）；manifest绑定
+原run引用、原显示manifest字节引用、目标稳定证券集合、新名称Snapshot、实际
+label_cutoff及Reader版本，并给名称文件uri/bytes/sha256。label_cutoff须覆盖新receipt，
+与价格显示C分别保存；它不改变价格/因子的历史或事后可见性。独立公共保存/加载入口
+只验证身份范围和文件refs，加载不查询、不改显示价格，也不把名称Snapshot伪装成
+价格Snapshot。现有 `review_display_v1` 的同Snapshot限制保持原样；消费者仅按
+security_id关联明确的新标签。2026-10-05总控已批准此最小方案；Data只保存调用方
+给出的strict-JSON opaque run引用，不导入Engine或解析账户业务，实际run身份由UI核。
+公共入口为 `save_review_security_labels(labels, destination=..., display_manifest=...,
+display_manifest_sha256=..., run_ref=...)` 与
+`load_review_security_labels(directory, manifest_sha256=...)`。保存仅读取已绑定价格
+manifest核摘要/证券范围，保留名称完整batch并另存独立目录；加载只验证本目录文件，
+返回opaque run与display refs供消费者核对，不追随外部路径。接口实现的定向检查与
+独立review和真实文件交付分别记录，不以设计批准代替UI消费验收。
+
+2026-10-05 有界补采已完成：83只/83个中文标签均由stock_basic逐只精确代码请求取得，
+上市日/交易所与旧run已绑定身份一致；新Raw的真实receipt、revision与公共名称DataBatch
+已保留。名称源固定Snapshot为 `s_1bf3b4990a13f3e943fba7f2f2d8f9605520988abc7bd520064f70acabdc2092`，
+label_cutoff为 `2026-10-05T06:38:32.306117Z`，与价格显示C分别保存。最后一请求发生
+一次传输失败，复用82条原receipt有界续接一次后完成；没有全市场名称查询、历史
+名称有效期推断或旧run/显示文件改写。83个Raw与1个typed分区验证通过；独立名称
+公共投影的绑定/加载接口已按上段获准实现，不能把观察完成写成UI接入完成。
+
+名称投影实现与独立review固定于
+[Data `73d8670`](https://github.com/sinnergarden/axiom-data/commit/73d867010585c0b902e829ab92689b9c03e95004)：
+23项有界synthetic检查通过，覆盖独立Snapshot/C、opaque引用保真、完整batch和缺项、
+原子失败及纯loader。已复用上述83条原生批次保存独立标签文件，实际保存/加载验收
+确认原价格目录字节/修改时间及原生批次不变，本步Reader查询/来源调用为0。
+UI实际run身份与display refs绑定仍待消费者验收；名称有效期仍未知。
+
+新增上证比较事实同样保存独立来源Snapshot与原生benchmark_daily DataBatch，明确
+来源为index_daily、证券代码000001.SH、收盘点位单位index points及真实receipt。
+31自然日probe通过后，仅取已保存ETF长run/股票Jan run的session与各自前锚点；
+Data保留原QuerySpec/context/field_meta，向Engine现有BenchmarkSeries交付可验证的
+native batch，收益归一、账户比较和指标归Engine，不以散CSV或重标旧来源替代。
+
+2026-10-05 probe选择2024-01-01—31（31自然日），取得22个有效来源session；通过后
+仅补2019-06-28—2026-09-30并按保存plan分别查询ETF的1,763个session（前锚点
+2019-06-28）和股票Jan的23个session（前锚点2023-12-29），两批缺价均为0。
+源Snapshot为 `s_95ee352a944eafb1e6a9d22d6bb22c31985a5c3798ac559bdc36f66bbee269ba`，
+共同查询C为 `2026-10-05T06:34:05.432385Z`；2个真实Raw与88个typed分区验证通过。
+这是新观察的operational_pit_v1/historical_exploration原生证据。已读Engine保存分析
+源码 `931e33f` 的BenchmarkSeries仍限定000300.SH、账户同Snapshot与历史日截止；
+上证native batch已交付，但需Engine owner显式支持新的独立事后比较身份/来源/时钟。
+Data没有把000001.SH重标为000300.SH或伪造历史可用时刻，也未重算旧账户/指标。
+
+以下为此前直接NDX/FRED来源与许可核实的历史研究记录，只保留为后续候选。
+本轮513100独立账户参考按 [§7.3.1](#benchmark-facts)与 Trade §6.3执行，不要求FRED采集。
+
+FRED 的 [NASDAQ100](https://fred.stlouisfed.org/series/NASDAQ100/) 明确是 Nasdaq, Inc.
+提供的NASDAQ-100日收盘指数；不是Composite。官方说明为美股收市值，通常16:00 ET、
+部分假日提前收市，单位Index，未季调；series页面更新时间是网站更新，不是逐revision
+历史公开证明。目标价格版本与美元口径仍按前述Nasdaq NDX版本资料绑定。若日后接入，
+必须另以FRED分发源profile保留series ID、精确日期selectors、原CSV字节、实际receipt、
+缺数符号/周末/假日语义、终态修订限制及正常Raw→Canonical→新Snapshot路径；仅有
+close，不造OHLC、量额、严格历史vintage或美国收盘时刻日历。
+
+许可核实见 [FRED完整条款](https://fred.stlouisfed.org/legal/)：个人非商业研究及下载有
+明确允许范围，但本series标记Copyrighted: Pre-Approval Required，Nasdaq底层版权仍在。
+公开再分发数据/图表不是仅注明来源就获准；FRED图表许可仍以第三方数据权利为条件。
+完整条款另有限制存储/缓存/归档/并入数据库和软件/ML用途的文字，不能仅据个人使用
+摘要宣称自动落库、公开展示或训练已获许可。本轮保留官方普通链接；官网提供embed
+功能不独立证明此受版权series的公开嵌入获准，不自动嵌入、不代用户接受协议或联系
+版权方。当前没有FRED adapter、落库或公开数据包。
+
+无key下载能力也未验收：一次官方fredgraph.csv的31自然日技术探测（NASDAQ100，
+2024-01-01—2024-01-31；非选定run的生产采集）在25秒超时，未取得CSV或receipt成功
+证据。当前只有说明页/许可阅读与失败请求记录；日后获准接入时，须先明确窗口并澄清许可，
+不把失败当空数据、不改用Composite、不要求购买新源或注册key。
+
 ## 8. 日更、修复与最小检查
 
 <a id="source-readiness"></a>
