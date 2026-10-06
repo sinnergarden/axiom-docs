@@ -896,6 +896,86 @@ Cache hit 必须校验 manifest/身份与输出支持范围；prefix/superset re
 
 训练可复现不只固定一个 seed；锁定依赖/编译环境并记录 backend。LightGBM 官方说明 deterministic 不意味着不同版本/编译器/系统结果完全相同，验收需声明环境和容差。[E4]
 
+### 8.2.1 固定输入矩阵与滚动训练
+
+> 接口草稿：现有 v1 路径保持；下列 opt-in 布局及批数学入口尚未实现，需 Core owner 与父任务固定后施工。
+
+
+批量研究复用现有 Snapshot/View、FeatureSpec、LabelSpec 和 prepared-view；Feature/Target 只是在该 view 内部保存的值、mask、时钟与索引表/分区，不新增事实层、registry、逐日文件平台或通用双时态 provider。Research 通过 Data 公共 Reader 取得固定事实，经调用侧 adapter 的受控 Qlib/向量化后端准备矩阵；数学定义和验收基准仍归 Core。保持既有 float64/数值投影、price basis、缺失和动态 universe 规则；新的模型/策略不能隐式改变它们。
+
+**Feature 输入时钟。** 输出日 t 的决策 cutoff C_X(t) 来自冻结 FeatureSpec/TimingSpec。同一 Feature 的整个历史窗口 H(t) 内，每个原始事实 s 均由 Data 按 C_X(t) 选 revision；逻辑 Query 的 cutoff_by_session[s]=C_X(t)，不使用 C_X(s)，也不使用末日/当前/latest vintage。表中批表达为输出 session→C_X(t)、lookback/calendar 区间、anchor、query/输入选择引用；不是保存重复的 t×s×证券大事实张量。首次准备按该表调用现 Reader。仅当一个输入块在每个输出 t 的实际 H(t) 上都等于其 Data 选择结果，且满足相同 price/anchor/缺失规则时，才交 Qlib 在该块向量化因果 Feature；不满足的 revision/anchor 影响部分沿现选择与 Core 基准路径计算。安全合批和 fallback 使用同一输入选择表；fallback 按唯一 `(session,security_id,column)` 键回填，拒绝重复/缺键。完成全日 cohort 后统一归一化，不分别对块做 CS。无需新通用 PIT provider。矩阵 X(t) 准备完成后，后续 fit 不能按更晚 cutoff 重新选 X(t) 的历史事实。
+
+**标签与截面时钟。** raw y 的数值、有效性和 available_at 必须绑定同一具体数据版本。每 fit F 用 Data 的 label_outcomes Query、C_fit(F) 与原 LabelSpec 选 endpoint/factor/anchor 版本；保持 open(t+1)→close(t+5)、公共复权、原完整 calendar/grid 和原因优先级。先按实际版本 available_at、endpoint≤fit、当日 membership 和所选 Feature 资格形成本折可用 cohort，再用原 Core CS 语义批量归一化。参与 cohort 的任一标签/资格依赖变化需更新整日截面；晚发布 B 不得在早 fit 的 A 的均值/标准差中出现。normalized y 的依赖时钟包括整个参与 cohort 的标签和资格依赖，并沿当前 Core clock projection 生成；不能用本行 raw available_at 冒充截面可用时间。
+
+**复用与来源。** raw/normalized 数值缓冲只在实际有序输入、完整 cohort、validity/reasons 与数学版本相同的条件下复用；原生 endpoint/factor/anchor 及实际复权结果不能以代数抵消或近似比较替代。来源或 clock 变化而值相同，仅允许复用物理数值文件。当前 fit 的 lineage/view 身份仍绑定本次 Data Query/来源版本、availability/mask/cohort 和实现，不能重贴旧 Core Frame/ref。证据放在 prepared-view 分区清单和现有 FitPlan/RunManifest：一次 source-selection 表、值/时钟/mask 的分区 digest，外加每 fit 的 compact selector；不为每日期建立注册对象或重存 source 图。规范化值无法安全复用时直接在本折可用 cohort 上批处理，避免把复用当作放宽时钟的理由。
+
+prepared-view 复用既有 manifest 字段，仅增加分区 descriptor、schema/key-index digest、输出时钟/输入选择表引用及实现/库/dtype。FitPlan/RunManifest 增加 prepared_view_ref、source_selection_ref、train/validation/inference 的日期区间与行 bitmap/offset selector、train_keys_digest、processor_fit_keys_digest/state_ref、cohort-version selector 引用。每 fit 不重复存完整 keys；bitmap/offset 必须绑定 exact prepared_view_ref、row-index digest 和 schema digest；loader 从该固定索引恢复并校验，不能把相同物理数值文件当成本 fit 的 lineage。旧 v1 保存件、函数行为和 identity 保持；新保存布局 opt-in，并生成自己的身份。
+
+**Qlib 与内存。** 从 Arrow/Parquet 的行组和列投影或标准只读 mmap，在 Qlib 外先取当前 fold 必需行列；禁止把全期 parquet 路径交 StaticDataLoader 后期待 DatasetH.segments 限制首 load。StaticDataLoader/DataHandlerLP 只接已投影的当前训练/validation/OOS DataFrame。初始矩阵写块可用 64 输出日×32列，预算不足缩块；lookback/anchor 输入按 Data 合同补齐。固定 Snapshot/Reader 只在事实准备阶段驻留；两年 native 读取也分块并保留当前 fit cutoff/anchor，训练前释放 Reader、native/proof 临时对象。
+
+622×2367×300 的 float64 全期纯值约3.53GB，保存在分区/只读文件中，不承诺全 RAM。训练期驻留上限：一份当前两年训练 X（486×622×300约0.726GB），至多一份同形可写 processor/model-input，validation/inference 小块顺序转换，以及模型内部 Dataset/工作内存；不得额外保留全期 raw/infer/learn 三套 handler panel。DataHandlerLP 只承担当前切片，并避免重复 mutating processor 分支；同一已转换表可由 empty-processor handler 承载。Qlib/pandas/DropnaLabel 不得隐式再创建完整 panel；任何 DataFrame/NumPy/native Dataset 仍引用底层 buffer 时，不得 close mmap/Arrow backing。批对象拥有 backing 生命周期，退出前释放当前投影，仍借用时 close 明确拒绝。时钟/mask/索引和 native 模型内存另计，逐相位记录副本数及 process-tree RSS，硬 cap5.5GiB、单重进程；预检或监控超限即停止该批/报范围限制，不降精度、减少 universe 或跳校验达标。
+
+**处理器拟合。** 在每 fit 的 PIT/mature/task 资格后先确定 train/validation 键，再仅在 train 键拟合 learned X processor；用保存同一状态转换 valid/infer。多个 horizon/task 的训练 mask 若不同，不默认复用 scaler。stateless 日期 CS 保留完整批准 cohort。不得继承 SysQ DNN 全 train→predict+30d median/MAD，或先全 X_train scaler 再尾15%validation 的顺序。未来 OOS/extreme 扰动不得影响 earlier-fit state/训练矩阵/模型；validation-only 扰动不得影响训练 scaler/矩阵，但显式 early stopping 结果可由 validation 改变。
+
+**数学与身份验收。** ddof=0、epsilon=1e-12、constant/excluded=missing、missing=skip、clip=None，公式/窗口/price basis 与当前规范不变。保存原输入/既有 Feature 数值的矩阵读写应 binary64 exact。候选向量化有限 Feature/CS 数值与基准比较采用 abs(new-old)≤1e-12+1e-12×abs(old)；固定同环境模型预测采用≤1e-10+1e-10×abs(old)。keys/顺序/schema/dtype、NaN/null位置、valid/原因/cohort、源叶版本和逻辑 cutoff、availability/knowledge/model时钟必须 exact，无时间容差。epsilon/常数分类、排名/TopK边界必须保持 Core 基准行为；数值在容差内但排名或业务决策翻转仍失败，需要稳定基准算术或另审变更。若实际 kernel 不能满足该限值，报告失败，不自行放宽。浮点 reduction 顺序、backend、分区或 lineage 变化会生成新的实现/保存身份，不声称旧 frame/ref/模型字节相同。
+
+**保存预测与 Engine。** Engine 的 prediction source 按日期读取已保存 OOS keyed Signal/Prediction 及冻结 refs/clocks，沿既有 StockPredictionFrame/SignalFrame 和中立验证入口；训练矩阵、Label、DatasetH、booster/训练 workspace 不传入 Engine。原账户准入/时钟限制不放宽。换 Top3/Top5 等策略复用同一保存预测；换模型/processor 在 prepared-view 上训练新 fold。daily/shadow 使用同一 Feature/processor/model合同与当时可用模型，不能用latest回填；本增量不启动账户或实盘。
+
+一次成本为 Snapshot/公共输入选择、固定 Feature 矩阵/索引与保存证据准备；每 fold 成本为 y版本/成熟cohort选择与必要归一化、训练slice、processor fit、model fit/infer以及小清单/预测保存；不同模型/策略只重复其实际改变的阶段。首次真实交付先6 Feature/3–4fold，旧样本 oracle 与新路径使用同一固定输入/模型参数比对，原已完成证据直接复用，按上述数值限值和全部exact项验收；Source/实现身份变化单独核，不要求旧refs不变。通过后进入多年for-test。158/300+只构造明确标识的代表规模矩阵、周训与复用压力场景，不等同本轮开发300个策略 Feature或业务有效性验收。
+
+
+### 8.2.2 Opt-in 调用与保存布局
+
+最小调用链为：`build_stock_feature_inputs` → 新增冷准备编排 `prepare_stock_ml_batch_inputs` → `load_stock_ml_batch_inputs` → `build_stock_ml_fold_from_saved_inputs` → `load_stock_ml_fold(...).predictions()`。本增量Core唯一新增数学入口候选见 [Core §4.5](03_axiom_core.md#neutral-cs-batch-proposal)。Research 不实现第二套 normalize 数学，Core 不读取 Data。
+
+| 入口 | 首版接口选择 |
+|---|---|
+| `build_stock_feature_inputs(data, *, spec, destination, shard_sessions=2, progress=None)` | 仅新增可选 `storage_options=None`；默认严格保持 v1。`layout='matrix_v1'` 时保存 prepared-view 内部表/分区与 `stock_feature_inputs_v2` 索引；业务 FeatureSpec/时钟不改变。 |
+| `load_stock_feature_inputs(path, *, limits=None)` | 签名不变；按存储 contract 分派，新增只读 v2 admission。scope/schema/key-index/分区/逻辑 Query 与 source-selection/clocks 闭包校验，不执行 Feature。 |
+| `prepare_stock_ml_batch_inputs(data, *, feature_inputs, fold_specs, destination, preparation_options, metrics=None, progress=None)` | 唯一新增 Research 编排入口。`feature_inputs` 是已完整校验的对象/保存路径；复用既有 Data/公共复权/LabelSpec 和原 raw-label 选择逻辑，按 fit 生成版本/成熟/资格选择，调用 Core 批数学，返回 `stock_ml_batch_inputs_v2` manifest。它可以读 Data、执行 Label 数学，但不 build Feature、fit/predict 或账户。不能把 loader 改成隐式 prepare。 |
+| `load_stock_ml_batch_inputs(batch_manifest, *, limits=None)` | 签名不变；v1 保持，v2 验收分区与 compact selectors，持有只读 backing。只按本 fold 行列投影；验证阶段不执行 Data/Core/训练。limits 不能被当成放宽 scope/clock 的开关。 |
+| `build_stock_ml_fold_from_saved_inputs(input_manifest, *, fold_spec, destination, metrics=None, batch=None)` | 签名和显式保存输入模式不变；新增 `stock_ml_saved_inputs_v2` dispatch，不追加 Data 参数。沿现 `fit_predict_stock_model(X,y,P,...)`，六特征参数、100trees/no-early-stopping profile 保持；future processor/validation 必须由独立冻结 FitPlan 声明。 |
+| `load_stock_ml_fold(path, *, batch=None)` | 签名不变；继续支持旧 fold v1/v2，并新增 compact fold v3、manifest v2、dataset v3 的只读闭包，不导入/执行 provider、数学、模型训练或推理。 |
+| `build_stock_ml_experiment` / `build_stock_ml_from_saved_features` | 首版不改旧单折 API，不在其内部偷偷切换新存储/训练路径。 |
+| `normalize_forward_labels` | 旧 API/保存 v1 保留，用作基准与兼容路径；新的 prepared-view 适配仅映射中立输入并调用 Core §4.5，不复制其数学代码。 |
+
+`storage_options` 首版固定为 layout、row_block_sessions、column_block、maximum_resident_bytes；矩阵默认块64输出日×32列。v1 `shard_sessions` 与 v2 块选项分开声明，冲突配置拒绝。`preparation_options` 复用块和 resident 限制，声明 `normalization_backend='core_cs_batch_v1'`；其他数学/clock 配置从冻结规范取得，不提供随意 override。输入/输出、后端/库、buffer codec、块选项和实现进入保存定义。调用侧预算独立记录 source bytes、allocated matrix bytes 与包括 native 模型的 process-tree RSS；不将磁盘 source-byte limit 当成内存保证。
+
+compact fold 新 identity 绑定 v2 input manifest、selector/key digest、原 fold spec、Core result refs、processor state/train-key digest 与实际实现/环境。旧 model release v2 的既有 Dataset/Feature/Label/参数/clock/booster refs 能表达则保持；若后续确需改 model wire 字段，须先回到同一合同审查。新保存预测仍用既有 `stock_prediction_run_v2` keyed rows/fold refs/时钟，训练父件仅引用，不内嵌；Engine 可只读取保存预测而不调用 Research fold loader。Core 中立预测验证与 Runtime v2 的现有准入限制保持。
+
+首版每 fit 调一次 Core 轻量批算；相同数值的保存文件可物理复用，但不另建跨-fit 数学缓存/可信 skip 开关。统计性能单独报告数学、哈希/闭包、physical reuse；不得将保存复用计成已消除的计算。后续要跳数学执行，须证明完整数值/cohort/版本/实现同一并另审，不复用旧 bound Frame。完整旧 Feature/Label golden 作为基准，现有已保存样本直接用于对照。
+
+**prepare的准确返回与保存引用。** 以下是待固定的v2 wire形状，尚无已执行样本。沿原 `read_parent` descriptor约定：`Desc(ref_key)` 精确为 `{path: absolute_path, file_digest: 'sha256:…', <ref_key>: 'sha256:…'}`；path仅定位，file_digest校验实际保存文件字节，ref_key校验子件内容身份，不相互替代。只读loader不根据目录名发现父件，不接受current/latest。小JSON件使用现strict canonical JSON+final LF；内容hash用无LF的canonical JSON。新ref排除其自身生成，file_digest包含实际LF。destination下先暂存完整闭包，成功后原子固定到definition_ref命名目录；已有正式产物仅精确校验后HIT或拒绝，不能覆写。
+
+返回dict与保存的 `batch.json` 逐字段相同，精确字段如下。这里字段表中的Desc和array是类型说明，不是新对象注册服务：
+
+| batch字段 | 类型/绑定 |
+|---|---|
+| contract_version | `stock_ml_batch_inputs_v2` |
+| definition | 下文BatchDefinition，保存原Feature输入、按序原fold specs、准备选项和实际实现/环境 |
+| definition_ref | digest(definition) |
+| prepared_view | Desc(`prepared_view_ref`)，指向本次prepared-view内部索引 |
+| folds | 非空array；每项精确 `{input_manifest: SavedInputsV2, fold_spec: original_fold_spec}`，按fit及OOS排序、OOS不重叠 |
+| status | `COMPLETE`；失败不返回可训练manifest，未完成checkpoint不伪装COMPLETE |
+| batch_ref | digest(batch除batch_ref/content_digest)，绑定全部fold inputs与父件引用 |
+| content_digest | digest(batch仅除content_digest)，绑定batch_ref及所有保存字段 |
+
+BatchDefinition精确为 `{version,feature_inputs,fold_specs,preparation_options,implementation_sources,implementation_ref,environment}`。version=`axiom.stock_ml_batch_inputs/2`；feature_inputs为Desc(`feature_inputs_ref`)，来自已验证的旧v1或新v2 Feature索引；fold_specs为输入原spec的有序array，不改原时钟/window；preparation_options精确为 `{row_block_sessions,column_block,maximum_resident_bytes,normalization_backend}`，前三项positive int拒bool，backend固定 `core_cs_batch_v1`。implementation_sources沿现实际source digest map，implementation_ref=digest该map；environment沿现冻结库/编译/backend记录。传validated Feature对象时也保留其已验证索引descriptor，不能只保存进程对象identity。metrics/progress不是保存定义或跳校验开关。
+
+SavedInputsV2精确为 `{contract_version,prepared_view,fold_spec_ref,selectors,core_result_refs,input_ref}`；contract_version=`stock_ml_saved_inputs_v2`，prepared_view为同上Desc(`prepared_view_ref`)，fold_spec_ref=digest原fold_spec。selectors精确为 `{training,validation,inference,training_labels,evaluation_labels}`：除validation允许null外均为Desc(`selector_ref`)；首版固定六Feature/no-early-stopping的validation必须null。core_result_refs为本fit按session块顺序的Core result_ref array，只引用本fit已保存输出，不将旧bound Frame换标签；input_ref=digest本件仅除input_ref。该dict可原样传 `build_stock_ml_fold_from_saved_inputs`，不能把batch_ref、文件路径或只含fit日期的摘要当作input_manifest。
+
+prepared-view索引是现view的内部值/证据索引，精确为 `{contract_version,definition,definition_ref,schema,schema_digest,row_index,source_selection,partitions,core_results,prepared_view_ref}`，contract_version=`stock_ml_prepared_view_v1`，definition_ref=digest(definition)，prepared_view_ref=digest本件仅除prepared_view_ref。definition精确为 `{scope,snapshot,pit_policy,calendar,universe,catalog_ref,feature_selection,ordered_features,feature_inputs,fold_specs,preparation_options,implementation_sources,implementation_ref,environment}`：前八项保留原共同source字段/原scope descriptor，其余与BatchDefinition同值。schema是按ordered_features的原中立列schema及固定raw/normalized Target列schema；schema_digest=digest(schema)。row_index为Desc(`row_index_ref`)，source_selection为Desc(`source_selection_ref`)；partitions是值/mask/时钟/原因/来源buffer的内部descriptor array；core_results为Desc(`core_result_artifact_ref`) array。每个内部Core保存wrapper精确为 `{contract_version,result,buffers,core_result_artifact_ref}`，version=`stock_matrix_core_result_v1`，result是Core03将buffers换为规范摘要的完整canonical输出（含metadata.result_ref），buffers为下文同形物理buffer descriptor map，core_result_artifact_ref=digest该wrapper仅除自身。loader验证物理bytes→canonical buffer摘要→Core result_ref，再验证wrapper引用；不把Core语义result_ref误当含路径JSON的file/content hash。scope/calendars/selection完整闭包保存一次，fold不重新内嵌来源图。
+
+内部partition descriptor精确为 `{table,fold_spec_ref,row_index_ref,schema_digest,row_offset,row_count,columns,buffers,metadata,partition_ref}`。table限 `features|training_raw_labels|training_normalized_labels|evaluation_raw_labels`；features的fold_spec_ref=null，其余绑定具体原fold spec；row_offset/count为完整固定行索引的范围，columns固定有序；metadata为Desc(`metadata_ref`)，保留原Query/实际版本、endpoint/factor/anchor、会员/有效性/原因及本次clocks/来源证据。buffers为 `{column_or_mask_name: {path,file_digest,dtype,shape,buffer_digest}}`，首版是标准只读mmap的raw binary文件、无header，使用Core03规范codec及bool/int/float64，不用pickle/object repr；每项shape与row_count/columns相符。buffer_digest就是Core03的bytes_digest，file_digest校验实际文件；首版raw文件二者同值，不混成metadata/content ref。partition_ref=digest本descriptor仅除partition_ref。同一bytes文件可以被不同partition引用，partition_ref仍绑定本次metadata及fold，不能以相同buffer_digest合并lineage。
+
+row-index子件精确为 `{contract_version,sessions,security_ids,order,row_count,row_index_ref}`，version=`stock_matrix_row_index_v1`，order=`session_security`，完整day-major grid，row_count=D×U，row_index_ref=digest本件仅除自身。selector子件精确为 `{contract_version,prepared_view_ref,row_index_ref,schema_digest,role,fold_spec_ref,encoding,row_count,payload,keys_digest,selector_ref}`，version=`stock_matrix_selector_v1`；role等于selectors键，encoding限 `offsets_u64_le|bitmap_lsb0`。payload精确 `{path,file_digest,dtype,shape,buffer_digest}`；offset严格升序唯一且在索引范围，bitmap bit i即row i、末尾padding bit必须0。row_count是选中键数，keys_digest散列从固定索引恢复的有序 `[security_id,session]` array；selector_ref=digest本件仅除自身。所有train X/y按同一恢复键对齐，不分别按位置过滤；training_labels selector须覆盖相同已选training键，evaluation_labels只覆盖声明OOS评估键。validation与processor train keys在未来批准profile中另显式声明，首版不虚构processor fit/state。
+
+source-selection子件精确为 `{contract_version,feature_inputs_ref,feature_rows,label_rows,source_selection_ref}`，version=`stock_matrix_source_selection_v1`。feature_rows每项精确 `{session,cutoff,history_sessions,adjustment_anchor,query_refs,selected_versions_ref}`；label_rows每项精确 `{role,fold_spec_ref,cutoff,sessions,adjustment_anchor,query_refs,selected_versions_ref,cohort_ref}`，role限training/evaluation，evaluation不做训练CS、cohort_ref=null。query_refs、selected_versions_ref和非null cohort_ref指向同索引partition metadata中的固定逻辑Query/实际选版/资格表内容hash；保存和loader均验证这些内容可达，不以opaque引用代替证据。selected版本保留实际来源/availability和endpoint/factor/anchor选择；label cutoff是本fit/evaluation cutoff而非最后fit。source_selection_ref=digest本件仅除自身；safe/fallback与后续loader使用同一表。Feature日slice引用从当前prepared_view_ref+其selector内容生成的新feature_ref，并保存能由旧Feature输入索引核验的原slice refs，供既有prediction.source_refs使用；不冒充原FeatureFrame身份。
+
+引用按有向无环顺序生成：原Feature索引/scope→行索引及实际选版/资格metadata→raw Target/来源和Core输入→Core结果与内部wrapper→prepared_view_ref→fold selectors/input_ref→batch_ref→后续fold/model/prediction。Core的offline_eligibility来源绑定使用前面已冻结Feature索引与资格metadata引用，绝不引用包含该Core结果的最终prepared_view_ref或后面selector；输出prediction的Feature slice新ref才绑定最终view/selector。prepared-view不引用selectors/batch/fold输出，避免同一索引互相散列。
+
+loader验收顺序为batch/definition/ref→prepared-view共同scope/schema/index/partitions/source-selection→每fold selector/原spec/Label资格和Core保存输出闭包，再按需投影。不执行Data/Core/math/train。含null与缺失原因的原完整grid不能在prepare时静默Dropna；training selector才按既有资格排除，inference selector保留该OOS完整网格，训练矩阵和可预测子集另按原逻辑形成。字段缺失、额外字段、selector移植、当前fit与Core结果不匹配或clocks闭包损坏均拒绝；v1loader继续按其原精确字段合同，不容错补成v2。
+
 ### 8.3 性能验收方法
 
 固定硬件、样本规模、冷/热 cache 和参数，记录每阶段 wall time、peak memory、bytes read、cache hit/miss、训练/推理次数。首轮测量后确定预算，不在本设计凭空承诺分钟数或倍数。

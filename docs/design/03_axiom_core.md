@@ -177,6 +177,58 @@ Pearson/Spearman使用同一批配对，ties取平均秩，日权重一致。Duc
 最低验收包含乱序、重复键、单日错位、ties、常量、缺失日及多Signal共同样本。
 本节是有界纯函数候选，不改变当前FeaturePlan执行器或Engine账户评价。
 
+<a id="neutral-cs-batch-proposal"></a>
+### 4.5 中立批量截面入口候选
+
+> 接口草稿、尚未实现；由 Engine/Core owner 固定和实现。既有 `execute_feature_plan`、FactBatch/FeatureFrame wire 和数学语义不变。调用侧 prepare/packed loader 见 [Research §8.2.1–8.2.2](05_axiom_research.md#821-固定输入矩阵与滚动训练)。
+
+唯一新增入口候选：
+
+```python
+from axiom_engine.core import execute_cs_zscore_batch
+
+def execute_cs_zscore_batch(
+    batch: dict, *, params: dict,
+    clock_projection: str = "ceil_to_core_second_v1",
+) -> dict:
+    ...
+```
+
+这是现 cs_zscore 数学的中立批接口，不是 Data/Label/训练 service。实现复用同一 Core 算子规则/基准；Research processor 仅负责合规选择与 carrier 映射。无路径、Data对象、Research对象、Qlib handler、模型或 I/O 参数；无 fit/状态学习。初版只实现 group=session 的现 ddof0/epsilon/constant-missing/no-clip profile，不扩通用算子平台。Core 模块导入保持中立，不因该入口隐式加载 Data/Research/训练包。
+
+`batch` 为新 opt-in 中立 carrier，**不是声称现 FactBatch 已接受数组**。字段：
+
+| 字段 | 精确含义 |
+|---|---|
+| `contract_version` / `calendar_ref` / `schema` / `output_schema` | `core_cs_zscore_batch_input_v1`；calendar_ref为固定sha256绑定。schema/output_schema均沿现中立列 schema且各一列；输入float64，输出float64/dimensionless/cross_sectional，missing=preserve。 |
+| `sessions` / `security_ids` | 有序、唯一；完整 D×U 网格，day-major 后 security-order；既有 row-index digest/keys exact。 |
+| `values` / `value_validity` | readonly contiguous float64 / bool buffers，长度 D×U；false槽代表 logical null，不以NaN本身替代missing policy。 |
+| `value_reason_codes` / `reason_dictionary` | 同长reason codes和固定词典，保留原 Core 输入缺失原因；不改原因优先级。 |
+| `fact_available_at_utc_us` | 未取整 UTC integer微秒，同长。label调用映射：eligible格为原raw可用时刻；excluded格value=null、时钟为精确fit cutoff，对应原offline eligibility事实，不冒充原raw事实时钟。原raw时钟仍在Target中。 |
+| `reference_member` / `reference_available_at_utc_us` | 同长资格/membership及其未取整时钟；label调用沿原映射：member=完整本fit资格mask，reference clock=精确fit cutoff。 |
+| `selection_cutoff_utc_us` | 每session一个未取整cutoff（长度D）；label批为同一fit cutoff，不能先ceil后判断真实availability。 |
+| `source_bindings_by_session` / `fact_source_codes` / `reference_source_codes` | 沿现 Source binding字段及本次data/view refs；同长source-code buffers按session词典解析。只来源/clock变化仍进入本次input_ref。 |
+
+以上表格枚举输入dict的全部字段，不接受额外字段。schema每列精确为 `{name,dtype,unit,stage,missing}`；label适配使用原 `raw_return` fact列和 `normalized_target` cross_sectional列。`sessions` 按日期升序，`security_ids` 按稳定ID升序，均非空；第 `i*U+j` 个槽对应 `(security_ids[j],sessions[i])`。buffers为标准buffer protocol兼容的一维、C-contiguous、readonly对象，不要求调用方传NumPy对象：values为little-endian float64，validity/reference_member为bool（字节0/1），reason/source codes为little-endian int32，所有UTC微秒时钟为little-endian int64；除selection_cutoff长度D外均长度D×U，无null clock sentinel。missing值槽使用canonical +0.0，独立validity=false；present值有限。`reason_dictionary=[null,*sorted(unique_reason_strings)]`，code0表示无原因；输入present仅code0，missing仅非零合法code，保留本次原原因文字。
+
+`source_bindings_by_session` 精确为 `{session: {bindings: [...], source_sets: [...]}}`，session覆盖同一sessions。每个binding精确为 `{id,data_ref,view_ref,revision_policy,qualification,availability_basis}`，规则沿现Source binding；bindings按id升序且不重复。source_sets是非空、去重的source-ID集合列表，每个集合为排序非空ID列表且全部ID在bindings中；集合列表按ID tuple字典序固定。每槽fact/reference code索引本session的source_sets；reference的集合恰一ID，沿原reference.source。excluded/invalid槽同样有真实映射后的来源和时钟，不能用-1跳过依赖。
+
+所有buffer采用明示dtype和维度，Core检查shape、keys、bool/code域、有限valid值和时钟边界；readonly输入不得在调用期间修改。schema admission与现Core相同：按mask把槽还原为有限值/null后校验列的dtype/unit/stage/missing，不因packed输入绕过 `missing='reject'`；首版label profile明确为preserve。operator params与现规范逐字段一致，不接受trusted/skip-admission flag。调用侧先按native时钟检查PIT/endpoint/maturity/完整cohort，Core再验证映射后的fact/reference原始时钟≤selection cutoff，然后执行projection。
+
+首版共用原 `_std` 与 `math.fsum`，eligible值及依赖按冻结grid的security顺序进入原算术，不先改成NumPy/pandas reduction。undefined scale判定保持 `std is None or std == 0 or std < epsilon`，不是≤epsilon。已审Core按组统计一次的复用优化可沿用，但不改变有序参与值、std、均值和输出依赖。输入reason codes保留缺失/资格原因；输出reason codes独立生成，当前profile的missing/constant/excluded输出为原 `_merge` 的 `REFERENCE_MISSING`，present输出无原因，不能把raw原因直接复制为CS输出原因。
+
+`ceil_to_core_second_v1` 定义为UTC微秒向上取整至整秒，等于原 `core_clock`。fact、reference、cutoff分别投影；输出每格available_at沿原 `_merge`：参与cohort的全部fact clocks、全reference组（含被排除键）的clocks及本格fact clock取最大值。label映射的reference为cutoff，所以输出normalized时钟为projected fit cutoff。缺失/constant/excluded也按原规则输出，不用raw本行时钟替代group依赖；保持原raw label clock在Research父件中，不被改写。
+
+`result` 返回owned float64值buffer、validity、reason codes/dictionary、available_at_utc_us及输出source-code映射，与输入同完整网格；不返回文件路径或拟合状态。metadata为 `core_cs_zscore_batch_result_v1`，包含input_ref、numeric_input_ref、spec_ref、keys_ref、schema/source/context refs、values/flags/clocks digest、implementation_ref和result_ref。`numeric_input_ref`只标明有序值/资格/数学定义同一，不授予来源或时钟复用。`result_ref`绑定本次完整input_ref+参数/clock mode+实际Core实现+全部输出digest；Core自己校验/生成，不接受caller自报的正确结果。
+
+精确输出dict字段为 `contract_version,sessions,security_ids,schema,values,value_validity,value_reason_codes,reason_dictionary,available_at_utc_us,source_bindings_by_session,source_codes,metadata`；contract_version=`core_cs_zscore_batch_result_v1`，schema=输入output_schema，所有输出buffer由Core拥有并以readonly返回，dtype/order/长度沿上文。输出source_sets记录原 `_merge` 依赖source的排序并集，source_codes按本session词典解析；输出原因遵守原Core输出规则（如REFERENCE_MISSING），原输入原因另由input_ref绑定，不把eligibility原因冒充Core输出原因。metadata精确为 `{input_ref,numeric_input_ref,spec_ref,keys_ref,schema_ref,source_ref,context_ref,values_digest,flags_digest,clocks_digest,implementation_ref,result_ref}`。
+
+引用一律为 `sha256:` 加64位小写hex。每buffer的摘要输入为严格canonical JSON `{dtype,shape,bytes_digest}`；bytes_digest散列规范字节，不散列进程地址。input_ref散列完整输入字段，buffer替换为该摘要描述；keys_ref散列 `{sessions,security_ids,order:'session_security'}`，schema_ref散列输入/output schema，source_ref散列本次bindings/source_sets和fact/reference code描述，context_ref散列calendar_ref、keys_ref、reference_member/reference clocks、selection cutoff描述。spec_ref散列 `{abi:'axiom.feature/1',semantics:'axiom.operators/1',operator:'cs_zscore',operator_version:'1',params,clock_projection}`；params全部显式，首版固定 `{group:'session',unknown_group:'reject',missing:'skip',ddof:0,epsilon:1e-12,constant:'missing',clip:null,excluded:'missing'}`。numeric_input_ref散列keys_ref、schema_ref、spec_ref、有序values/validity/reasons和reference_member描述，故仅剥离来源/时钟、不剥离cohort。values_digest散列values描述，flags_digest散列validity/reason code描述及词典，clocks_digest散列available_at描述。implementation_ref绑定实际参与Core代码/算术backend版本，不接受caller指定；result_ref散列完整输出字段（同样把buffer替换为摘要描述，metadata仅移除result_ref），输出source映射同样在闭包内。保存时该canonical result与物理文件descriptor分离，Research索引wrapper负责绑定二者；路径不混入Core输入/结果，见Research §8.2.2。
+
+buffer digest codec固定：day-major float64 little-endian（null槽canonical0、独立valid mask），bool0/1、UTC int64微秒及code词典/keys/source metadata严格canonical JSON；不通过object repr或未知scalar stringify作身份。读取packed父件验证上述codec/digest与selector闭包；不重新执行数学。
+
+新结果不是旧 FeatureFrame，不能将旧frame_ref重贴到新输入。调用侧保存到prepared-view内部表/分区，loader、FoldManifest独立绑定当前lineage。首版每fit可廉价批算一次而仅复用相同物理值文件；不新增数学缓存registry。有限数值容差、exact flags/keys/clocks及排名边界验收按Research §8.2.1；浮点顺序变化必须声明backend/实现与新身份。
+
 ## 5. 信号与策略协议
 
 ### 5.1 SignalPlan
