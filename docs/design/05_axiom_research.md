@@ -868,7 +868,7 @@ OOS view，包含共同冻结定义、完整有序 OOS Feature 与 evaluation ta
 fold 保存件的消费校验复用同一 admission，保留原输出、版本、refs 与模型时钟检查。
 这条路径不构建训练 X/y/P、不遍历训练 row_ref，也不再次 hash 共同来源。评价 owner
 逐 fold 消费并释放 OOS view，按键冻结共享成员与原始收益，保留全部 target slice lineage。
-共同评价 Label override 的合同增量待主协调固定稿审阅。训练 Label 与评价 Label
+共同评价 Label override 的合同增量已通过主协调固定稿审阅。训练 Label 与评价 Label
 独立；显式共同评价目标沿其原 LabelSpec 的 horizon、端点、
 源版本和成熟时钟准入，训练 spec 不限制该 horizon，覆盖完整请求键并按历史成员与
 有效资格形成比较组共同 mask。切换评价目标无需重新准备训练 inputs、训练或生成
