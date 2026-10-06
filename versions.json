@@ -584,6 +584,8 @@
         "status": "parent_approved_OOS_only_design; owner_handoff_implementation_and_acceptance_pending",
         "input_contract": "stock_signal_evaluation_inputs_v2",
         "report_contract": "stock_signal_evidence_v4",
+        "evaluation_target": "independent_of_training_labels; optional_common_RawLabel_descriptor_override; M1_default_T5_preserved",
+        "evaluation_target_review": "fixed_contract_delta_pending_parent_review",
         "performance_status": "matrix_cold_warm_and_real_full_history_acceptance_pending; prior_v1_saved_and_synthetic_evidence_separate",
         "source_or_package_updated": false
       }

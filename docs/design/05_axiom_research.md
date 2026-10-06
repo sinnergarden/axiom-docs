@@ -808,8 +808,10 @@ Feature、归一化 Label 和模型祖先的成本。首次冻结准备与日常
 
 matrix 适配后的生产入口签名为
 `save_stock_signal_evaluation_inputs(signal_inputs, *, raw_label_input=None, scope, destination, batch=None)`。
-旧输入继续提供原 RawLabel 描述符；matrix fold 输入要求 `raw_label_input=None`，并传入由
-`load_stock_ml_batch_inputs` 创建且仍有效的 batch。评价、保存件读取和 audit 的签名保持。
+旧输入继续提供原 RawLabel 描述符；matrix fold 输入传入由 `load_stock_ml_batch_inputs`
+创建且仍有效的 batch。默认 `raw_label_input=None` 使用 fold 的评价 target；显式原
+RawLabel 描述符为整组选择共同评价目标，已有冻结 target 通过其原 RawLabel 描述符和
+来源证明复用，单独 slice ref 不足以完成准入。评价、保存件读取和 audit 的签名保持。
 
 ```python
 input_ref = save_stock_signal_evaluation_inputs(
@@ -866,6 +868,12 @@ OOS view，包含共同冻结定义、完整有序 OOS Feature 与 evaluation ta
 fold 保存件的消费校验复用同一 admission，保留原输出、版本、refs 与模型时钟检查。
 这条路径不构建训练 X/y/P、不遍历训练 row_ref，也不再次 hash 共同来源。评价 owner
 逐 fold 消费并释放 OOS view，按键冻结共享成员与原始收益，保留全部 target slice lineage。
+共同评价 Label override 的合同增量待主协调固定稿审阅。训练 Label 与评价 Label
+独立；显式共同评价目标沿其原 LabelSpec 的 horizon、端点、
+源版本和成熟时钟准入，训练 spec 不限制该 horizon，覆盖完整请求键并按历史成员与
+有效资格形成比较组共同 mask。切换评价目标无需重新准备训练 inputs、训练或生成
+Prediction；同组所有 Signal 绑定同一评价 Label 定义和版本，native 统计仍单独注明
+各自样本，不能把不同目标的 IC 直接排序。M1 默认五交易日目标保持。
 同键的实际 leaf 版本、值、valid/null/reason、端点和时钟一致时可以共享，slice ref 或
 查询范围不同本身不构成冲突；实际冲突、缺键或来源 mutation 均失败。matrix 输入采用
 `stock_signal_evaluation_inputs_v2`，报告采用 `stock_signal_evidence_v4` 并记录
@@ -874,6 +882,12 @@ fold 保存件的消费校验复用同一 admission，保留原输出、版本�
 旧输入 v1 和报告 v1/v2/v3 保留各自验证保证。完整 audit 重新准入一次共同闭包并逐 fold
 对照 OOS 投影，日常评价仅验证冻结内容。该适配的真实短窗对照及四至五年 cold/warm
 验收由主协调另行安排，原 v1 工程测量分别保留。
+
+整体与年份下钻使用同一冻结 Signal 和共同评价 Label，只改变请求 sessions；完整
+calendar、目标定义、源版本与 evaluation_cutoff 保持，范围进入 mask 和报告身份。
+每段均沿现 Core 统计，跨段汇总按既定有效日口径计算，不能简单平均各年 IR。
+后续组合 Signal 先保存自身版本、原 Prediction lineage、组合规则与可用时钟，再以
+同一共同目标和 mask 进入评价；本轮不实现多模型训练、权重搜索或任意公式框架。
 
 HIT 的 `evaluation_key` 在数值执行前由输入 ArtifactRef 的语义字段、scope、有序比较组、
 SPEC、实际 sample mask/Core input refs 和实际实现 refs 计算；各 `evidence_ref` 再绑定
