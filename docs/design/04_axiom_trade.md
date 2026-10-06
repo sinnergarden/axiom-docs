@@ -54,6 +54,39 @@ Runtime adapter 消费 Data 的 P02 DataBatch，并映射为 Core 的 P05 FactBa
 
 离线回测必须可在不安装/登录券商、无 real 凭证的环境运行。Live/Broker SDK 按需加载，不能 import Trade 就连接券商。
 
+<a id="backtest-shadow-parity"></a>
+### 2.1 回测与 daily shadow 无业务差异：原则、时钟与实现缺口
+
+**硬原则。** 继承 [Core §1.2](03_axiom_core.md#12-回测与-daily-shadow-无业务差异的硬原则)：同一冻结输入/source refs、事件排序与逐 session 可见性、账户/策略状态、策略/风控/执行 profile、实现版本及随机种子（若有），batch 回测和逐 session shadow 必须复用同一计算、决策、风控、订单、模拟 Broker 和账本规则。batch/cache 仅作等价优化；adapter 和调度可以不同，但不允许模式分叉的数学、成交约束或核算。不同环境账本仍按 §7 物理隔离。
+
+验收固定同一逻辑 run/account/session/event 对齐关系，逐字段比较保存的 decision/trace、target、intent、order/拒单、fill、fees、公司行动与权益登记、position/可卖数量/成本、cash/receivable、NAV 及 committed_sequence；稳定业务 ID、source refs、cutoff、缺失/拒绝原因也参与比较。只有物理环境定位、墙钟日志和 attempt 包装可在验收 manifest 中明确单列；不能以此豁免业务键或状态差异。分批容器的整体 hash 不替代逐项核验，容差内收益接近也不等于通过。
+
+**`daily_volume_proxy` 的真实可见性。** 当前 ETF `daily_open_profile` 和股票 `retrospective_daily_volume_proxy` 都以当日完整 `volume_units/volume_shares` 乘 participation_rate 约束成交，并使用当日 open/价格限制等执行事实。这是离线研究模拟，不能把完整日量或收盘价送入当日盘前决策，也不能在开盘就宣称已得到该模型的模拟成交。
+
+| 阶段 | shadow 的允许输入与输出 | batch 对照边界 |
+|---|---|---|
+| 盘前决策 | 原 decision 前的 T+1 结转及 EX/PAY 保留原相位与可见性，再仅消费该 cutoff 内可见的 Feature/Signal、前序市场/事件事实与账户状态；冻结 target/intent，所需执行事实未到时保持待结算，不用当日完整量/收盘价补决策 | 按相同事件排序、decision cutoff 和原账户水位作同一决策；不把 PAY 到账现金整体移到盘后 |
+| 盘后模拟结算 | 所需原 open/限制、完整日量及估值事实已按冻结来源实际可见后，按明确 settlement cutoff 调用同一模拟规则；cutoff 前可待结算，到 cutoff 仍缺必需事实则两条路径采用同一缺数/阻断规则，不能 shadow 单独无限等待后补成交 | 原 logical phase/顺序不变：盘前结转/EX/PAY→决策→模拟成交/费用→record 权益登记→盘后拆分/估值与 NAV；实际盘后算出模拟成交不把原 decision 前公司行动移到盘后 |
+
+允许盘后以原 open 为价格参考结算，是同一 profile 的事后模拟，不是盘后真实下单，更不能把实际结算/接收时刻倒写为开盘已知。不是到某个固定收盘/20:30 时刻就自动认为数据可见；settlement cutoff 由版本化运行协议预先冻结，实际接收证据只判定事实是否按期可用，不能因为迟到而顺延 cutoff。后到或修订的数据不得静默改写已提交 session，或进入更早的决策；确需重新研究时另存修订输入与独立 run。真正只用盘中已知量的执行需要另行审准 profile，并让 batch/shadow 同时采用该规则，不能为 shadow 单改规则后继续宣称同 profile 一致。研究近似 profile 不是 live 成交承诺。
+若下一次决策 cutoff 已到而前一结算相位仍 pending，两条路径必须依同一冻结协议处理等待/阻断，不能一边使用后到事实提前结清、另一边忽略未决状态。历史 `best_effort_vendor` 或 declared-simulation 时钟不等于当时系统实际收到数据；不得拿现有离线输入证明实时 shadow 当时可知。
+
+**2026-10-06 只读源码现状（Engine main `a18d38ff`）。** 以下是现有源码与未来能力的边界，不是本次实现：
+
+| 已有源码 | 明确缺口 |
+|---|---|
+| [`run_backtest/_run`](https://github.com/sinnergarden/axiom-engine/blob/a18d38ff0708139b681dd76831013cebd98429cd/src/axiom_engine/runtime/backtest.py) 在一个连续 session 循环中调用原 Core planner、`_simulate`、fee 函数与 `AccountLedger`，并保存决策、订单、成交、账本和 NAV | 尚无公开 daily-shadow session 推进/相位暂停接口；离线函数拿到完整 MarketReplay 即推进，不是实际时钟服务或等待盘后事实的实现 |
+| [`AccountLedger`](https://github.com/sinnergarden/axiom-engine/blob/a18d38ff0708139b681dd76831013cebd98429cd/src/axiom_engine/runtime/accounting.py) 已有整型资金、待结算批次、应收、fill/公司行动幂等键和 sequence；循环还维护 quotes/marks、分红权益及拆分登记/basis | 内存状态不等于持久 checkpoint；公开 Runtime 没有旧账本 append/resume、SQLite 事务恢复或持久 inbox/outbox。只保存 final_account 不足以恢复这些状态 |
+| `save_backtest_run/load_backtest_run` 保存或校验已有不可变结果 | loader 不推进账户；不能逐日重建新账本再拼接结果，冒充同一账户续跑或跨日恢复 |
+
+现有共享 Feature/有界离线账户证据不等于完整 daily shadow 一致性已经验收；T-M3 仍是未来能力。若未来加入 checkpoint，必须保存日历/相位游标、稳定订单编号与账本水位、待执行 intent/order、pending lots/应收、已应用事件去重状态、报价/估值、分红与拆分权益/basis，以及适用的策略/RNG 状态，并沿原规则恢复；不能只续 cash/position 后丢掉其余状态。这里列恢复要求，不提前宣布新公共 API。
+
+**后续验收顺序（另行实施、父审与资源窗口）。**
+
+1. 先用完全固定的小型合成输入，把未来逐 session 驱动与 batch 绑定到同一原 Runtime 规则，保存逐字段对照 manifest；包含非决策日、T+1/整手、费用、现金不足/限价/容量拒单、缺数及明确晚于 cutoff 的事实，盘后结算前不得向盘前暴露模拟成交或未来量。
+2. 在决策后/待结算、fill 应用前后、公司行动与 NAV 提交边界中断并跨日恢复；检查重复与冲突事件、迟到/修订数据、分红 record/EX/PAY/应收、拆分登记/新价格单位及 unsupported-action 阻断，恢复与连续路径的全部业务键、流水、状态与水位逐项一致。
+3. 合成资格与恢复能力通过后，再申请独立小资源窗口复用 owner 已保存输入，保存新的 batch/shadow 对照产物；原 run/评价文件保持不可变。当前 ML 最小闭环继续原已批准路径，本轮不新增 Engine 执行器、不跑真实账户或 shadow，不以这份设计宣称目标验收已完成。
+
 ## 3. 一套回测，两种信号输入
 
 ### 3.1 日常研究
