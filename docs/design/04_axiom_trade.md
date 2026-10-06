@@ -742,8 +742,10 @@ RSS上限4GiB；超限保存实际范围、耗时和阻塞收据结束，不反�
 ```python
 stock_execution_rules(*, universe: list[str], calendar: list[str],
                       identity_input: dict, quantity_rules: list[dict],
-                      sources: list[dict]) -> dict
-stock_fee_schedule(*, intervals: list[dict], sources: list[dict]) -> dict
+                      sources: list[dict], verified_from: str,
+                      verified_through: str) -> dict
+stock_fee_schedule(*, intervals: list[dict], sources: list[dict],
+                   verified_from: str, verified_through: str) -> dict
 csi300_stock_portfolio_policy(*, top_k: int, execution_universe: list[str],
                              execution_rules: dict) -> dict
 stock_daily_open_profile_v2(*, execution_rules: dict, fee_schedule: dict,
@@ -752,7 +754,8 @@ stock_daily_open_profile_v2(*, execution_rules: dict, fee_schedule: dict,
 
 `stock_execution_rules` 返回精确形状
 `{contract_version:"stock_execution_rules_v1",universe,calendar,identity_input,
-identity_input_ref,quantity_rules,sources,limitations}`。universe 是排序去重的完整
+identity_input_ref,quantity_rules,sources,verified_from,verified_through,limitations}`。
+universe 是排序去重的完整
 prediction union，初始持仓必须在其中；calendar 是本次真实执行 session 及所需前边界。
 `identity_input_ref` 是内嵌 identity_input 的现有 Document identity。
 identity_input 形状为
@@ -776,7 +779,11 @@ quantity_rules 每行精确为
 sell_increment,full_residual_exit_allowed,limit_order_maximum,
 market_order_maximum,daily_proxy_maximum,price_tick,settlement_sessions,source_keys}`。
 日期区间为 `[effective_from,effective_to)`，末端可为 null；同一板块的规则不得重叠，
-本次每个实际上市 session 必须恰好命中一行。source_keys 引用 sources 的
+本次每个实际上市 session 必须恰好命中一行。verified_from、verified_through 是已经
+取得适用正文并核对的闭区间边界；本次 calendar 必须落在其中。effective_to=null 仅
+表示正文未给失效日，不能证明 verified_through 之后仍已验证。首个2024短窗口只冻结
+已取得正文的适用区间；补证后扩展同类文档条目和核实范围，产生新 identity。
+source_keys 引用 sources 的
 `{source_key,url,content_sha256,clause}`；哈希取实际读到的原文或附件字节，不以跳转首页
 或空响应替代正文。历史窗口的来源覆盖逐段检查，不能把最新规则发布日期当作所有
 历史 session 的生效日。price_tick 为 Decimal 字符串，其余数量字段为拒绝 bool 的
@@ -785,7 +792,8 @@ market_order_maximum,daily_proxy_maximum,price_tick,settlement_sessions,source_k
 新 policy 精确为
 `{eligibility_id:"csi300_pit_a_share_v1",top_k,rebalance:"weekly_first_trading_session",
 budget_basis:"available_cash_plus_previous_close_positions_excluding_receivables",
-stock_execution_rules_ref}`。execution_universe 必须等于 execution_rules.universe，
+candidate_policy:"member_valid_finite_v1",stock_execution_rules_ref}`。
+execution_universe 必须等于 execution_rules.universe，
 `type(top_k) is int` 且 `1≤top_k≤len(execution_universe)`。Core 继续使用同一个
 `plan_stock_portfolio(frame, *, account, context, top_k=None)`；新请求在 context 显式
 绑定上述 policy、规则全文和规则 ref，走 `axiom.stock_portfolio/3`。该 context 沿旧
@@ -818,7 +826,11 @@ stock_execution_rules_ref；supported_security_ids 必须等于完整 execution_
 [上交所2019特别规定第二十条](https://www.sse.com.cn/lawandrules/sselawsrules/repeal/rules/c/10118601/files/f6fc4a1d4c1f469183a013c4dc36a535.pdf)，
 并核对[上交所2023规则第3.3.8、3.3.9及6.1.7条](https://www.sse.com.cn/lawandrules/sselawsrules2025/repeal/rules/c/c_20250612_10824490.shtml)
 及[2026规则第6.7条](https://www.sse.com.cn/lawandrules/sselawsrules2025/trade/universal/c/c_20260424_10816492.shtml)。
-2026交易规则自2026-07-06生效；同值规则也保留各自的来源和有效区间。上述早期文本
+SSE2023网页metadata中的2023-02-17是发布日期口径，通知正文明确以注册制首只主板
+股票上市首日施行；effective_from 固定真实的2023-04-10，并由
+[上交所改革实施说明](https://www.sse.com.cn/aboutus/mediacenter/hotandd/c/c_20230810_5725020.shtml)
+核对落地日，不采用网页metadata作为生效证据。2026交易规则自2026-07-06生效；
+同值规则也保留各自的来源和有效区间。上述早期文本
 为历史候选提供依据，2019至2023的完整替代链在多年账户准入前补齐并冻结。
 
 `daily_proxy_maximum=min(limit_order_maximum,market_order_maximum)` 固定为
@@ -827,8 +839,16 @@ stock_execution_rules_ref；supported_security_ids 必须等于完整 execution_
 价格继续消费同 session 的 native unadjusted open、上下限及原 UNKNOWN 状态；不能
 按板块硬编码涨跌幅，也不能因为有 score 就把 UNKNOWN 改成可交易。
 
-Core 先在所有 PIT member 行中按 score 降序、security_id 升序解同分取前 k，沿用
-不足 k 或任何 member 显式 invalid 时的 NO_DECISION。每只目标预算仍为可部署预算的
+Core 完整检查每个 feature session 的 union 行和 PIT 成员来源后，仅从
+member=true、valid=true 且 score 有限的行中按 score 降序、security_id 升序解同分
+取前 k。个体合法缺feature或未完成预热的 invalid 行保留原 null、invalid_reason
+和源refs，排除该行并计数，不冻结其余成员。trace 保存 pit_member_count、
+valid_candidate_count、excluded_invalid_member_count，以及原 security_id/invalid_reason
+明细。valid候选不足 k 时保存 NO_DECISION/INSUFFICIENT_ELIGIBLE_MEMBERS、实际数量
+和要求的 k，保留仓位。缺行、重复、身份或成员来源不一致、未来时钟、refs损坏、
+valid=true却非有限score等合同损坏，在账户变更前拒绝整个请求；不能伪装成个体排除。
+旧Core v1/v2的一只invalid成员即NO_DECISION仅按其旧策略合同解释。
+每只目标预算仍为可部署预算的
 1/k，参考价仍为前一 session、cutoff 可见的 native close。对原始目标股数
 `raw=floor(单票预算/前收价)`，使用规则向下取数量：raw 小于 minimum 时取 0，否则取
 `minimum+floor((raw-minimum)/increment)*increment`，目标取0时保存
@@ -846,8 +866,11 @@ targets 保留目标值，trace 保存 BELOW_MINIMUM_ORDER_QUANTITY 及未执行
 #### 报单、部分成交、现金与费用共用原 Runtime
 
 每个 intent 只形成一笔本日有效模拟订单。Runtime 按实际 trade session 查询冻结
-规则，对 intent 应用单笔上限及合法申报数量；超出上限的部分记为 unsubmitted_quantity，
-不自动拆成多单。卖单同时受 sellable_quantity 约束，尾仓例外必须完整满足。保存
+规则，对 intent 应用单笔上限及合法申报数量，再用本日执行价和同一费用函数把买入
+数量缩到可用现金可负担的合法申报数量；未提交的部分记为 unsubmitted_quantity，
+不自动拆成多单。买入在板块合法数量格中单调二分：最低数量本身不可负担时
+submitted_quantity=0并保存INSUFFICIENT_CASH，不报低于最低数量的买单。
+卖单同时受 sellable_quantity 约束，尾仓例外必须完整满足。保存
 `requested_quantity,submitted_quantity,unsubmitted_quantity`，其中前者仍是原 intent
 数量，order.quantity 等于 submitted_quantity；不能用少量成交掩盖超限报单。
 unsubmitted_quantity=requested_quantity−submitted_quantity。上限截断后的小于最低数量的普通报单为0并记录
@@ -860,10 +883,10 @@ submitted_quantity，卖出还不得超过可卖量。因此合法科创板200�
 199股时可以成交199股、剩余1股到期未成交，不把199股记录成另一笔非法申报。
 这仍是日线量代理假设；v1原有按100股量化成交的结果与 loader 不改变。
 
-买入现金检查对0至上述数量上界的整数股做单调二分，每次调用同一实际费用函数；
-可用现金须覆盖成交价款、佣金和过户费。它约束实际成交，不宣称已经实现真实券商的
-全额委托资金预冻结。现金只能支持199股时，合法200股报单最多部分成交199股；实际
-成交0股不收最低佣金。卖出检查 `cash+gross≥fee`；费用不足保存原因。只为真实 fill
+买单提交数量先完成上述合法数量与现金检查，然后由volume产生部分成交；实际成交
+时用同一费用函数再次核对 Ledger 可用现金，不另建券商资金冻结系统。现金仅能支持
+199股时，科创板200股买单不提交；现金足够200股而volume只支持199股时才成交199股。
+实际成交0股不收最低佣金。卖出检查 `cash+gross≥fee`；费用不足保存原因。只为真实 fill
 记现金、费用及T+1仓位；`unfilled_quantity=submitted_quantity-filled_quantity` 表示
 到期未成交量，与 unsubmitted_quantity 分开保存。报单及 fill 均保存匹配的
 stock_execution_rules_ref 和 quantity_rule_effective_from，
@@ -871,9 +894,10 @@ stock_execution_rules_ref 和 quantity_rule_effective_from，
 
 `stock_fee_schedule` 返回
 `{contract_version:"stock_fee_schedule_v1",currency:"CNY",money_unit:"CNY_fen",
-intervals,sources,limitations}`。每个 interval 精确为
+intervals,sources,verified_from,verified_through,limitations}`。每个 interval 精确为
 `{effective_from,effective_to,sell_stamp_tax_rate,transfer_fee_rate,source_keys}`；
-区间语义和 sources 形状与数量规则一致，费率为非负 Decimal 字符串。本次候选所需
+区间语义、核实边界和 sources 形状与数量规则一致，实际成交日必须在已核实闭区间内；
+effective_to=null不允许在未核实未来继续计费。费率为非负 Decimal 字符串。本次候选所需
 费率如下，买入印花税始终为0，过户费按成交金额双向收取。
 
 | 实际成交日 | 卖出印花税率 | 双向过户费率 |
@@ -928,16 +952,49 @@ run_ref 原三元组、Signal identity、admission ref、implementation identity
 已有v1–v5保存件按原显式元组读取，不自动迁移或补字段；新评价和成交显示只增加该
 元组的准入，继续消费保存 run，不重跑账户。
 
+#### 上市、成员和持仓的生命周期准入
+
+冻结 union 是所有可能出现证券的身份范围，整张 union×session 网格必须保留完整行键、
+原始值、null、missing_reason和来源；数值必需性按实际生命周期判断。成员来源必须在
+当日feature cutoff可见，不能把以后入池或上市的信息用来补当日事实。已有原生上市、
+退市身份与PIT member行共同决定需要的域，不能将网格上所有null统称为在池缺口。
+
+| 当时状态 | 必需性及处理 |
+|---|---|
+| 尚未上市、member=false、无持仓或待结算量 | 保留原null和reason，不要求价格、factor或限价非空，不参与排名或成交。此时member=true或存在持仓属于生命周期矛盾，变更前拒绝。 |
+| 已上市、非成员、无持仓或待结算量 | 保留完整原生网格和缺口，未使用数值不阻断其他证券；入池前的真实历史可以成为Research已保存Feature的预热依赖，不能用填值完成预热。 |
+| 当期成员 | 检查完整成员行及合法保存Feature/预测来源；缺feature按上述策略逐证券排除。入选后，前收定仓和本日交易域必须有合法可见证据，实际缺口保存到该证券，不借排名第k+1替代。 |
+| 已持有或存在待结算量，即使退出成员池 | 继续检查公司行动、factor能力、估值和可卖量，Core照常生成退出意图。估值沿原显式stale政策保存价格日期与原因；没有可用估值或持仓行动未解释时保存BLOCKED，不能删仓。 |
+
+首次进入候选域需要原保存Feature证明其真实预热及可用时钟，并需要前一session可见
+native close；合法缺失的定仓参考保存NO_DECISION/MISSING_SIZING_REFERENCE，持仓不变。
+交易日缺factor或native限价等必要证据时保存该证券阻塞和缺口，不制造成交。factor
+只在实际上市的连续、可见原生session间核对变化；遇null不跨缺口解释、不补1，已有
+持仓的必要能力缺口或未解释转换沿原BLOCKED。UNKNOWN和原行动blocks仍保留。
+准入收据分别计pre_listing_null、listed_nonmember_gap、member_gap、held_gap；完整
+行键及双端原生值/reason比较仍覆盖全部union，数值合格数量按所需域报告。
+
+现有纯投影入口仅增加可选参数
+`stock_market_from_batches(*, batches, universe, calendar, execution_rules=None,
+membership_batch=None)`。两个新参数均缺省时精确保留原market_replay_v3；同时提供时，
+消费原六份batch及既有原生PIT成员batch，产出market_replay_v4。新wire沿v3字段增加
+`stock_execution_rules_ref,membership_ref,lifecycle_policy:"listing_member_position_v1"`，
+成员原文加入已有source_evidence/coverage_bundle闭合，不重查Data。run v6显式只准入
+该v4投影和同一规则ref，逐session需要的域仍由同一个Runtime及Ledger判定；保存原生
+缺值及metadata，不为生命周期另外造一份行情或撮合器。
+
 首个完整CSI300短账户继续使用已有 native unadjusted 行情和行动证据策略。UNKNOWN、
 未知行动及未解释 factor 转换按原政策阻塞。现金 EX 与 factor 的解释、送转增股及其
 可卖日，分别在实际 native 日期、数量和来源齐全时另行设计和审阅；本候选不从价格
-变化猜分红到账或新股上市日。完整 union 的上市前 session 没有价格或 factor 时，也
-不能补1或复制首日；多年账户在准入时显式检查这项现有覆盖限制。短账户不必等待
+变化猜分红到账或新股上市日。上市前的合法原null按上述生命周期保留，不能补1或
+复制首日；多年账户逐所需域报告真正缺口。短账户不必等待
 未来全部公司行动完成，但其实际窗口的证据缺口必须如实结束并保存阻塞收据。
 
 实现前先审本节API和数量语义，再做小合成边界检查：科创板200/201股买单、1股增持
 和101股减持不报单、199股全可卖尾仓、500股仅100股可卖不得套尾仓例外，以及合法
-200股申报后量或现金只支持199股的部分成交。另核对主板100股整手、创业板150000股
+200股申报后volume只支持199股的部分成交，以及现金只够199股时不提交200股买单。
+再核对个体invalid排除后正常排名／不足k、未上市非成员null保持、上市成员矛盾、
+退出池后持仓仍估值及合法预热不足。另核对主板100股整手、创业板150000股
 和科创板50000股代理上限、两个费率变更日、未知板块及重叠／缺失规则在记账前失败。
 通过后，在另获资源窗口的同一保存预测上做完整union短账户及保存／读取核对，证明
 全成员先排名、实际入选科创板按其规则执行。多年 ML 和全历史账户另受各自数据与
