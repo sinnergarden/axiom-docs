@@ -103,6 +103,34 @@
         "source_commit": "90b378a6e7d8283b0b021c537a95c5468b9161bc",
         "source_tree": "8ae4a69269594c99e42289c5757cffda6aae8ad9",
         "pull_request": "https://github.com/sinnergarden/axiom-research/pull/4"
+      },
+      "latest_verified_source": {
+        "source_commit": "b7f0889eb2a3ef9e221717eb651821e99fb1a378",
+        "merge_commit": "579bddc57475034e771944c847d8f011cb8b6a4e",
+        "source_tree": "a146033f9f53f2ac21c142d982bd00946b20589a",
+        "version": "0.2.5",
+        "pull_request": "https://github.com/sinnergarden/axiom-research/pull/10",
+        "previous_lifecycle_source": {
+          "source_commit": "c2c020dd479cac53de9a2e6055af3887b8996400",
+          "merge_commit": "5b5c3e2aa7610b3864769c57418afda22a9828b8",
+          "pull_request": "https://github.com/sinnergarden/axiom-research/pull/9"
+        },
+        "status": "parent_reviewed_merged_source; four real folds and one fresh shared-batch saved reader verified",
+        "source_tree_unchanged_after_merge": true,
+        "related_synthetic_tests": 44,
+        "scope": "full Label admission then compact per-fit selection retention; optional batch public fold/evaluation readers preserve saved closure; per-call source hash dedup; new market/account and long-history acceptance remain separate",
+        "package_status": "no new wheel or shared environment changes",
+        "private_outputs": "local ignored only",
+        "fresh_reader_owner_stage_calls": {
+          "data": 0,
+          "feature_core": 0,
+          "label_core": 0,
+          "statistics_core": 0,
+          "fit": 0,
+          "predict": 0,
+          "account": 0
+        },
+        "fresh_reader_shared_matrix_bytes": 9429360
       }
     },
     "axiom-engine": {
@@ -568,7 +596,7 @@
     "UNKNOWN retained; ETF/stock observed daily execution is explicit approximation and strict controls retained; not live rules",
     "no live Broker, SQLite crash recovery, complete stock quantity-action/delisting support or complete BFF/browser product; parent visual review performed; historical user UI product acceptance FAILED; remediated version published 2026-10-05 and parent source/actual screenshots/live publication identity verified; owner online interactive QA passed; user retest pending"
   ],
-  "as_of": "2026-10-05",
+  "as_of": "2026-10-06",
   "pending_implementations": {
     "axiom-data": {
       "source_commit": "06b4bd562398fa433d26708586a7d00309bb1910",
