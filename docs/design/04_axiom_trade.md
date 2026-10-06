@@ -1042,8 +1042,9 @@ load_stock_backtest_projection(path, *, artifact_reader,
                                limits: dict) -> SavedRunProjection
 ```
 
-三个入口由 Engine/Runtime owner 实现。artifact_reader 只解析调用方明确提供的本地
-ArtifactRef 闭包，不发现新路径或联网追随 URI。第一个入口只是原执行循环的组装，不能另写一套
+三个入口由 Engine/Runtime owner 实现。artifact_reader 只读取调用方明确提供的本地
+对象；普通 projection loader 的允许读取范围仅为小型 run/request/source_audit、
+结果片及本次评价必需的小型配置/事件，不递归跟随大输入或训练父件。第一个入口只是原执行循环的组装，不能另写一套
 按块撮合或账户核算。`audit_stock_backtest_source` 是独立只读的完整来源/数值准入入口，
 不创建 ledger；启动 v7 也在创建 ledger 前调用同一审计实现。第三个入口只校验保存件并
 读取评价所需业务输出。原 `run_backtest`、`save_backtest_run`、`load_backtest_run` 的
@@ -1099,10 +1100,11 @@ SignalRun，不把部分 rows 冒充完整父 Frame/DataBatch 并沿用其 hash�
 
 ```python
 source.inventory(manifest) -> dict
-source.iter_blocks(manifest, *, block_sessions: int) -> Iterator[StockInputBlock]
-sink.append(*, session: str, phase: str, rows: dict,
-            committed_sequence: int) -> None
-sink.finish() -> list[ResultPartRef]
+source.iter_blocks(manifest, *, block_sessions: int,
+                   read_budget: dict) -> Iterator[StockInputBlock]
+sink.append(*, session: str, phase: str, rows: Iterator[tuple[str, dict]],
+            committed_sequence: int, write_budget: dict) -> Iterator[ResultPartRef]
+sink.finish(*, write_budget: dict) -> list[ResultPartRef]
 ```
 
 inventory 返回固定输入引用、文件字节数、声明行数和范围；这些声明须与实际文件和
@@ -1112,18 +1114,38 @@ Research 产物格式。`block_sessions` 仅是正整数读取组织参数，拒
 按日或按月交付都必须产生相同原行与引用。
 
 v7 limits 的精确字段为 `{max_folds,max_prediction_rows,max_market_rows,
-max_input_bytes,max_block_bytes,max_result_bytes}`，各值为正整数、拒 bool。
-max_input_bytes 检查去重后的完整固定输入文件体积；max_block_bytes 限制单次受控
-读取/解压后的输入体积；行数与输出体积另检。它们是操作预算，不是策略参数或 RSS
-保证；5 GiB 必须另测实际峰值。旧版本 limits 字段和语义不变。
+max_input_bytes,max_read_bytes,max_block_bytes,max_result_part_bytes,
+max_result_buffer_bytes,max_result_bytes}`，各值为正整数、拒 bool。
+max_input_bytes 检查去重后的实际输入文件总量，fold 与两类行数分别累计核对；
+max_result_bytes 同时用于总输出和评价投影物化前的总结果检查。
+Runtime 在两遍读取前均将
+`read_budget={max_read_bytes:limits.max_read_bytes,max_decoded_bytes:limits.max_block_bytes}`
+传给 source。source 在读取分配前限制单次 byte buffer，并在解压/解码每次增长前检查
+剩余预算；未知或不可信的展开尺寸必须用有界读取，不能先无上限 read/decompress/
+decode 出整个对象或 StockInputBlock 后才拒绝。库存声明不代替实际增长计数。
+
+Runtime 同样在输出产生和 sink 消费前应用
+`write_budget={max_part_bytes:limits.max_result_part_bytes,
+max_buffer_bytes:limits.max_result_buffer_bytes,max_total_bytes:limits.max_result_bytes}`。
+rows 按原业务组名逐行迭代，不能先拼整个历史结果再交 sink。单片编码/写出与未提交
+输出缓冲均受预算限制；空间不足时先封存已有有界片并回报 ResultPartRef，或对超过
+上限的单行明确拒绝。sink 仅在文件已写出且字节/内容 digest 校验完成后回报提交，
+随即释放该片的编码与行缓冲；Runtime 即时消费回报并 drain 后才继续拉取 rows，
+不攒到整个 session 迭代结束再释放。finish 也遵守同一预算。预算是受控 byte/输出体积界限，
+不是 Python 对象 RSS 保证，5 GiB 仍另测实际峰值。旧版本 limits 字段和语义不变。
 
 第一遍在 ledger 创建前完整检查所有文件、所有 fold 与全部 union×session 键，包括
 最后一块：身份/Query/purpose/PIT/时钟、原值/metadata/单位/投影、双端输入配对、
 成员/上市生命周期、规则/费用覆盖、factor 相邻变化、公司行动及重复/冲突事件。
 分片间保留前序事实以检验连续性，坏后块不能留到已经成交后才发现。该遍释放大表，
-只保留固定引用、紧凑索引、审计计数与跨界必要状态；序列化的 PASS 不代替实际检查。
-第二遍按原时钟执行，在使用每块前重核所读内容与第一遍固定引用。预取未来块不使
-其事实提前进入 Core。执行中发现输入替换须终止，不能封成 COMPLETE。
+紧凑索引将第二遍实际读取片段的字节范围/row group/键范围及内容 digest 绑定到
+原父引用和固定 header，保留审计计数与跨界必要状态；不能只存父 hash，导致每块
+再次扫描整个父文件。source 薄读已绑定的 fold spec/model metadata/predictions，
+不调用 Research 的 load_stock_ml_fold 递归加载训练闭包；序列化 PASS 不代替检查。
+第二遍按原时钟执行，在使用每块前重核实际片段与上述索引。Core 始终接收同一全局
+calendar/rule/source refs 及原 Signal header，不能把块内日期表或 delivery digest
+替换进业务 context 而改变 ID。预取未来块不使其事实提前进入 Core；执行中发现
+输入替换须终止，不能封成 COMPLETE。
 
 identity_view 仅将上述已定义位置的 ArtifactRef 映射为
 `{artifact_type,artifact_id,contract_version,content_digest}`，删除 manifest_uri，
@@ -1152,6 +1174,20 @@ pending T+1 lots、receivables、幂等键和 sequence，以及 Runtime 的 quot
 stale 日期/来源、record 权益、EX/PAY 状态、事件去重、原规则/费用索引、全局订单编号
 和生命周期计数。不能每月重建账户再拼曲线。未解释 factor、池外持仓缺必需能力或
 未知数量行动仍可保存 BLOCKED；分块不删股、不忽略行动，也不保证多年完成。
+
+输出行的数值及提交仍归原 ledger/Runtime。sink 持有待写片，已封存片归不可变结果
+文件；同一行不能同时成为两份长期历史副本。append/finish 回报的 ResultPartRef 是
+释放凭据，Runtime 依据其各业务组 row_counts 和已提交前缀游标，drain 原
+AccountLedger.fills/cash_ledger/position_ledger 及 Runtime 的 nav/positions/decisions/
+orders 历史列表。只删除已确认写出的前缀；未确认行继续受统一待写缓冲预算约束。
+不能只按 sequence 过滤，因为不同输出行可共享水位。写出或校验失败不 drain，也
+不发布完整 run；保持原必要幂等/冲突记录、余额、持仓、T+1、应收及跨期权益状态。
+
+全局 order_index、各组 produced/submitted/committed 游标、fill/order 数量和原各项
+费用/turnover/未提交/未成交/不完整数量都使用独立累计量；每个新业务事件恰好累计
+一次。NAV 的 running peak/max drawdown 也在原 session 提交时更新。编号、metrics
+和最终核对不能再使用已 drain 的 len(list) 或扫描历史列表；这些是存储组织调整，
+原 v1–v6 的公开列表/返回行为保持。
 
 结果元组为 `backtest_run_v7/axiom.backtest/7`，run 精确字段为：
 
@@ -1193,14 +1229,21 @@ loader 分支、profile 及 Signal 身份不迁移、不补字段。
 
 #### 保存投影、完整源审计及首个里程碑
 
-projection loader 校验 v7 元组、request/run/content 身份、输入引用闭包的 manifest/
-文件字节绑定、source_audit 内容绑定，以及结果片顺序、内容、row_counts、水位和
-decision→intent→order→fill/费用的保存关联；流式验文件，不重建全部 native/预测图。
-它不重跑 planner、撮合或 ledger，也不把核验已保存审计结果称为重新完成数值源审计。
-需要重新检查原生数值、PIT 或投影时，独立调用上述完整 source audit；启动新 v7 的
-第一遍安全准入始终完成这些检查，不因曾保存 PASS 而省略。
+普通 projection loader 只校验小型 run/request/source_audit 的内容与引用身份绑定、
+结果片的顺序/内容/row_counts/水位，以及实际评价需要的小型 profile/规则/费用/
+行动配置。输入的大 Data/预测对象及未消费的训练父件仅保留 refs，不递归读取、
+hash 或解码；该读取边界也约束配置/事件中的父引用。结果片按同一有界 byte 预算
+读取，核对 decision→intent→order→fill 的保存关联及小型配置可核对的费用。
+它不重跑 planner、撮合或 ledger，不把已保存 source_audit 的内容绑定称为重新
+完成数值来源审计，也不声称已检查 fill 原价与大原生输入的数值配对。需要原生值、
+PIT、来源闭包或投影的完整检查时，显式调用独立 source audit；启动新 v7 的第一遍
+完整安全准入仍在 ledger 创建前执行全部检查，不能用保存 PASS 省略。
 
-SavedRunProjection 只含该 run 三元组及 refs、小型 calendar/anchor/profile/行动配置，
+物化 SavedRunProjection 前，从小型 run 声明和实际结果文件尺寸核对总结果预算、
+row_counts 与必需配置体积，拒绝超限后才逐片有界解码；读取中继续核对实际累计量。
+投影仍物化原指标所需业务行，独立测其 RSS；本增量不重写全部指标算法或把 byte
+预算当 RSS 保证。SavedRunProjection 只含该 run 三元组及 refs、小型 calendar/
+anchor/profile/行动配置，
 以及已校验的 NAV、fills、positions、现金/持仓流水、decisions/orders。它不是伪造的
 v6 BacktestRun。v2/v3 共享同一份投影，复用原指标实现；episodes、集中度和 execution
 trace 所需业务行保留，缺字段仍按原 null/状态解释。完整行情、训练证据和所有预测
@@ -1226,7 +1269,9 @@ v3 = evaluate_saved_analysis(projection, v2, benchmarks=benchmarks, spec=v3_spec
 
 首个可审小里程碑约 6–10h 净工作：固定小合成输入的单块/两块交付跨月界、周决策
 和 T+1，逐字段核对业务 ID、提交/成交/费用、cash/position/NAV/sequence，并证明坏
-最后输入块在 ledger 创建前拒绝、坏结果尾片被 loader 拒绝。完整候选估算 12–20h，
+最后输入块在 ledger 创建前拒绝、坏结果尾片被 loader 拒绝。另检查压缩展开和 sink
+缓冲超限在增长前拒绝、普通 projection 不打开大父件、跨片 drain 后业务 ID/metrics
+不变，以及失败写出不提前释放未提交行。完整候选估算 12–20h，
 不含 Research/Data 输入准备、父审等待、资源窗口或多年实际运行。其后补 record/
 EX/PAY、factor/null、池外持仓、现金/STAR 数量约束与 BLOCKED 边界，再在另获窗口
 只读复用原短输入保存独立 v7 对照；v6/v7 按原 session、全局订单序号、security/side
