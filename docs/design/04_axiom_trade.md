@@ -1107,8 +1107,9 @@ sink.append(*, session: str, phase: str, rows: Iterator[tuple[str, dict]],
 sink.finish(*, write_budget: dict) -> list[ResultPartRef]
 ```
 
-inventory 返回固定输入引用、文件字节数、声明行数和范围；这些声明须与实际文件和
-完整扫描比较。StockInputBlock 是 Engine 内部读取值，包含当前日期范围、原 market
+inventory 仅读小型 manifest/文件描述表并检查文件尺寸，不打开、解压或解析 DataBatch、
+预测或训练父 payload。它返回固定输入引用、文件字节数、声明行数和范围；实际行数、
+范围及内容验证留给受预算的第一遍扫描。StockInputBlock 是 Engine 内部读取值，包含当前日期范围、原 market
 行/metadata/事件及原 v2 预测行/父 header/时钟，保留其来源绑定。它不是新策略或
 Research 产物格式。`block_sessions` 仅是正整数读取组织参数，拒 bool；相同父输入
 按日或按月交付都必须产生相同原行与引用。
