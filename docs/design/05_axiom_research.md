@@ -801,9 +801,15 @@ Research source `b7f0889eb2a3ef9e221717eb651821e99fb1a378` 和 Engine source
 核验原预测、Raw Label、历史成员、时钟和来源闭包，再保存独立的评价输入；日常评价
 读取并验证这些冻结内容，交给现有 Core 统计。这样可以移除日常入口反复读取训练
 Feature、归一化 Label 和模型祖先的成本。首次冻结准备与日常评价分别计时，总首次
-端到端成本仍须报告。当前没有四至五年评价在 60 秒内完成的实测结论。
+端到端成本仍须报告。全历史 CSI300 的真实四至五年评价在 60 秒内完成仍待验收，
+已保存短窗和合成规模的工程测量须分别标明其范围。
 
 最小新增入口固定如下，原描述符、scope 和原评价 API 的含义沿用上文：
+
+matrix 适配后的生产入口签名为
+`save_stock_signal_evaluation_inputs(signal_inputs, *, raw_label_input=None, scope, destination, batch=None)`。
+旧输入继续提供原 RawLabel 描述符；matrix fold 输入要求 `raw_label_input=None`，并传入由
+`load_stock_ml_batch_inputs` 创建且仍有效的 batch。评价、保存件读取和 audit 的签名保持。
 
 ```python
 input_ref = save_stock_signal_evaluation_inputs(
@@ -851,6 +857,23 @@ end_session 与 cutoff 的 UTC 日期、label_available_at 与准确 cutoff 判�
 原祖先后来缺失或改变时，v3 普通评价仍可核对其冻结内容；audit 精确报告原 ref 的缺失
 或不符，并检查重新投影的结果。新报告保留原统计口径、覆盖、计数、null/reason 及现
 Core 的准确 input/output refs；整组 common/native 统计文件共享，各 Signal 报告引用它们。
+
+**matrix 消费适配设计已通过主协调审阅，交接、实现与验收待完成。** 该增量衔接
+Research matrix source `d5da0f2c9b6c9655d80cf9bb5505736fdc57d6e0` 与冻结评价候选
+`39cc184be9df15effa8eef65600abc1805f4d30f`。matrix owner 在已验证 batch 上提供只读
+OOS view，包含共同冻结定义、完整有序 OOS Feature 与 evaluation target rows、原 refs、
+去重的小型 RawLabel provenance 和核对保存 Dataset/Model 所需的已验训练绑定摘要；
+fold 保存件的消费校验复用同一 admission，保留原输出、版本、refs 与模型时钟检查。
+这条路径不构建训练 X/y/P、不遍历训练 row_ref，也不再次 hash 共同来源。评价 owner
+逐 fold 消费并释放 OOS view，按键冻结共享成员与原始收益，保留全部 target slice lineage。
+同键的实际 leaf 版本、值、valid/null/reason、端点和时钟一致时可以共享，slice ref 或
+查询范围不同本身不构成冲突；实际冲突、缺键或来源 mutation 均失败。matrix 输入采用
+`stock_signal_evaluation_inputs_v2`，报告采用 `stock_signal_evidence_v4` 并记录
+`validation_basis=frozen_projection_v2`，明确绑定共享 Label 投影及全部原 slice/RawLabel。
+既有 ArtifactRef 类型、Core 数学、common/native mask 与数值执行前的整组精确 HIT 沿用；
+旧输入 v1 和报告 v1/v2/v3 保留各自验证保证。完整 audit 重新准入一次共同闭包并逐 fold
+对照 OOS 投影，日常评价仅验证冻结内容。该适配的真实短窗对照及四至五年 cold/warm
+验收由主协调另行安排，原 v1 工程测量分别保留。
 
 HIT 的 `evaluation_key` 在数值执行前由输入 ArtifactRef 的语义字段、scope、有序比较组、
 SPEC、实际 sample mask/Core input refs 和实际实现 refs 计算；各 `evidence_ref` 再绑定

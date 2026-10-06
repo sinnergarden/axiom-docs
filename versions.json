@@ -577,7 +577,16 @@
       "status": "parent_approved_first_increment_design; implementation_and_scale_acceptance_pending",
       "scope": "frozen evaluation inputs, existing Core statistics, exact group report HIT; v1/v2 source closure guarantees preserved",
       "performance_status": "cold_and_warm_60_second_targets_not_yet_measured",
-      "source_or_package_updated": false
+      "source_or_package_updated": false,
+      "matrix_adapter": {
+        "research_matrix_source": "d5da0f2c9b6c9655d80cf9bb5505736fdc57d6e0",
+        "frozen_evaluation_candidate": "39cc184be9df15effa8eef65600abc1805f4d30f",
+        "status": "parent_approved_OOS_only_design; owner_handoff_implementation_and_acceptance_pending",
+        "input_contract": "stock_signal_evaluation_inputs_v2",
+        "report_contract": "stock_signal_evidence_v4",
+        "performance_status": "matrix_cold_warm_and_real_full_history_acceptance_pending; prior_v1_saved_and_synthetic_evidence_separate",
+        "source_or_package_updated": false
+      }
     },
     "axiom-data": {
       "source_commit": "06b4bd562398fa433d26708586a7d00309bb1910",
