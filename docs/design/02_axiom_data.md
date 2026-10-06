@@ -442,6 +442,157 @@ UI 浏览器访问只读 BFF；BFF 调用各 owner 公共查询包，不直接�
 
 read 不采集、不修复、不隐式物化。Qlib已纳入本轮交付：显式export_qlib保存文件清单、完整开放日历/身份映射、原始单位、scope/PIT cutoffs、float32容差与exporter版本；实际Qlib读取与Reader等价。价格仍未复权，不暗中套训练归一化口径；财务/分红保持原生事件，不自动前填为日频bin。Research拥有Qlib初始化和消费adapter，P02/P03不依赖Qlib。详见[Qlib接口](../qlib-interface.md)。
 
+<a id="review-display"></a>
+### 7.3 复盘显示所需的固定事实与投影
+
+状态：2026-10-05 设计已审；具体实现与验收记录见后续导出文件合同补充。
+本轮需要真实沪深300和上证指数比较，并以513100独立买入持有账户作为 Nasdaq100
+参考；显示仍需默认复权且可切未复权的 K 线，以及中文证券名称与代码。Data 保存
+事实查询结果和稳定显示变换；账户、比较收益及
+成交标记组合仍由各消费者 owner 保存，UI 读取这些结果，具体组合协议归 UI。
+
+本轮只读盘点以固定版本为准，没有执行全历史 Reader 或新增来源请求。现有
+[benchmark/master adapter](https://github.com/sinnergarden/axiom-data/blob/1bb85e354b70200946049b937ba023f60e5fe310/src/axiom_data/provider_local.py#L53)
+的指数合同只保存 `close`（指数点），股票身份合同未声明名称或 `source_code`；
+[ETF adapter](https://github.com/sinnergarden/axiom-data/blob/1bb85e354b70200946049b937ba023f60e5fe310/src/axiom_data/provider_etf.py#L36)
+已保存这两个身份字段。固定 ETF 版本的146个基准分区 footer 只有 `000300.SH`，
+日期外包络为2014-08-18至2026-09-30，共2,947行；这是存储索引盘点，不证明唯一键数、
+中间无缺口或任意 cutoff 可见。该版本的7条 `security_master` 均有中文简称。
+股票固定版本仅复用已有审计索引核了2026-09的基准小分区：`000300.SH / 000905.SH /
+000852.SH` 各21条日期键；身份分区3,497行的 schema 没有名称，既有 Raw 抽样也未捕获
+`name`。本轮未核整个股票历史基准映射，不能据9月小分区宣称其他历史分区不存在。
+
+<a id="benchmark-facts"></a>
+#### 7.3.1 真实基准的来源和时间口径
+
+| 目标 | 目标事实口径 | 现有保存与官方来源边界 |
+|---|---|---|
+| 沪深300 | `000300.SH`；人民币价格指数；单位为指数点 | ETF 固定版本已有上述范围，股票9月小分区也有；复用固定版本内的 `index_daily`，具体 UI 范围再做有界 Reader 检查 |
+| 上证指数 | `000001.SH`；人民币价格指数；单位为指数点 | ETF 基准分区未保存，股票已核9月分区未保存；官方 `index_daily` 支持按确认的指数代码和日期取数，不据此推定现有完整历史已保存 |
+| 本轮 Nasdaq100 参考 | 513100独立买入持有账户；基金自身的CNY交易与账户口径 | 复用已有ETF事实；独立账户及评价归 [Trade §6.3](04_axiom_trade.md#etf-review-followup-proposal)，UI读取保存的账户运行对照 |
+| 直接 NDX（后续候选） | NDX；美元价格指数；美国本地交易 session | 固定 ETF 基准未保存，当前代码没有国际指数 adapter；Tushare `index_global` 公开列表列出 IXIC，未列出 NDX，Nasdaq100 的可用 Tushare endpoint/code 与账户权限尚未确认 |
+
+沪深300与上证指数的名称、人民币口径及分别存在的全收益版本见
+[中证沪深300资料](https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/indices/detail/files/zh_CN/000300factsheet.pdf)和
+[上证指数资料](https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/indices/detail/files/zh_CN/000001factsheet.pdf)。
+价格与总收益是不同序列，不能给价格指数加一个 TR 标签；是否展示总收益及与策略账户的
+可比口径由 Research/Engine 明示。Nasdaq 官方将 NDX 定义为美元价格收益版本，
+XNDX 为美元总收益版本，见 [NDX 版本表](https://indexes.nasdaqomx.com/docs/NDX%20Versions.pdf)。
+本轮 Nasdaq100 参考按 [Trade §6.3](04_axiom_trade.md#etf-review-followup-proposal)采用
+513100独立买入持有账户，不再要求单独采集NDX；该账户不标作NDX原指数或放入市场
+基准下拉。直接NDX/FRED仅为后续候选；未来若展示原指数，仍须使用确切指数事实，
+不能把Composite或ETF收益重标为NDX。[Tushare 国际指数](https://tushare.pro/document/2?doc_id=211)的已列能力
+不能证明供应商其他接口一概没有 NDX；当前结论是来源未确认，应明确报告不可用原因。
+
+基准事实导出输入固定 Snapshot、确认的指数身份、原生日期范围、字段、PIT policy 与
+knowledge cutoff。输出保留原生 `session + close`、指数点单位、来源/revision/receipt、
+缺失原因和实际 query refs，并明确指数名称、`return_basis`、币种、日历与时区。
+这些口径元信息是待补的 Data 合同，不声称当前 close-only schema 已具备。比较基值、
+净值、超额收益和评估指标由 Research/Engine 计算并保存其配方，不写回原生指数。
+美元指数与人民币账户比较须明示原币种；若要人民币换算，另绑定真实汇率事实、固定
+cutoff 与消费者换算配方，缺汇率不能静默按1处理。本轮不新增付费来源或汇率采集。
+
+国内来源沿用固定交易日历与 `Asia/Shanghai`；国际来源保留美国本地 session 与
+`America/New_York` 的时区解释，不按中美同一日期直接拼成同时可知事实。美股当地
+收盘值用于国内决策时须检查实际绝对可用时刻；消费者若作 as-of 对齐，保存真实源
+session、陈旧程度和对齐规则，不能前填为新的交易事实或提前送入信号。
+[Tushare 指数日线](https://tushare.pro/document/2?doc_id=95)未承诺固定刷新时刻；当前国内
+profile 的20:00仅为既有 best-effort 假设，不是官方 SLA 或历史 PIT 证据。
+[us_tradecal](https://tushare.pro/document/2?doc_id=253)只提供开市日期与前一交易日，
+没有交易所参数、收盘时钟或半日市字段，不能据它构造全年固定 UTC 收盘时刻。
+未确认国际 source readiness 前，不沿用国内20:00假设；实际 receipt 与日更就绪仍按
+[§8.1](#source-readiness)区分。
+
+<a id="display-price-projection"></a>
+#### 7.3.2 事后复盘的共同锚点价格显示
+
+这是事后回看的显示产物。图表绑定一个固定知识截止 C，可晚于历史成交；它不替换
+原实验/模型的逐决策 PIT 输入，不改变历史 cutoff、真实成交价或账本。Data 显式生成
+并保存投影，BFF/浏览器读取已有文件；普通 Reader 不因此要求物化，也不在浏览或缩放
+时补采、重新复权或改 `current`。复用普通 typed 文件与附带 context/refs 即可，不新增
+发布 registry、通用缓存治理或一套新的对象生命周期。
+
+| 输入/输出 | 准确边界 |
+|---|---|
+| 固定输入 | 一个 Snapshot、稳定 security_id、完整显示跨度、明确 anchor session A、一个共同截止 C、PIT policy、未复权 OHLC、原始量额与同源日频 `factor` 的公共 QuerySpec |
+| 固定价格输出 | `display_price(t) = native_price(t) × factor(t) / factor(A)`；只变换 open/high/low/close，保留并可切换 native OHLC。可选 pre_close 须保留供应商原口径说明 |
+| 量额与映射 | 原始 `volume_shares` 或 `volume_units`、`amount_cny` 按原单位保存；不乘价格复权比。另保存按 security/session 的实际变换比、价格单位和价格/因子/anchor refs |
+| 可复现上下文 | 输入查询、Snapshot、配方与实现版本、A、C、价格基础、政策、源限制、缺失原因；生成时间不是历史可用时刻。UI 只切字段与截取已保存范围 |
+
+现公开纯函数
+[`adjust_prices`](https://github.com/sinnergarden/axiom-data/blob/1bb85e354b70200946049b937ba023f60e5fe310/src/axiom_data/derived.py#L118)
+可复用，配方为 `common_anchor_price_v1`；实际 canonical 字段是 `factor`，调用须显式
+传 `factor_field='factor'`。价格/因子必须同 Snapshot、政策、用途、身份与共同 cutoff，
+因子范围精确覆盖价格范围并包括 A；函数没有 I/O，不自动保存量额、事件或名称。
+保持其未来 anchor 拒绝规则：本节首次生成的完整价格跨度终止于 A，以 A 为该次纯函数
+输入的最晚 session；这里的参数不是历史策略决策时刻。随后展示较早 viewport 只裁切
+这个固定输出，不随 viewport 重定锚点，也不通过放宽函数检查把未来锚点送回模型。
+
+价格、因子或 anchor 缺失/无效时保留 null 与原因；不能把缺因子补1、以价格跳变推因子，
+或为图形连续造停牌价。供应商因子终态的 vintage 限制随产物保留。官方拆分等事件从
+同 Snapshot、C 与政策下的公共 events 查询读取，保留经济日期、revision、进度、公告
+精度与 refs；事件标记不意味着已覆盖全历史。份额比例、新价格尺度 session 与已支持
+的两项 ETF 事件按 [§6.2](#etf-unit-split-proposal)解释，不把公告份额比例再次乘到已经
+使用供应商累计因子的显示价格上。
+
+Data 提供事实变换比及其适用 session/价格单位。Engine 负责将其与真实成交流水的
+security_id、成交 session 和单位对齐，并保存 B/S 的显示坐标；同尺度时坐标为真实
+成交价乘该固定比值，真实成交价、数量、费用、现金、持仓和损益均保持原账本事实。
+发生份额拆分时须检查新价格尺度 session，不能仅按 effective_date 猜开盘或收盘单位；
+日内尺度无法由现有日线/公告判定，或因子/单位不匹配时，显示坐标缺失并说明原因。
+Data 不读取账本来裁决成交，UI 不临时把成交标记挪到蜡烛上。
+
+<a id="security-display-identity"></a>
+#### 7.3.3 中文名称、代码和有效期
+
+输入为固定 Snapshot、稳定证券集合、展示日期与知识截止，明确选择“该 Snapshot 的
+名称标签”或有证据的历史名称。Data 输出 `security_id + source_code + name`、名称
+种类/来源、名称有效起止（未知为 null）、原生区间端点语义、可用时间与 refs/缺失原因。
+名称有效期与上市/退市生命周期分开；2026才收到的简称不能标成2014即已有效，上市日
+不是名称起始日，名称变更也不改变稳定证券身份。浏览器不从 ID 拆代码、不维护手写
+中文映射；缺名称时显示 owner 给出的代码和名称未提供状态。
+
+7ETF 已有 [fund_basic](https://tushare.pro/document/2?doc_id=19) 的固定简称与代码，先
+复用作版本标签；当前没有名称历史区间证据。[etf_basic](https://tushare.pro/document/2?doc_id=385)
+另有中文简称、交易所扩位简称和跟踪指数代码/名称，但未接入，也不是历史指数行情
+接口，不能仅为已有简称重新采7ETF。[stock_basic](https://tushare.pro/document/2?doc_id=25)
+官方支持名称；当前请求字段与 canonical 未捕获它，先检查目标 Raw，确有留存字段才
+能复用原 receipt 显式重建。缺少字段时只补本轮显示/持仓证券的身份资料并保存新观察，
+不改写旧 Raw 或旧名称可见性；已有 ts_code 由 Data 的固定身份映射提供。
+
+需要准确历史名称时，再对明确证券启用
+[namechange](https://tushare.pro/document/2?doc_id=100)，保存 start/end 与 ann_date。
+该接口请求的 start/end 参数筛的是公告日期，不是输出名称的生效区间；只取图内公告
+可能漏掉图前已生效的名称，须包含必要的前置记录。保留供应商端点语义，若转成半开
+区间则明确转换；日期精度也不证明历史日内公开时刻。ETF 现有简称源没有这个能力时
+报告未知历史区间，不扩建全市场名称历史平台。
+
+#### 7.3.4 亲审后的最小执行顺序与验收
+
+1. 先冻结本轮 UI 已绑定 run/build 的证券、展示起止、比较基点、A、C、政策与币种。
+   新显示投影另存引用，原 run/model 输入与账本绑定不变；把重型读取/导出与 Research
+   Notebook 错开。全股票 manifest 或长范围 Reader 的 fresh 验证另排，不与小索引盘点混称。
+2. 先复用已有行情、因子、7ETF名称、事件和 `000300.SH`。检查固定版本仅在该范围内的
+   可用性；复权显示本身不要求重采日线。上证指数缺口以 `index_daily(ts_code='000001.SH',
+   start_date=..., end_date=...)` 显式补本轮展示范围及必要的首点前一交易日；先一个不超过
+   31自然日的小窗口核身份、单位、日期与 receipt，再仅补已确认范围缺口，不自动十二年重采。
+3. 股票名称先用目标 Raw 的字段检查；没有 name 时只请求该证券集合的 stock_basic 身份
+   字段，包含已退出但在本轮显示/持仓中的证券。历史名称非本轮标签必需时可后做；不得用
+   当前简称伪造历史有效期。
+4. 本轮513100参考复用已有ETF事实，独立账户按 [Trade §6.3](04_axiom_trade.md#etf-review-followup-proposal)
+   执行。直接NDX若日后接入，先确认官方可用 Tushare endpoint、准确供应商 code、价格/币种与现有账户权限；
+   如后续需要跟踪元信息，只对513100作有界 `etf_basic`/确认代码的
+   [etf_index](https://tushare.pro/document/2?doc_id=386) 查询，并声明各自
+   官方8000积分权限要求。元信息不证明日线可取。确认行情接口后才安排最多10个 session
+   的来源/美国日期/receipt 小探测及同范围日历；没有权限或确定来源则保留直接NDX候选不可用，
+   不购买新源、不盲试未列代码、不自动换 IXIC。后续探测与长范围补采须另给准确 selectors、预算与授权，
+   不作为本轮513100参考的采集或验收前提。
+5. 验收只覆盖实际范围：核保存投影与公共 `adjust_prices` 一致、缩放不换 A、量额/native价
+   保持原单位、两次已支持拆分的标记与尺度关系、缺因子/缺价/缺名称/缺基准可解释；由
+   Engine 核 B/S 坐标及原成交/账户不变，Research/Engine 核跨市场比较口径和可用时间。
+   当前终态假设不升级历史 PIT，缺口不隐藏。通过后交付固定文件/查询 refs 与范围报告，
+   不以文档通过代替实现验收，不触发全年或多年 ML 扩跑。
+
 ## 8. 日更、修复与最小检查
 
 <a id="source-readiness"></a>
