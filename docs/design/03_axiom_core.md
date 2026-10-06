@@ -307,6 +307,7 @@ Trace 由调用方写入 run artifacts，UI 按 P12 读取。只要保存的 ref
 | C15 | 保存 trace 后供 UI 查询 | 图上目标/原因与真实运行一致，UI 不调用决策引擎 |
 
 性能验收单独记录 batch/逐日耗时与内存，不通过删校验、改 dtype 或改变算子来达标。具体预算在固定硬件和代表性数据上确认后冻结。
+Core 可在每次 `execute_feature_plan` 内复用一次构造的 history 键集合及校验后 refs 的 session/industry 保序索引以减少重复扫描，但不跨调用或 cutoff 复用结果，完整验证、算子数学及 FeatureFrame payload/identity 必须保持逐字一致。
 
 ## 12. 依据与未决项
 
