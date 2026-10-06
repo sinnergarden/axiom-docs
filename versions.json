@@ -570,6 +570,15 @@
   ],
   "as_of": "2026-10-05",
   "pending_implementations": {
+    "axiom-research-signal-evaluation-inputs": {
+      "research_baseline_source": "b7f0889eb2a3ef9e221717eb651821e99fb1a378",
+      "engine_baseline_source": "a18d38ff0708139b681dd76831013cebd98429cd",
+      "design": "docs/design/05_axiom_research.md#frozen-signal-evaluation-inputs",
+      "status": "parent_approved_first_increment_design; implementation_and_scale_acceptance_pending",
+      "scope": "frozen evaluation inputs, existing Core statistics, exact group report HIT; v1/v2 source closure guarantees preserved",
+      "performance_status": "cold_and_warm_60_second_targets_not_yet_measured",
+      "source_or_package_updated": false
+    },
     "axiom-data": {
       "source_commit": "06b4bd562398fa433d26708586a7d00309bb1910",
       "status": "frozen_daily_inputs_consumed_in_bounded_ETF_and_stock_scope; complete_twelve_year_use_coverage_not_claimed",

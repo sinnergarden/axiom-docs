@@ -792,6 +792,105 @@ Recall@K 的正例集合必须单独定义。例如预测 Top5 对真实未来 T
 
 NDCG 的 relevance/gain 映射在协议中固定；不能直接把含负数的原始回报当任意 gain 后仍宣称是标准 0–1 指标。长周期重叠样本不按独立日观测夸大显著性；至少报告时间分段稳健性，并在需要时采用保留时间依赖的区块重采样。
 
+<a id="frozen-signal-evaluation-inputs"></a>
+#### 5.1.1 冻结评价输入与整组报告复用
+
+**首版设计已通过主协调审阅（2026-10-06），实现与规模验收待完成。** 本增量以已审
+Research source `b7f0889eb2a3ef9e221717eb651821e99fb1a378` 和 Engine source
+`a18d38ff0708139b681dd76831013cebd98429cd` 为源码基线。Research 在生产或导入时完整
+核验原预测、Raw Label、历史成员、时钟和来源闭包，再保存独立的评价输入；日常评价
+读取并验证这些冻结内容，交给现有 Core 统计。这样可以移除日常入口反复读取训练
+Feature、归一化 Label 和模型祖先的成本。首次冻结准备与日常评价分别计时，总首次
+端到端成本仍须报告。当前没有四至五年评价在 60 秒内完成的实测结论。
+
+最小新增入口固定如下，原描述符、scope 和原评价 API 的含义沿用上文：
+
+```python
+input_ref = save_stock_signal_evaluation_inputs(
+    signal_inputs, raw_label_input=raw_label_input, scope=scope, destination=inputs_destination)
+saved_reports = evaluate_stock_signal_inputs(
+    input_ref, scope=scope, destination=reports_destination)
+saved = load_stock_signal_evaluation(saved_reports[name].path)
+audited = audit_stock_signal_evaluation(saved_reports[name].path)
+```
+
+保存输入返回既有 `ArtifactRef`，类型为 `StockSignalEvaluationInputs`，引用合同
+`stock_signal_evaluation_inputs_v1`。评价入口返回保留比较顺序的
+`dict[str, StockSignalEvaluation]`；它先验证冻结输入并查找整组精确报告 HIT，缺失时才
+调用现有 `axiom_engine.core.evaluate_signal_statistics`，随后沿现有临时目录与原子保存
+模式发布整组结果。audit 返回通过完整来源核验的 `StockSignalEvaluation`：它按原 refs
+读取完整来源，重新构造评价投影并与冻结内容比较，保留全部原来源检查，且不重算指标。
+
+输入 root 的必要字段保存完整有序 calendar、sessions、security 轴、原 LabelSpec、准确
+Signal/Model/Feature/fold 版本、模型训练 Label 与评价 Raw Label 的各自版本、Snapshot、
+PIT 和 query refs，以及生产校验规则、实现 refs 和 source closure 的内容绑定。
+生产入口自行产生 admission receipt；其中的校验规则和来源版本进入 root 的必要字段。
+原来源定位符供 audit 使用。`ArtifactRef.artifact_id` 绑定 root 的必要语义与分片内容 refs，
+`content_digest` 核对根文件准确字节；uri 只定位，metadata 只保存注释。保存输入使用原
+不可变身份与 manifest 文件摘要模式，不增加 caller 信任开关或通用 registry。
+
+投影按完整日期分片，Label/member 按 `(security_id, session)` 的共享表只保存一次。
+共享要求 Snapshot、PIT、成员定义和逐键结果相同；冲突直接失败。表保留成员是否已知、
+member、Raw return、valid、invalid reason、start/end session 和 label_available_at。
+各 Signal 保留明确的 presence、score、valid、invalid reason、available_at、
+knowledge_cutoff、原来源 refs 及模型/Feature 时钟。缺预测、未知成员和原 invalid/null
+均保持原样；大 Feature 矩阵、booster 和源 proof 大图留在原来源中。
+
+每次评价要求完整冻结 calendar 相同，sessions/universe 在已证明的范围内，并逐项检查
+所需分片存在。root 保存原评价规则实际要求的 source query、revision 可见性和模型/
+预测时钟约束；当前 evaluation_cutoff 必须满足这些约束，再逐键按原 Label 的
+end_session 与 cutoff 的 UTC 日期、label_available_at 与准确 cutoff 判断成熟资格，
+未成熟键保留原排除原因。标签可用时间不能代替 source revision
+可见时间。无关的 future ancestor 仍在生产/audit 的完整闭包核验中，其时钟不额外抬高
+当前原规则允许的评价 cutoff。范围、历史资格、排除原因优先级以及 common/native mask
+完全沿用原 `_inputs` 语义；不同比较组重新绑定共同 mask。
+
+新报告采用 `stock_signal_evidence_v3`，明确记录
+`validation_basis=frozen_projection_v1`、冻结输入 ArtifactRef 和 admission receipt。
+普通 v3 loader 核对冻结投影及报告绑定；旧 v1/v2 loader 保持原保证，v2 继续完整追源。
+原祖先后来缺失或改变时，v3 普通评价仍可核对其冻结内容；audit 精确报告原 ref 的缺失
+或不符，并检查重新投影的结果。新报告保留原统计口径、覆盖、计数、null/reason 及现
+Core 的准确 input/output refs；整组 common/native 统计文件共享，各 Signal 报告引用它们。
+
+HIT 的 `evaluation_key` 在数值执行前由输入 ArtifactRef 的语义字段、scope、有序比较组、
+SPEC、实际 sample mask/Core input refs 和实际实现 refs 计算；各 `evidence_ref` 再绑定
+signal_name。报告的 content_digest 和引用闭包绑定统计输出。每次顶层调用读取、hash、
+解析并验证同一批字节，同调用内共享分片只验证一次，前后 stat 仅辅助检测 mutation。
+v3 handle 的 `to_dict()` 返回已验证快照的副本，避免再次打开文件后消费未经验证的内容。
+缺分片、缺组文件、临时半成品、摘要不符或键/时钟冲突均失败；同身份不同输出拒绝覆盖，
+发布竞争沿现有模式核验已完成的赢家。读取输入过程中发生 mutation 时停止本次发布。
+
+首版由 Research 负责输入投影、来源/时钟检查、mask、HIT、保存和定向测试，只修改
+SignalEval 消费边界。Core 继续负责所有 IC、RankIC、mean/std 和 IR 数值计算；按日期
+读取并释放输入投影，仅当前请求的数值配对表进入现 Core。Core 仍物化该配对表，峰值
+内存须测量。首版先消除重复 I/O，并保留原 minimum_pairs=20、average ties、ddof=1、
+有效日等权和非年化规则。日期统计缓存、新 Core summary API、out-of-core 和并行平台
+均留给有实测收益后的独立增量；实现不修改 `stock_batch`、`stock_fold_inputs` 或 Runtime。
+同一 Signal 的 common/native 准确输入相同时共用统计结果、Core 将 session 列表查找
+改为 set 等轻量候选，先最小测量，再与 Engine owner 协调，不阻塞冻结输入首版。
+
+性能验收先声明 Signal 数量、完整历史 CSI300 union、session 数量、字段、实现和执行
+环境/硬件。cold 使用新进程、无 Research 报告 HIT，从 import 开始，包含输入读取/hash、
+结构/时钟/mask 检查、Core、保存及全部报告验证可消费，端到端 wall 要求 **≤60 秒**。
+记录 OS page cache 条件，另行区分物理冷盘。warm 同输入/同窗包含输入和报告重验至
+全部结果可消费，wall 同样要求 **≤60 秒且 Core 数值调用为 0**；变窗首版使用现 Core
+重新计算，在声明的代表规模内单独测量。首次全闭包冻结准备单列，首个完整流程同时
+报告冻结准备加 cold 评价的总耗时，避免把迁移成本隐去。
+
+合成检查先核对原完整来源与冻结路径的 keys、scope、clocks、成熟资格、common/native
+mask、排除原因、计数和 null。在相同 Core 数值输入及执行环境下，结果须精确一致；
+`1e-12` 只可作为明确跨后端或浮点对照的附加容差。覆盖空日、单有效日、常量、ties、
+极端有限值、重复/错序/缺键、未来时钟、成员冲突、读取中 mutation、源移走、发布失败/
+竞争、HIT 零数值调用以及 stdlib-only v3 load。source/Signal/Label 修订产生新输入身份与
+报告 MISS；原统计值、来源与保存 bytes 均不改写。
+
+重进程窗口由主协调调度。先固定已审三至四折的 Signal/Raw Label/scope/SPEC 做原路径
+与新 cold/warm 对照，记录 wall、唯一文件/读取字节/次数、decode/hash、peak RSS 和
+Core 调用，并核对完整结果。真实五年输入未准备前，使用同 Signal 数量的四至五年
+合成规模作工程测量。随后以 **ML5D-T5-v1 的全历史 CSI300** 实际冻结输入证明成员和
+源覆盖，再验完整四至五年 cold/warm 的 60 秒目标；111SZ 试点仅提供工程证据，合成
+规模与三至四折结果均须分别标注其范围。全年/五年真实任务仍须主协调给定预算后启动。
+
 ## 6. 策略/模型效果提升：首批研究路线
 
 以下为**实验路线，不是承诺有效的默认实现**。先完成可信 baseline 与统一评估，再逐项对照，不一次开启全部项目。
