@@ -609,6 +609,86 @@ N取最终冻结日历中有交易日的ISO周数；已有256周证据只适用�
 完成两年窗口定向验收、四周真实fit/predict和新Top5账户，再审核总耗时。扩展指标、
 UI设计与长跑分别后置。
 
+<a id="stock-feature-checkpoint"></a>
+### 4.8.1 有界 Feature 准备、公开保存与恢复
+
+状态：方向已由主协调批准，以下合同先于源码固定（2026-10-06）；尚未完成长范围准备。
+Research 增加两个公开入口，继续调用 Data 的 Reader、价格调整及 Qlib 导出和原 Feature Core。
+
+```python
+build_stock_feature_inputs(data, *, spec, destination,
+                           shard_sessions=2, progress=None) -> StockFeatureInputs
+load_stock_feature_inputs(path, *, limits=None) -> StockFeatureInputs
+```
+
+`StockFeatureInputs` 提供目录 `path`、`identity`、`reused`、`to_dict()` 和复制后的
+`feature_parents` 描述符。只读入口不导入 Data/Core/Qlib/训练后端，不运行阶段、不写文件。
+`limits` 首版为 `{maximum_parent_bytes: 67108864}`，接受正整数、拒绝 bool；它限制每个
+Feature/proof 文件在解析前的字节数，不是 RSS 承诺。旧 monolithic loader 仍按原合同读取。
+
+`spec` 的准确字段为 `contract_version='stock_feature_inputs_spec_v1'`、`scope`、
+`snapshot`、`pit_policy`、`calendar`、`universe`、`catalog_ref`、`feature_selection`、
+`ordered_features`、`read_sessions`、`feature_sessions`、`cutoff_by_session`。
+scope 沿用 `{path,file_digest,scope_bundle_ref}`；其冻结日历和证券 union 必须与 spec 一致。
+来源 universe_id 只从已验证 scope.request.universe_id 取得，并核对原 request 的
+Snapshot/PIT；入口不默认或另猜指数名称。
+日期有序且唯一，read_sessions 覆盖所需的完整交易日区间，预热由实际 plan 的
+required_history 推导；当前六特征需要前 20 个实际 session。各日期保留自身 20:30 +08
+cutoff。Qlib 按原逐 session 查询导出；每个 Feature 日期的历史窗口仍由 Reader 按该日期
+cutoff 选版本，并保留原 float32 值、缺失与修订一致性检查。结束日的信息不能替代历史窗口。
+
+一次准备持有一个 Data 生命周期及一个固定 Qlib view。默认每两个完整 Feature 日期保存
+一份原 `stock_feature_build_v1` 与原 canonical proof 数组，末块可只有一个日期；
+shard_sessions 是正整数，粒度进入 definition，不构成全局产品上限。每块保留完整 union
+证券截面、成员、值/null、validity、原因、时钟、Core 和原批次证明。块按日期有序、互不
+重叠，完整 index 的日期及 `(security_id,session)` 网格必须无重无漏；记录行可按键重新
+索引，X/y 始终由同一合格键集合选择，不能依靠文件行序对齐。
+新完整 index 要求每日期 evidence 的 ID 集合与原 core_plan.sources.id 完全一致，并覆盖
+原五个行情输入字段和会员字段；字段、批次、原查询 context 与计划的来源绑定必须一致。
+
+新增组织文件 `index.json` 使用 `stock_feature_inputs_v1`，准确顶层字段为
+`contract_version`、`definition`、`definition_ref`、`feature_inputs_ref`、`content_digest`、
+`status='COMPLETE'`、`qlib_view`、`qlib_manifest`、`feature_parents`。
+definition 包含 spec、shard_sessions、implementation_sources、implementation_ref 和 environment，
+沿用当前完整实现审计身份，未引入 §8.4.1(A) 的新 cache key。
+qlib_manifest 为 `{path,file_digest,view_id}`；qlib_view 是原保存的路径无关 Qlib 引用。
+feature_parents 沿用 `{features:{path,file_digest,feature_ref},
+input_evidence:{path,file_digest,input_evidence_ref},sessions:[...]}`。
+definition_ref 是 definition digest；feature_inputs_ref 绑定
+`{definition_ref,qlib_manifest,feature_parents}`；content_digest 绑定输出除自身之外的全部字段。
+这些 parent 可交给原 `stock_ml_saved_inputs_v1`，不合成一个拥有虚构身份的大 Feature parent。
+
+每块先在临时目录完成文件、内容 ref、完整键、schema、来源和时钟核验，再原子发布。
+随后原子更新 `checkpoint.json`，其准确字段为 `contract_version='stock_feature_inputs_checkpoint_v1'`、
+`definition_ref`、`qlib_manifest`、`feature_parents`、`content_digest`。
+只有最终完整覆盖才原子发布 index；checkpoint 或临时目录不能作为完整输入。
+恢复须匹配同一完整 spec、Qlib/ref、shard 配置、实现和环境，并逐块重验字节、ref、范围及
+文件指纹；损坏、冲突、改变输入均不命中，也不覆写原件。首版 builder 与 index loader
+要求所有 parent 绑定同一个完整 Qlib view，并逐块核对依赖和覆盖，不自动吸收不同范围的
+旧三日件。旧三日件继续作为独立验收证据；将来混合合法子范围需要单独设计合同。
+
+公开保存与 fold 加载共用原 per-parent validator，一次只解析一块并释放完整 proof。
+只读 index loader 验 scope、Qlib 文件与全部块的闭包后仅返回索引元数据，不驻留全部 rows。
+公开 fold 单次 load 内，同一 Raw descriptor/ref、完整 query、fit cutoff、日历、universe
+与 horizon 可共享一个已验证 Raw 对象及 keyed index；每个 normalized parent 仍独立
+核验原 Core/raw/Feature 关联并释放。不同 fit 的标签可见性和已选训练结果不复用。
+Raw 在这次 admission 建立日期桶和原行序号，块投影仅选择所需日期并恢复原 Raw 顺序，
+保持原 projected label_ref，避免对每个块再次扫描全部 Raw rows。
+本增量不改所有 fit Label 字典的缓存策略或训练矩阵；其驻留量先单独测量。
+
+同日最终 adjusted 和 membership wire 可在完整 adapter 核验后用于成员选择与证明 digest，
+将重复序列化从九次减至六次。共享对象仅在该日期内部使用，不向调用者暴露可修改的
+信任缓存；原 Reader、float32 投影、加入 amount 前后的批次仍保留各自 ref。
+float32 投影先按 `(security_id,session)` 重索引，再逐列核对 null 和精确舍入值并赋值；
+证券与日期键重复、缺失或修订不一致均拒绝，原记录顺序、wire 类型与来源时钟保留。
+验收覆盖分块与整体语义等价、跨块键边界、重复/缺行及 descriptor 日期乱序拒绝、按键
+对齐、半写恢复、损坏/变更输入/不同 cutoff 不命中，以及原 v1/fold 字节兼容和 loader 零写入。
+通过小型测试与独立 review 后才安排有界 Label/Qlib 成本测量，不启动完整 505 日或五年运行。
+性能验收必须记录实际导入的 Data 源码及固定输入。旧三日记录未包含 `06b4bd5`
+的 Qlib export 单 Reader 复用，不代表新 main 的成本；旧冷启动五次 manifest
+分析也不能作为当前 Data 的成本。后续计时应绑定包含该复用和已合日历优化的新实现，
+分别记录阶段耗时与峰值 RSS，在明确预算后执行有界样本。
+
 ## 5. SignalRun、表达式与评估（P06/P10）
 
 本轮 ETF 导出 Core 中立 `signal_frame_v1`：顶层固定 `signal_run_ref`、`signal_stage=final`、`score_semantics=momentum_20d` 与完整 `universe`；行包含 `security_id/session/knowledge_cutoff/available_at/score/valid/invalid_reason/source_refs`，score 为有限 float 或 null，键唯一。warmup/缺数保留 invalid，不把缺信号变成零。source refs 固定 FeatureBuild 和逻辑 Data Views；账户消费采用严格前一交易日信号。该确定性配方尚无 IC/标签/OOS 评估结论。
@@ -905,7 +985,9 @@ Snapshot、PIT/cutoff 或 Feature 语义按真实依赖失效。账户、持仓�
 文件引用。首版仅 exact scope，不建设通用依赖服务、多 parent 拼装或自动 superset。
 两个函数仍为待冻结候选，当前没有导出；后续增量单独审阅，今晚不建设完整缓存平台。
 
-**B. 长 Feature/proof 切块、落盘与加载。** 建议本次试验按 **2 个完整 feature 日期**一 shard，
+**B. 长 Feature/proof 切块、落盘与加载。** 首个最小增量的公开入口和恢复合同已固定于
+[§4.8.1](#stock-feature-checkpoint)，仍保留原 v1 parent 格式；以下 proof blob、磁盘矩阵等
+进一步方案未纳入该增量。建议本次试验按 **2 个完整 feature 日期**一 shard，
 这不是全局固定粒度。每日期保留完整固定 union/历史成员截面与 validity；上下文从实际编译
 FeaturePlan 的最大 required_history 推导（当前六特征为前 20 个实际 session），不按证券拆碎横截面归一化。shard 保存 keys/schema/值/null/时钟与 immutable parent
 选择；root 只保存范围、列序、各 shard digest、实际父依赖图及覆盖证明，不能驻留全部 rows。
