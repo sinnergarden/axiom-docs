@@ -1197,7 +1197,7 @@ orders 历史列表。只删除已确认写出的前缀；未确认行继续受�
  source_audit,source_audit_ref,signal_ref,market_ref,profile_ref,core_version,
  runtime_version,implementation_ref,committed_sequence,initial_nav_minor,
  final_account,stopped,lifecycle_admission,metrics,limitations,result_parts,
- content_digest}
+ account_events,account_events_ref,content_digest}
 ```
 
 request_manifest 只保存上述小型请求，signal_ref 等于 prediction_ref；metrics、
@@ -1208,6 +1208,30 @@ market_ref,prediction_ref,profile_ref,implementation_ref,counts,limitations}`，
 source_audit_ref 是其 Document identity。成功返回才产生该结果，准入失败抛出明确
 ContractError；counts 保存本次实际检查计数，不内嵌原大图。其 implementation_ref
 必须是本次 run 的同一固定实现；它不成为跨调用免审凭据。
+
+评价需要 record 权益及原现金行动的经济字段。为使普通 projection 不必读取大的
+Data 父件，run 小头另保存 Engine 在完整准入中已生成的 account_events，其精确
+字段为 `{contract_version:"stock_account_events_v1",request_ref,market_ref,profile_ref,
+cash_dividends,source_refs,limitations}`。cash_dividends 逐字保存原准入现金行动，
+包括范围内尚未 EX 的已知行动；source_refs 保留两份原 record/ex 行动输入的引用，
+不携带原 native records、field_meta 或 coverage。account_events_ref 等于该对象的
+Document identity，并由 run 的 content_digest 绑定。它是保存的账户行动视图，
+完整数值来源检查仍由本次第一遍 source audit 完成。cash_actions、action_diagnostics
+与 action_blocks 的实际数目记录于 source_audit.counts。
+
+小事件对象和最终 run 小头均在序列化前检查 max_block_bytes，超限即拒绝，不先
+组装巨大 Document；原大事件输入也不能因此免于受预算的完整第一遍校验。
+普通 loader 核事件摘要、request/market/profile 绑定、行动字段/日期/原 refs 及
+已保存 EX/PAY 关联，并把该小视图交给原 episode 算法。无完整小事件视图时明确拒绝
+行动评价，不能从成交、应收或余额倒推 record 权益与未知 PAY。
+
+`stock_dividend_scope(projection)` 沿用原函数签名，生成新的小型
+`dividend_scope_v3`：精确字段为 `{contract_version,start_session,end_session,
+knowledge_cutoff,universe,coverage,actions,source_refs,account_events_ref,limitations}`。
+其 coverage 仍为 observed_records_only，actions 是保存现金行动中 record_session
+落在账户范围内的原对象，cutoff 仍为 end_session 的 12:30:00Z。评价入口核其
+account_events_ref 和全部经济字段与该投影一致；它不声称重新校验 native 来源，
+不把 observed records 变为完整行动历史。原 v1/v2 scope 和旧 loader 字段保持。
 
 ResultPartRef 精确为 `{artifact,part_index,start_session,end_session,
 first_committed_sequence,last_committed_sequence,previous_part_digest,row_counts}`。
