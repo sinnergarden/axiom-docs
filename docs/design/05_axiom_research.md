@@ -630,6 +630,8 @@ Feature/proof 文件在解析前的字节数，不是 RSS 承诺。旧 monolithi
 `snapshot`、`pit_policy`、`calendar`、`universe`、`catalog_ref`、`feature_selection`、
 `ordered_features`、`read_sessions`、`feature_sessions`、`cutoff_by_session`。
 scope 沿用 `{path,file_digest,scope_bundle_ref}`；其冻结日历和证券 union 必须与 spec 一致。
+来源 universe_id 只从已验证 scope.request.universe_id 取得，并核对原 request 的
+Snapshot/PIT；入口不默认或另猜指数名称。
 日期有序且唯一，read_sessions 覆盖所需的完整交易日区间，预热由实际 plan 的
 required_history 推导；当前六特征需要前 20 个实际 session。各日期保留自身 20:30 +08
 cutoff。Qlib 按原逐 session 查询导出；每个 Feature 日期的历史窗口仍由 Reader 按该日期
@@ -659,9 +661,9 @@ definition_ref 是 definition digest；feature_inputs_ref 绑定
 `definition_ref`、`qlib_manifest`、`feature_parents`、`content_digest`。
 只有最终完整覆盖才原子发布 index；checkpoint 或临时目录不能作为完整输入。
 恢复须匹配同一完整 spec、Qlib/ref、shard 配置、实现和环境，并逐块重验字节、ref、范围及
-文件指纹；损坏、冲突、改变输入均不命中，也不覆写原件。即使某 parent 有更小的合法
-Qlib 范围，index 仍声明完整总 scope，loader 逐块核对实际依赖和覆盖；首版 builder 使用
-一个统一 Qlib view，不自动吸收不同范围的旧三日件。旧三日件继续作为独立验收证据。
+文件指纹；损坏、冲突、改变输入均不命中，也不覆写原件。首版 builder 与 index loader
+要求所有 parent 绑定同一个完整 Qlib view，并逐块核对依赖和覆盖，不自动吸收不同范围的
+旧三日件。旧三日件继续作为独立验收证据；将来混合合法子范围需要单独设计合同。
 
 公开保存与 fold 加载共用原 per-parent validator，一次只解析一块并释放完整 proof。
 只读 index loader 验 scope、Qlib 文件与全部块的闭包后仅返回索引元数据，不驻留全部 rows。
@@ -676,6 +678,10 @@ Qlib 范围，index 仍声明完整总 scope，loader 逐块核对实际依赖�
 验收覆盖分块与整体语义等价、跨块键边界、重复/缺行及 descriptor 日期乱序拒绝、按键
 对齐、半写恢复、损坏/变更输入/不同 cutoff 不命中，以及原 v1/fold 字节兼容和 loader 零写入。
 通过小型测试与独立 review 后才安排有界 Label/Qlib 成本测量，不启动完整 505 日或五年运行。
+性能验收必须记录实际导入的 Data 源码及固定输入。此前三日修正验收声明 Data
+`b1fb8d8`，未包含 `06b4bd5` 的 Qlib export 单 Reader 复用；旧冷启动五次 manifest
+分析不能作为当前 Data 的成本。后续计时应绑定包含该复用和已合日历优化的新实现，
+分别记录阶段耗时与峰值 RSS，在明确预算后执行有界样本。
 
 ## 5. SignalRun、表达式与评估（P06/P10）
 
