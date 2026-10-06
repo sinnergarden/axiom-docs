@@ -505,16 +505,20 @@ common-anchor=02-08，补02-01 raw label并调用原公开归一化一次。fold
 每阶段120秒/新增总480秒/新文件100 MiB；合同核过前不运行业务。
 
 <a id="two-year-weekly-batch-proposal"></a>
-### 4.8 两年训练窗与逐周批次：软件候选与实测边界
+### 4.8 两年训练窗与逐周批次：保存输入、共享读取与实测边界
 
-状态：`software_candidate_synthetic_verified`（2026-10-05）。Research批次入口和两年窗口已完成
-合成定向验收，软件仍待亲审；真实两年父件、四周fit/predict与新账户尚未执行。
+状态：`four_fold_fit_and_fresh_reader_verified`（2026-10-06）。两年父件、四周真实fit/predict、
+保存模型独立预测及19个session的保存信号评价已通过有界验收；共享fresh reader已读验四折
+和原SignalEval。Research [PR9](https://github.com/sinnergarden/axiom-research/pull/9) 的Label
+生命周期修复和 [PR10](https://github.com/sinnergarden/axiom-research/pull/10) 的只读batch入口均已
+独立审阅、主协调亲审并合并，当前源码为 `b7f0889`，版本0.2.5；旧产物仍绑定原生产实现。
+匹配的新市场projection、admission和Top5账户由Engine继续准备，尚不是本节已完成的结果。
 用户要求简单 Feature、LightGBM、Top5 全链正确且高效。
 独立信号评价与批次优化可并行准备，基础评价结果优先交付；后续指标不阻塞连续四个
 真实周的两年滑窗与新账户试点。五年运行在主协调核过
-总耗时和数据边界后启动；本节记录方案，未运行新的业务或 benchmark。
+总耗时和数据边界后启动；本节的实测只覆盖下述固定四折，不证明多年规模。
 
-**窗口与基线。** 候选四周为 2024-01-02—01-26，fit 分别取冻结日历中的
+**窗口与基线。** 固定四周为 2024-01-02—01-26，fit 分别取冻结日历中的
 2023-12-29、2024-01-05、01-12、01-19。每次训练使用 `[fit日期减两年, fit日期)`
 内的实际交易日；实际末交易日是冻结日历中严格早于fit日期的最后交易日，
 `training_window.end='previous_fit_session'` 表示这一边界，不再额外退一日。
@@ -542,7 +546,7 @@ Raw Label 按原 Query/cutoff 与父件版本分组。不同 fit 所需的标签
 不能冒充较早 fit 的来源。首版保留当前 common-anchor、f+1开盘/f+5收盘及价格/因子
 可用时钟规则，先去掉父件重复解析，再依据实测决定标签准备是否需要进一步优化。
 
-**入口与保存件候选。** 首版提供有界 `load_stock_ml_batch_inputs(batch_manifest, limits=...)`
+**入口与保存件。** 首版提供有界 `load_stock_ml_batch_inputs(batch_manifest, limits=...)`
 入口，并为现有 `build_stock_ml_fold_from_saved_inputs` 增加可选 `batch` 参数。
 首版准确形状为 `{contract_version:'stock_ml_batch_inputs_v1',
 folds:[{input_manifest:<原stock_ml_saved_inputs_v1>,fold_spec:<原v1或新v2>}...]}`。
@@ -554,7 +558,12 @@ folds:[{input_manifest:<原stock_ml_saved_inputs_v1>,fold_spec:<原v1或新v2>}.
 资源预检按实际fold、行和字节数量执行，后续扩到多年仍使用同一入口。
 `limits`准确字段为正整数 `maximum_source_bytes` 与 `maximum_matrix_bytes`，默认分别
 8GiB与512MiB。它们限制唯一来源文件和共同float64矩阵的字节数，不能证明JSON解析后的
-RSS低于进程预算；Raw/归一化Label父件目前驻留批次缓存，真实准备仍须单独量测峰值内存。
+RSS低于进程预算。完整Raw和归一化Label对象在各fit的来源、Core输入输出、成熟资格、
+截面及原行序投影全部验证后释放。批次按键保留该fit所需的七个选择字段：`valid`、
+`invalid_reason`、`normalized_target`、`raw_return`、`label_available_at`、
+`normalized_available_at`、`normalized_parent_ref`，另保留父件/section refs和共享评价Raw。
+invalid与null行仍保留；这些内部选择数据不能冒充完整Raw/Label父件或对外证明。共享Feature
+行及元数据也占内存，矩阵字节数不能代表整个进程RSS；不同fit的可见性不能相互替代。
 `batch.metrics`给出实际父件读取次数、共同矩阵字节与初始化耗时；`close()`或上下文退出释放缓存。
 
 两年窗口使用新 `stock_ml_fold_spec_v2`，
@@ -568,6 +577,21 @@ Feature父件、模型后端及 `stock_prediction_run_v2` 的字段沿用现有�
 标签、Dataset、模型、预测和引用原父件的证明，不在每折复制整份两年Feature/proof。
 发布时验证新文件字节、引用及每折闭包，复用当前批次已经验证的共同父件。独立进程调用
 公共loader仍完整验证文件、父件和时间关联；其成本单独记录，不藏入性能结果。
+
+公共 `load_stock_ml_fold(path, *, batch=None)` 与
+`load_stock_signal_evaluation(path, *, batch=None)` 可复用当前进程由公开batch入口完整准入的
+输入。每次调用仍检查注册的真实对象、未关闭状态、精确fold定义及使用前后的来源文件指纹，
+并验证原文件hash、训练键/行digest、模型和预测引用、时钟、validity及保存统计闭包。
+默认路径读取仍是stdlib-only；可选batch沿用已有NumPy矩阵，不导入Data、Engine、Qlib、
+LightGBM、pandas或pyarrow，不执行训练、预测、归一化、统计计算或账户。SignalEval读取会
+调用各fold的公共loader，因此一次fresh batch接一次评价读取即可核验本试点四折，无需再
+单独重复加载四折。batch退出后不延续任何跨进程信任，旧件不要求与当前实现版本相等。
+保存统计的校验不替代首次计算，也不能把builder HIT当作fresh公共读取证据。
+
+SignalEval的来源清单先检查同一路径的descriptor/ref冲突，再在每次fold调用内对唯一文件
+各hash一次，并核对整个来源集合hash前后的指纹；没有跨fold或跨评价的全局hash缓存。
+完整fold准入已验证全部Feature/proof之后，评价只再次解析所选OOS日期的proof；未选父件
+仍经过完整准入和来源hash，损坏不能因二次解析跳过而漏检。
 
 **Dataset选型。** 首版采用一个共同索引和一个共同mask，继续交给原生
 `lgb.Dataset(X,label=y)`。Qlib兼容消费是可选薄适配：若DatasetH能实际减少重复准备且
@@ -584,7 +608,12 @@ union，trade_schedule覆盖账户区间每个实际session，并指向其严格
 run入口一次校验schedule、model和预测闭包，再建立session索引；session循环只消费
 已准入组并核当前账户/决策context。前收和成员保留Feature原20:30 cutoff，21:00
 预测在下一实际交易日08:55决策准入。跨fold持仓与现金连续；调仓仍由显式策略政策决定。
-该提案冻结并实现后才能验收整链；此前v1账户不是本轮结果。
+固定Engine源码 `a18d38f` 已实现此schedule到连续账本入口。本试点保留原389只预测union，
+仅使用原 `sz_main_a_000_002_003_v1` 的111只深市主板执行子集；新市场件及
+`stock_snapshot_pair_admission_v2` 须绑定原序、日历和四折refs，旧83只市场件不能代替。
+账户与shadow沿用 [Trade共同语义](04_axiom_trade.md#backtest-shadow-parity)：原可知时间、
+成员、缺失、行动、估值与执行政策不得因读取优化或更换模式改变。当前没有新增shadow
+推进器或账户结果，执行子集也不能冒称完整CSI300账户。
 
 **新账户与页面范围。** 用户已明确所有后续新回测统一初始现金500000元，即
 `initial_account.cash_minor=50000000`。信号和模型可复用，账户必须以该初始值真实运行，
@@ -592,11 +621,48 @@ run入口一次校验schedule、model和预测闭包，再建立session索引；
 页面展示原保存执行profile的佣金、最低佣金、税费、滑点和容量假设；滑点为0时明确写零滑点，
 不省略费用或把开盘代理成交当成真实开盘流动性证据。此处记录展示与新账户要求，未改写旧结果。
 
-**首轮预算与正确性。** 建议一个重进程，总预算30分钟，5.5GiB停止、6GiB硬上限，
+**首轮预算与正确性。** 本次批准一个重进程，累计活动时间上限130分钟，5.5GiB停止，
 新增私人产物8GiB；达到任一预算就保存阶段证据并暂停。先做键乱序、重复/缺行、一日
 错位、未成熟尾部、成员变化与常量截面的定向反例；共同索引下X/y键、列序、null和
 排除原因必须精确一致。对同一折比较批次与独立投影的矩阵，保存booster独立预测复核，
 随后在新进程加载四折并核对原父件hash/mtime。两年输入准备是否完成也单独报告。
+
+**本机实测。** 固定389只历史union、六个Feature、505个Feature日期、两年训练窗、
+100 trees、单线程及同一冻结输入；每fold最终入模144258—144286行。OS页缓存未清理。
+数据源码实际绑定 `88954f3`，Engine绑定 `a18d38f`。以下纯fit/predict只计原生后端调用；
+保存输入MISS还含切片、Dataset、保存与闭包校验，builder HIT也保留检查，不能混用。
+
+| fit session | 纯fit秒 | 纯predict秒 | 保存输入MISS秒 | builder HIT秒 |
+| --- | ---: | ---: | ---: | ---: |
+| 2023-12-29 | 0.295026 | 0.002162 | 6.629300 | 5.091822 |
+| 2024-01-05 | 0.294767 | 0.002649 | 6.053728 | 5.609321 |
+| 2024-01-12 | 0.288448 | 0.002657 | 6.111638 | 5.548680 |
+| 2024-01-19 | 0.293211 | 0.002852 | 6.039918 | 5.704360 |
+
+首次Feature冷构建加fresh验收监控总耗时3208.79秒（冷构建监控阶段3195.51秒、fresh验收
+阶段13.28秒；其中Qlib调用22.68秒，不另相加），包含505次Feature Core和253个保存块。
+Feature完整HIT监控耗时14.39秒，不读取Data或执行Core。
+后续三个fit Raw及OOS Raw准备共137.52秒，首fit Raw复用已有父件，其本次冷准备耗时为空；
+四fit归一化337.93秒，其中共同Feature准入12.95秒。归一化扣除共同准入后均分为
+81.24秒/fit只是成本分摊，不是每折独立秒表。每个新训练Raw约33.22—33.54秒。
+这些是不同阶段/进程的receipt，不能拼成一次冷启动总耗时；相同父件在后续实验中直接复用，
+仍需重新校验，Feature、Raw和归一化的执行次数均为0。
+
+原四折build、HIT和独立保存模型预测验收的监控总耗时124.47秒、峰值3.16GiB。
+后来仅做fresh共享读取共84.08秒、峰值2.01GiB：batch完整准入59.50秒，评价读取23.78秒，
+其中四次公共fold校验分别4.97/5.00/4.85/4.81秒；共同来源准入一次，253个Feature和253个
+proof各准入一次，978个唯一Label父件各准入一次，矩阵9429360 bytes。所有原身份和1558个
+受保护文件指纹保持一致，Data、Feature/Label/统计Core、fit、predict和账户调用为0；
+NumPy仍用于一次共同矩阵构建。计量的用户态读取为19924014647 bytes、
+7876次打开、28012次read；source_records四次调用各hash约2.15GB，去重范围是每次调用。
+这不是zero I/O，也不代表物理磁盘吞吐。此前评价515.40秒加默认fresh读取84.76秒触及
+600秒阶段上限，只完成两折；旧STOP证据保留，不能说两次loader耗时600秒，也不能据
+新读取结果推断旧评价计算已经重测。包含这次fresh读取的累计活动时间75.89分钟。
+
+保存评价的精确load/HIT不计算统计，但验证来源仍有I/O。公开evaluate入口每次都执行
+既有Core的common/native统计，没有自动先查评价缓存的入口。已支持改变scope或比较
+Signal集合时复用原预测/Raw Label并生成新评价身份；首版固定统计Spec，尚无任意Spec
+表达式或通用OLAP查询缓存。只改TopK继续交Engine消费保存预测，不触发Research重训。
 
 **估时与实施顺序。** 分开计量唯一事实/Qlib/Feature/Label准备、初始化解析与验证、
 每折切片/归一化/fit/predict/发布、独立载入、Engine账户及评价。先测一折，再完成四折；
@@ -604,6 +670,20 @@ run入口一次校验schedule、model和预测闭包，再建立session索引；
 `唯一冷准备 + 各受控批次初始化 + N个实际交易周的每折成本 + 新账户/评价 + 最终独立核验`。
 N取最终冻结日历中有交易日的ISO周数；已有256周证据只适用于2021—2025日历。
 每项都有实测或显式未知项才能给总预算；不能用65日窗口的42分钟外推两年窗口。
+年度条件示例取52个训练周，并假设相同389只union、两年行数、缺失分布、100 trees、
+单线程、硬件及存储状态。按四折均值，原生fit约15.23秒，按每fold原批量predict约0.13秒；
+Raw加分摊归一化约99.35分钟，再加保存输入MISS约5.38分钟。这只是重复组件小计，
+不含唯一冷Feature/Qlib、受控batch初始化、OOS Raw、信号评价、fresh校验或账户及评价，
+也不是全年总预算。新增250个实际Feature日期的另一条件示例，按本次逐日Core步骤均值
+6.0147秒约需25.06分钟；250只是规模假设，未量测新增年份，也未含Qlib与最终保存校验。
+新年份改变完整calendar、union、Snapshot、查询或实现/环境时，当前definition可能不命中；
+现接口不保证自动吸收旧505日块作为新范围的部分缓存。先固定新定义，才能在同一定义下
+恢复checkpoint。容量与日历未核验之前，不把所有年份放入一个batch。
+长范围2019-07-01—2026-09-30目前仅做来源覆盖与预算预检：首fit须由真实日历取严格
+前一session，训练需再向前两日历年并补20个实际Feature预热session，约从2017年开始。
+当前605-session冻结scope不证明这段来源/历史membership union覆盖；终端五session标签
+未成熟时仍保留null/原因。实际训练周数、唯一来源/输出字节、长范围Qlib/RSS与总耗时
+尚未知，不能沿用旧2021—2025的256周数或四折体积给出全年保证，不启动全段。
 估计2—4小时可交主协调批准长跑；达到10—20小时先优化最大成本项，再重测。
 独立信号评价与批次父件验证/共同矩阵可并行实施，基础评价保存读取优先出结果；随后
 完成两年窗口定向验收、四周真实fit/predict和新Top5账户，再审核总耗时。扩展指标、
@@ -612,8 +692,9 @@ UI设计与长跑分别后置。
 <a id="stock-feature-checkpoint"></a>
 ### 4.8.1 有界 Feature 准备、公开保存与恢复
 
-状态：方向已由主协调批准，以下合同先于源码固定（2026-10-06）；尚未完成长范围准备。
-Research 增加两个公开入口，继续调用 Data 的 Reader、价格调整及 Qlib 导出和原 Feature Core。
+状态：公开入口已随 [Research PR8](https://github.com/sinnergarden/axiom-research/pull/8) 亲审合并，
+本轮505日固定父件准备及共享读取已验收（2026-10-06）；多年全段尚未启动。
+两个公开入口继续调用 Data 的 Reader、价格调整及 Qlib 导出和原 Feature Core。
 
 ```python
 build_stock_feature_inputs(data, *, spec, destination,
@@ -674,7 +755,8 @@ definition_ref 是 definition digest；feature_inputs_ref 绑定
 核验原 Core/raw/Feature 关联并释放。不同 fit 的标签可见性和已选训练结果不复用。
 Raw 在这次 admission 建立日期桶和原行序号，块投影仅选择所需日期并恢复原 Raw 顺序，
 保持原 projected label_ref，避免对每个块再次扫描全部 Raw rows。
-本增量不改所有 fit Label 字典的缓存策略或训练矩阵；其驻留量先单独测量。
+Feature增量本身保留原训练矩阵合同；后来Label生命周期修复按§4.8完整准入后释放父件，
+只保留每fit必要选择数据，不能将其描述为全部完整Label字典常驻。
 
 同日最终 adjusted 和 membership wire 可在完整 adapter 核验后用于成员选择与证明 digest，
 将重复序列化从九次减至六次。共享对象仅在该日期内部使用，不向调用者暴露可修改的
@@ -683,7 +765,8 @@ float32 投影先按 `(security_id,session)` 重索引，再逐列核对 null �
 证券与日期键重复、缺失或修订不一致均拒绝，原记录顺序、wire 类型与来源时钟保留。
 验收覆盖分块与整体语义等价、跨块键边界、重复/缺行及 descriptor 日期乱序拒绝、按键
 对齐、半写恢复、损坏/变更输入/不同 cutoff 不命中，以及原 v1/fold 字节兼容和 loader 零写入。
-通过小型测试与独立 review 后才安排有界 Label/Qlib 成本测量，不启动完整 505 日或五年运行。
+小型测试、独立review和主协调亲审后，已在上述预算内完成505日Feature及四fold准备和
+共享fresh读取；多年全段仍未启动。准确阶段成本与复用边界以§4.8实测为准。
 性能验收必须记录实际导入的 Data 源码及固定输入。旧三日记录未包含 `06b4bd5`
 的 Qlib export 单 Reader 复用，不代表新 main 的成本；旧冷启动五次 manifest
 分析也不能作为当前 Data 的成本。后续计时应绑定包含该复用和已合日历优化的新实现，
