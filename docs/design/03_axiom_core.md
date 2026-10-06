@@ -232,7 +232,7 @@ buffer digest codec固定：day-major float64 little-endian（null槽canonical0�
 <a id="feature-plan-batch"></a>
 ### 4.6 同一 Feature 数学的有界多输出候选
 
-实现候选固定在 Engine `0b98c1a`，直接基于已审但尚未合入main的 `999552f`，
+实现候选固定在 Engine `60df1fc`，直接基于已审但尚未合入main的 `999552f`，
 保留§4.5的cs_batch。当前已做小型合成与原Frame对照，供父亲读；真实Research
 接入仍待此次源码审准，不把该候选视为main已发布能力。
 
@@ -256,7 +256,8 @@ Research selection、shared-panel receipt 或 execution-slice 实体。单日 sh
 reuse_budget_bytes 必须为 strict 非负 int，拒绝 bool；0 禁用全部数值 ID/key
 构造与复用。首版仅尝试 rolling std 和 cs_zscore scale 的较长数值单元
 （missing policy 后至少64个参与值）；便宜的 pointwise 和其他 reduction 保持
-原算法。调用内的数值 ID 绑定原完整键、列/节点、精确 float64 bits、null 与
+原算法。调用内的数值 ID 绑定原完整键、列/节点、实际数值类型及精确编码
+（int保留原精确整数，float保留binary64 bits，bool/null独立标记）与
 issue 有效状态；CS另绑定完整成员/industry及原 reference 顺序。复用 key保留
 全部有序依赖 ID，不能以近似 hash、窗口起止或最终 scalar 代替依赖。仍使用
 原 `_std`、`math.fsum` 和浮点顺序，每个视图独立执行 `_merge`、schema和cutoff
@@ -264,8 +265,9 @@ issue 有效状态；CS另绑定完整成员/industry及原 reference 顺序。�
 availability或原因。它仅存在于一次调用中，结束或异常时释放。
 
 数值 ID backing、memo mapping、key构造/插入工作区均计入该预算，采用保守的
-Python graph charge与工作区预留；预算不足时清空复用状态或直接按原helper计算，
-不拒绝原本有效的视图。复用仅在CPython启用；其他backend沿原计算。首个视图
+Python graph charge与工作区预留，整数body及类型key同样计费；预算不足时清空
+复用状态或直接按原helper计算，不拒绝原本有效的视图。复用仅在CPython启用；
+其他backend沿原计算。首个视图
 填充memo，此后若某op无命中或测得开销超过估计节约，可在本次调用内保守禁用。
 这只改变性能统计，不改变 Frame。该预算不覆盖调用方持有的原输入、解析图、
 返回 Frame、Data/Research工作集或整个进程RSS；这些仍由调用方的有界输出块和
