@@ -682,9 +682,9 @@ float32 投影先按 `(security_id,session)` 重索引，再逐列核对 null �
 验收覆盖分块与整体语义等价、跨块键边界、重复/缺行及 descriptor 日期乱序拒绝、按键
 对齐、半写恢复、损坏/变更输入/不同 cutoff 不命中，以及原 v1/fold 字节兼容和 loader 零写入。
 通过小型测试与独立 review 后才安排有界 Label/Qlib 成本测量，不启动完整 505 日或五年运行。
-性能验收必须记录实际导入的 Data 源码及固定输入。此前三日修正验收声明 Data
-`b1fb8d8`，未包含 `06b4bd5` 的 Qlib export 单 Reader 复用；旧冷启动五次 manifest
-分析不能作为当前 Data 的成本。后续计时应绑定包含该复用和已合日历优化的新实现，
+性能验收必须记录实际导入的 Data 源码及固定输入。旧三日记录未包含 `06b4bd5`
+的 Qlib export 单 Reader 复用，不代表新 main 的成本；旧冷启动五次 manifest
+分析也不能作为当前 Data 的成本。后续计时应绑定包含该复用和已合日历优化的新实现，
 分别记录阶段耗时与峰值 RSS，在明确预算后执行有界样本。
 
 ## 5. SignalRun、表达式与评估（P06/P10）
