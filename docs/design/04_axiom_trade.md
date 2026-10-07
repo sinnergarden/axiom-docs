@@ -359,7 +359,9 @@ SZSE [2023 交易规则](https://www.szse.cn/lawrules/rule/repeal/rules/t2023021
 [`9f86ac5`](https://github.com/sinnergarden/axiom-engine/commit/9f86ac5) 与
 [`26c49df`](https://github.com/sinnergarden/axiom-engine/commit/26c49df)，创建 PID 修复为
 [`b5dc2f4`](https://github.com/sinnergarden/axiom-engine/commit/b5dc2f4)，
-基于固定 `21cc1d5`，待独立 review 与父审 merge。此增量仅作用于有界股票 v7 输入消费，
+`b5dc2f4` 已完成独立 review 与一次有界真实复用验收；后继
+[`da10733`](https://github.com/sinnergarden/axiom-engine/commit/da10733) 将默认 scalar cache
+恢复为 0，保留 opt-in，12 项定向合成检查通过，待父审 merge。此增量仅作用于有界股票 v7 输入消费，
 不重跑旧账户、不改变原 Core/SimBroker/ledger 业务，也不增加 Qlib 执行器或新 daily 路径。
 
 公共入口为 `admit_stock_inputs(manifest: BacktestRequest, *, source: StockInputSource,
@@ -393,11 +395,11 @@ globals/块/索引/decoder 临时输入仍按累计 decoded 预算限制，不�
 实际 Python 对象、解释器与 allocator 峰值仍须在有用验收中独立采样，不能把该计数当 RSS 上限。
 任何账户持有的可变解码副本不影响后续账户。所有账户的原 input/fold/row/result 限额继续生效。
 
-冷导入采用最窄的原扫描器优化：`StockInputSource(scalar_cache_bytes=262144)` 在一次导入内
+`StockInputSource()` 现在默认 `scalar_cache_bytes=0`；真实冷加速没有通过，默认关闭是
+保守性能选择。显式 opt-in `StockInputSource(scalar_cache_bytes=262144)` 在一次导入内
 复用已通过原 decode/canonical 检查的、不超过 256 字节的相同标量字节。缓存计入累计预算，
-在必需输入增长前驱逐；关闭为 `scalar_cache_bytes=0`，保留原 scanner oracle。
+在必需输入增长前驱逐；原 scanner oracle 保留。
 所有物理字节仍完整扫描/hash，结构、键顺序/重复键及每个 reserved Unknown 对象仍逐项验证。
-整份标准 JSON 解码无法保留大型 coverage 的现有流式预算，因此首版不采用该替代路径。
 
 两个可审增量分别为来源所有权/顺序复用与冷 scanner 标量复用。`source.statistics` 提供
 每文件 scan/read/hash、标量 decode/canonical 次数与耗时、选中行消费计数；
@@ -406,7 +408,83 @@ globals/块/索引/decoder 临时输入仍按累计 decoded 预算限制，不�
 Feature、fit/predict。一次 2,147,694 字节合成验收中，cold import 为关闭缓存 0.849 秒、
 开启 0.540 秒，decode/canonical 为 105,725 次降至 291 次；五个 TopK 的独立账户复用消费
 合计 0.146 秒，完整保存 run/账本与原路径 exact 一致。原始扫描为一次，后续原始扫描为零。
-这些是合成检查，不外推为真实 594 MB 输入或多年冷导入/规模验收结果。
+这些是合成检查，不能作为真实冷导入加速的结论。
+
+真实验收固定源码为 `b5dc2f4`，implementation 为 `sha256:3f35b804fac3a78939dd26ad244f77b4151d8d717d10d001fc40c0b0feb8b545`：
+26 个物理文件共 594,205,431 字节只冷准入一次，capture 后原索引释放。Top5 的 NAV、现金、
+持仓、decision、orders、fills、fees 与 ledgers 对旧账户逐字段 exact，只有新 run 绑定的
+订单/成交关联 ID 规范化；Top3 复用同一保存预测与相同初始资金，产生不同组合和独立账户。
+两账户执行为 0.323/0.293 秒，owned 读取各 15,102,120 字节/11 records，原输入重开和
+原 source 扫描/选中行重读均为零。总窗口 477.96 秒，峰值进程树 RSS 83.22 MiB，
+owned 临时存储 14.40 MiB；没有 Data、Feature、fit/predict 或供应商调用，原输入/旧报告不变。
+
+必须分开裁决：owned 复用通过；scalar cache 的真实冷加速不通过。真实 audit 为 472.64 秒，
+比此前固定 `21cc1d5` 的 349.007 秒参考更慢；这不是同一源码/同机状态的严格 A/B。
+48,112,179 次标量中仅 2,462,313 次命中（5.12%），45,648,342 次驱逐，不能据合成样本
+提速声称真实收益，也不调整 cache 尺寸反复跑。`da10733` 的 implementation 为
+`sha256:0399ff578c5d60f1137aaa2a35ab4f992934a91d62b287cc6adaf1fb16c24732`，
+仅做定向合成验证；旧真实回执不改绑到该后继源码。
+
+#### 6.4.1 文件级 C JSON 快路径最小候选（待父审；未编码、未真实运行）
+
+目标是保留完整来源身份与准入语义，移除每个字节和每个标量必经 Python scanner 的税。
+现统计中，两份约 205 MB 的 actions 与约 130 MB 的 limits 合计占原字节约 91%，
+占 scan 耗时约 95%；先针对原 native Data JSON，其他 profile/fold/model/prediction 保留
+现 stream。首版不新增解析依赖或账户执行器。CPython 3.12 的 `_json` 支持 C scanner
+及 C encoder；`object_pairs_hook` 仍有逐对象 Python 回调，不能声称纯 C 全部准入。
+依据为 [Python json 合同](https://docs.python.org/3.12/library/json.html) 与
+[本机同版本 CPython 3.12.12 源码](https://github.com/python/cpython/blob/v3.12.12/Modules/_json.c)。
+
+建议候选配置为 `StockInputSource(..., file_parse_mode="auto"|"stream",
+max_file_parse_bytes=268435456, max_file_parse_rss_bytes=8589934592)`，均为待审参数，
+当前公共入口没有这些参数。文件解析预算独立于现有 64 MiB canonical decoded 的账户块预算；
+机器为 24 GiB，不能把该旧块限额当作整文件解析的架构上限。auto 按物理文件顺序处理，
+去重同文件/相同 ref，一次只有一份整文件 graph；stream 可强制保留旧路径。
+
+1. 对原文件做 stat/fd 锁定和尺寸/总 input gate，读取全部原 bytes；完整 file SHA 保留
+   terminal LF，content SHA 仅排除允许的最后一个 LF。严格 UTF-8 转为 text 后释放 raw。
+   由 `json.loads` C scanner 解码，pairs hook 保留重复键及严格键顺序拒绝，parse_constant
+   拒绝 NaN/Infinity。完整 graph 仍检查 finite（含 `1e999`）、所有 reserved Unknown、
+   depth<=128、顶层 object 和原合同，不跳过大型 coverage 的验证。
+2. 释放输入 text 后用标准 C encoder 按现 canonical 参数完整重编码（紧凑分隔、
+   ensure_ascii=False、allow_nan=False、无 indent）；分块 UTF-8 hash 与原 content SHA
+   exact 相等，不能仅 loads 成功。随后复用 `_install_native_limits`/`_native_header` 的
+   domain、Snapshot/Reader、原 query/单位/字段、warmup/calendar/universe、所有原 records
+   与 metadata 行数/范围/嵌套行拒绝等 gate，再建紧凑索引；重复/缺 key 与 PIT、factor、
+   lifecycle、action、clock、费用及预测配对仍走同一 `_audit` 业务，成功前不创建账户。
+3. 标准 C parser 不给原字节 offsets。完整 canonical 身份已证明后，可把必要 header 与
+   原顺序选中 records/metadata 行写入 Engine 私有有界 spool，索引为原 parent_ref、array_path、
+   session、原顺序行串联 segment SHA 与 file SHA；均为内部 views，不发布新 DataBatch/ref。
+   header 的 coverage 已全量验证/hash 后释放，沿用现 header() 省略 coverage 的消费语义。
+   每文件完成后释放整 graph，父进程只保留小 header/offsets；选中行供现审核与 owned capture。
+
+最大文件的规划估算取 S=205,471,694 bytes（195.95 MiB）；不是实测峰值或严格内存证明：
+
+| 同时存活内容 | 规划预算 |
+|---|---|
+| 原 bytes 与 UTF-8→Unicode text | S + 最坏 4S，解码前 bytes 释放 |
+| graph、dict/list/数值/字符串、key memo 与 pairs 暂存 | 按 24S 估算，约 4.59 GiB；此乘数不是普适上界 |
+| C encoder Unicode writer 的扩容/旧新缓冲 | 按 10S 预留，约 1.91 GiB；不与输入 raw/text 同时保留 |
+| canonical hash 的 Unicode/UTF-8 小块 | 64 MiB；不再生成完整 canonical bytes 副本 |
+| 保留 header/索引/父进程及 allocator 余量 | 512 + 256 MiB；spool 另按磁盘 quota |
+
+encoder 阶段规划峰值约 7.31 GiB，解析阶段较低；8 GiB 显式预算在该估算下容纳当前
+205 MB 文件，超出预算估算或 256 MiB 文件尺寸即选 stream，不能全载 594 MB 所有文件。
+64 MiB 账户块、128 MiB owned quota 等不因快解析自动增大。
+
+主要风险是 stdlib loads 不能在 list/graph 的每次 C 分配前执行 caller 预算，24S 也不能
+证明恶意/不同形状 JSON 的最坏膨胀。建议只把解析放入一次一文件的临时 helper 进程，由
+owner 监控其 RSS，留出 allocator/采样余量；helper 不持有 owned handle、不调用 Core 策略
+或运行账户。资源/实现不支持时退出并丢弃半成品、确认原文件未变后走 stream；语法、
+身份或业务 gate 失败直接拒绝，不能靠 fallback 放行。父 owner 仍建立最终 handle，PID
+合同不变。RSS 采样会有短时超调风险，不能宣传为逐分配硬上界；监控不可用则直接 stream。
+fallback 的额外读/hash/耗时单独计数，不能继续宣称所有文件都只扫描一次。
+
+这种整文件标准库路径保留 C tokenization，但仍有逐对象语义 walk 与 canonical re-encode。
+标准 `json.load` 内部仍先 read 全文，不能当作 C 流式方案；`iterencode` 常规调用也走
+Python encoder，不能拿来证明 C 加速。SAX/事件式 C 库可减少 graph 常驻，却增加依赖与
+精确数值/canonical/Unknown/source-binding 适配面，首版不引入。后续需先按这些 gate
+做定向合成 exact/拒绝/资源 fallback 对比，再由父另裁决真实窗口；本轮不编码或再跑。
 
 ## 7. 账户与 Ledger 数据模型
 
