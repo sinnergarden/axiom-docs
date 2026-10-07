@@ -425,7 +425,7 @@ owned 临时存储 14.40 MiB；没有 Data、Feature、fit/predict 或供应商�
 `sha256:0399ff578c5d60f1137aaa2a35ab4f992934a91d62b287cc6adaf1fb16c24732`，
 仅做定向合成验证；旧真实回执不改绑到该后继源码。
 
-#### 6.4.1 文件级 C JSON 快路径候选（已编码；待独立 review/父审；未真实运行）
+#### 6.4.1 文件级 C JSON 快路径候选（已编码及复核；待完整真实验收）
 
 目标是保留完整来源身份与准入语义，移除每个字节和每个标量必经 Python scanner 的税。
 现统计中，两份约 205 MB 的 actions 与约 130 MB 的 limits 合计占原字节约 91%，
@@ -514,7 +514,10 @@ helper 启动、完整 parse/validate/canonical 字节比较、spool、父审核
 9 个去重 native 文件实际走 CJSON；监控/原生 child 峰值合并的进程树 RSS 为
 124,108,800 bytes（约 118.36 MiB），私有 spool 88,461 bytes，最终 owned 73,611 bytes。
 这是一轮小型合成测量，不构成真实 594 MB 输入的加速或 8 GiB 安全证明。
-真实重扫与后续 combined heavy window 仍待独立 review 和父协调授权；本候选未读取或重扫真实输入。
+父释放后的首个真实窗口在 controller 将瞬态 `"(ps)"` 进程名误判为异常子进程后停止。
+它只进入准入早期，完整 cold 结果不可用、账户未执行；不能记为 CJSON 真实 PASS。
+worker/helper 已退出，原文件 stat、旧保存结果 SHA 与固定源码保护通过，未自动重试。
+该监控识别修正仅在私有 controller 中准备，Engine 固定源码不变；重新开启真实窗口须父明确授权。
 真实快路径的原字节读、canonical 额外比较读和消费计数分别报告。
 
 独立集中 review 在前驱发现两个 P2，后继 `2842ca9` 已修：metadata 按原 object/list
