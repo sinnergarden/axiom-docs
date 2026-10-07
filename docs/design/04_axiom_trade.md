@@ -425,7 +425,7 @@ owned 临时存储 14.40 MiB；没有 Data、Feature、fit/predict 或供应商�
 `sha256:0399ff578c5d60f1137aaa2a35ab4f992934a91d62b287cc6adaf1fb16c24732`，
 仅做定向合成验证；旧真实回执不改绑到该后继源码。
 
-#### 6.4.1 文件级 C JSON 快路径最小候选（待父审；未编码、未真实运行）
+#### 6.4.1 文件级 C JSON 快路径候选（已编码；待独立 review/父审；未真实运行）
 
 目标是保留完整来源身份与准入语义，移除每个字节和每个标量必经 Python scanner 的税。
 现统计中，两份约 205 MB 的 actions 与约 130 MB 的 limits 合计占原字节约 91%，
@@ -435,10 +435,23 @@ owned 临时存储 14.40 MiB；没有 Data、Feature、fit/predict 或供应商�
 依据为 [Python json 合同](https://docs.python.org/3.12/library/json.html) 与
 [本机同版本 CPython 3.12.12 源码](https://github.com/python/cpython/blob/v3.12.12/Modules/_json.c)。
 
-建议候选配置为 `StockInputSource(..., file_parse_mode="stream",
-max_file_parse_bytes=None, max_file_parse_rss_bytes=None)`，均为待审参数，
-当前公共入口没有这些参数。首版只在显式 `file_parse_mode="cjson"` 且调用者提供两个
-正整数预算时尝试快路径，不默认 8 GiB。文件解析预算独立于现有 64 MiB canonical decoded 的账户块预算；
+父批准最小实现和定向合成验证后，候选固定为 Engine
+[`327cbd4`](https://github.com/sinnergarden/axiom-engine/commit/327cbd4f85b7b2d80de9238268ef0c830a27fc03)，
+`implementation_ref=sha256:368eac5fee79a5a93a46e75245dd5799f3f3d4483aabed6882d2a48ce21c6020`；
+它叠加于 Research 当前使用的 `da10733`，没有改写旧真实保存结果的源码绑定。
+候选的准确 factory 签名为：
+
+```python
+StockInputSource(*, scalar_cache_bytes=0, file_parse_mode="stream",
+                 max_file_parse_bytes=None, max_file_parse_rss_bytes=None,
+                 max_file_parse_spool_bytes=None, max_file_parse_seconds=120)
+```
+
+首版只在显式 `file_parse_mode="cjson"` 且调用者提供文件、进程树 RSS、私有 spool 三个
+正整数预算时尝试快路径，拒绝 bool；`max_file_parse_bytes` 按单个物理文件，
+`max_file_parse_rss_bytes` 包含 owner 和其 helper 子树，`max_file_parse_spool_bytes` 为本次
+source 累计私有磁盘 quota，`max_file_parse_seconds` 为每个 helper 的正整数秒超时。
+默认 stream 和标量缓存关闭保持；不默认 8 GiB。文件解析预算独立于现有 64 MiB canonical decoded 的账户块预算；
 机器为 24 GiB，不能把该旧块限额当作整文件解析的架构上限。opt-in 按物理文件顺序处理，
 去重同文件/相同 ref，一次只有一份整文件 graph；stream 可强制保留旧路径。
 
@@ -488,6 +501,20 @@ owner 停止 helper、关闭 fd、丢弃全部未提交 spool/索引，本次准
 父 owner 仍建立成功的最终 handle，PID 合同不变。RSS 采样会有短时超调风险，不能宣传
 为逐分配硬上界。stream 只在预检时选择或由调用者显式选择；重试需要另起明确调用。
 旧 scanner 保留作定向合成反例/exact oracle，不作为 CJSON 每次准入的第二遍完整审核。
+
+该固定候选通过 59 项相关合成回归（CJSON、原 stream、owned inputs、scalar cache、源码绑定）。
+包含重复/乱序键、非 canonical 数字/空白/Unicode、NaN/Infinity/溢出、reserved Unknown、
+深度、原 query/行数/单位 gate，以及已启动 helper 的 MemoryError/RSS/超时/spool 停线和清理。
+完整 header、全部结果/ledger 行及保存后 projection 与原 stream oracle exact 相同；
+Top3/Top5 复用同 Signal、同初始资金，得到不同账户；未新增账户执行器或准入 receipt/ref。
+
+一次混合合成 cold 对照含 20,000 条 coverage（重复字段和值，以及唯一序号、hash、float、
+UTF-8），完整输入 4,065,531 bytes。stream 1.805626 秒、CJSON 1.541866 秒，计时含
+helper 启动、完整 parse/validate/canonical 字节比较、spool、父审核消费及 owned capture。
+9 个去重 native 文件实际走 CJSON；监控/原生 child 峰值合并的进程树 RSS 为
+124,108,800 bytes（约 118.36 MiB），私有 spool 88,461 bytes，最终 owned 73,611 bytes。
+这是一轮小型合成测量，不构成真实 594 MB 输入的加速或 8 GiB 安全证明。
+真实重扫与后续 combined heavy window 仍待独立 review 和父协调授权；本候选未读取或重扫真实输入。
 真实快路径的原字节读、canonical 额外比较读和消费计数分别报告。
 
 这种整文件标准库路径保留 C tokenization，但仍有逐对象语义 walk 与 canonical re-encode。
