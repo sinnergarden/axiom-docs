@@ -436,8 +436,8 @@ owned 临时存储 14.40 MiB；没有 Data、Feature、fit/predict 或供应商�
 [本机同版本 CPython 3.12.12 源码](https://github.com/python/cpython/blob/v3.12.12/Modules/_json.c)。
 
 父批准最小实现和定向合成验证后，候选固定为 Engine
-[`327cbd4`](https://github.com/sinnergarden/axiom-engine/commit/327cbd4f85b7b2d80de9238268ef0c830a27fc03)，
-`implementation_ref=sha256:368eac5fee79a5a93a46e75245dd5799f3f3d4483aabed6882d2a48ce21c6020`；
+[`2842ca9`](https://github.com/sinnergarden/axiom-engine/commit/2842ca992bb7c557945866ef3a48be80b21d7a75)，
+`implementation_ref=sha256:bd17832943f391e14dd7b3ae78cb5c314e05698fc0f369d8368cbcfc0ed66978`；
 它叠加于 Research 当前使用的 `da10733`，没有改写旧真实保存结果的源码绑定。
 候选的准确 factory 签名为：
 
@@ -502,13 +502,13 @@ owner 停止 helper、关闭 fd、丢弃全部未提交 spool/索引，本次准
 为逐分配硬上界。stream 只在预检时选择或由调用者显式选择；重试需要另起明确调用。
 旧 scanner 保留作定向合成反例/exact oracle，不作为 CJSON 每次准入的第二遍完整审核。
 
-该固定候选通过 59 项相关合成回归（CJSON、原 stream、owned inputs、scalar cache、源码绑定）。
+前驱 `327cbd4` 通过 59 项相关合成回归（CJSON、原 stream、owned inputs、scalar cache、源码绑定）。
 包含重复/乱序键、非 canonical 数字/空白/Unicode、NaN/Infinity/溢出、reserved Unknown、
 深度、原 query/行数/单位 gate，以及已启动 helper 的 MemoryError/RSS/超时/spool 停线和清理。
 完整 header、全部结果/ledger 行及保存后 projection 与原 stream oracle exact 相同；
 Top3/Top5 复用同 Signal、同初始资金，得到不同账户；未新增账户执行器或准入 receipt/ref。
 
-一次混合合成 cold 对照含 20,000 条 coverage（重复字段和值，以及唯一序号、hash、float、
+前驱 `327cbd4` 的一次混合合成 cold 对照含 20,000 条 coverage（重复字段和值，以及唯一序号、hash、float、
 UTF-8），完整输入 4,065,531 bytes。stream 1.805626 秒、CJSON 1.541866 秒，计时含
 helper 启动、完整 parse/validate/canonical 字节比较、spool、父审核消费及 owned capture。
 9 个去重 native 文件实际走 CJSON；监控/原生 child 峰值合并的进程树 RSS 为
@@ -517,11 +517,26 @@ helper 启动、完整 parse/validate/canonical 字节比较、spool、父审核
 真实重扫与后续 combined heavy window 仍待独立 review 和父协调授权；本候选未读取或重扫真实输入。
 真实快路径的原字节读、canonical 额外比较读和消费计数分别报告。
 
+独立集中 review 在前驱发现两个 P2，后继 `2842ca9` 已修：metadata 按原 object/list
+子节点规则保留 span，非空 list 条目进入原 grid gate，额外 scalar/空容器的边界与 stream
+一致；预检、索引初始化与 helper 绑定同一 dev/inode/size/mtime/ctime，改变即失败。
+helper 在 payload 整读前同时检查 path/fd 的显式文件 cap，bulk read 只分配已验尺寸，
+EOF/stat 复核在 hash/parse 前完成，不隐式重试。后继 6 项定向合成检查通过（11.372 秒），
+覆盖 17 组 metadata shape、完整 grid 拒绝、增长/等长修改/inode 替换、读前 cap、
+Top3/Top5 完整保存结果 exact、失败清理与源码 freeze；未重跑原 59 项或 cold benchmark。
+
+Research `6f2aed9` 的 `stock_ml_saved_inputs_v4`、selector descriptor 与外部 fold_control
+保留在原 `fold_v3.definition` 内；原 `fold_manifest_v2` 的八文件表、model_v2、prediction_v2
+及 `definition/fold_spec` selector 未变。静态源码核对和小型合成 source admission 通过，
+Engine 无需兼容代码 delta；原 parent/child/file/definition/fold/stage refs 与全部 clock/union
+gates 保持。Engine 不读取 prepared training/control closure，Research 继续验证其闭包；
+该 probe 未执行账户、fit/predict 或读取真实数据。
+
 这种整文件标准库路径保留 C tokenization，但仍有逐对象语义 walk 与 canonical re-encode。
 标准 `json.load` 内部仍先 read 全文，不能当作 C 流式方案；`iterencode` 常规调用也走
 Python encoder，不能拿来证明 C 加速。SAX/事件式 C 库可减少 graph 常驻，却增加依赖与
 精确数值/canonical/Unknown/source-binding 适配面，首版不引入。后续需先按这些 gate
-做定向合成 exact/拒绝/预检 stream 选择与运行中停线对比，再由父另裁决真实窗口；本轮不编码或再跑。
+做定向合成 exact/拒绝/预检 stream 选择与运行中停线对比，再由父另裁决真实窗口。
 
 ## 7. 账户与 Ledger 数据模型
 
