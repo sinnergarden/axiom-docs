@@ -2,12 +2,14 @@
 
 [ML 工程 Notebook](ml_engineering_tutorial.ipynb)及[生成 HTML](ml_engineering_tutorial.html)：
 先看整体 owner 图、固定真实短样本、registry、成熟 label/Dataset/model、保存 Signal、
-Engine 唯一账户、UI 与缓存边界。真实65-session滑动两折已通过；旧固定配置/成熟控制保留历史；Notebook 默认只读本地保存回执，
+Engine 唯一账户、UI 与缓存边界。真实65-session滑动两折已通过；旧固定配置/成熟控制保留历史；Notebook 第 1–13 节只读本地保存回执，
 第3/6节展示公共catalog及真实滑动builder用法，Markdown代码默认不执行；全年/多年 ML 暂停。
 [`weekly_ml_pilot.py`](../examples/weekly_ml_pilot.py)仅为原Nov1—Jan31固定窗历史控制，新入口是
 `axiom_research.build_stock_ml_fold_from_saved_inputs`。详细合同仍链接统一设计正文，HTML 从 Notebook 生成，不独立编辑。
 
-第 14 节是 CaseA/B/C 教学规划草案，每项列目的、当前能力、差距、输入与输出，完整流程尚未接通或执行。先用固定 5D/LightGBM 做 CaseC 的 3–4 个周度 fold 与 Top5，再沿同一实现进行多年正确性和性能验收；CaseA 的窄 TrainSpec、CaseB 的保存组合和共同标签随后逐项小例补齐。Feature 表复用正式 catalog 入口，评价沿已审 frozen-input 路径，中断重用限于 Research 已完成 fold。该节只保留操作步骤和结果要求，没有新增代码单元或输出，既有 HTML 保留此前内容。
+第 14 节是 CaseC/A/B 的逐单元验收稿。CaseC 直接调用正式的 matrix_v2/stock_feature_inputs_v3、prepare、batch/fold、OOS frozen-input、Runtime v7及保存账户评价入口；一个 batch内完成四折、同配置 HIT和冻结。使用 Python 3.11 及以上的 kernel，设置 `AXIOM_M1_ROOT` 并按该节 `case-inputs.json` 交接真实输入后，从第 14 节单独开始。新增单元未执行且没有保存输出，既有 HTML 保留此前内容；本轮只核对语法、公共签名与标准库小单元。
+
+CaseA 的窄 TrainSpec、CaseB 的保存组合与组合准入、按年和分组统计仍待原 owner 接口。先用固定 5D/LightGBM 做 CaseC 的四个周度 fold和 50 万元 Top5；每阶段耗时及正式 metrics保存到外部根目录 `runs/<本次运行>/timings.jsonl`，准备和 fold缓存留在 `cache/`。随后沿同一实现做 M1 多年正确性与性能验收。完整用例通过与正常 API返回分别记录，中断重用限于 Research 已完成 fold。
 
 Data两种路线的唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
 
@@ -76,8 +78,8 @@ python examples/build_library_tutorials.py --source-ref <已提交的教程版�
 上述关键章节已用现有 Mac Chrome 实际查看折叠前后展示，记录见 [Chrome 抽查](../reports/tutorial-chrome-review.json)。宽表会提示横向滚动，也可聚焦后用方向键浏览完整列。
 
 
-ML工程页默认四代码单元只读取冻结教学回执与新fold交付回执。
-设置 `AXIOM_ML_TEACHING_RECEIPT` / `AXIOM_ML_TEACHING_RECEIPT_REF`，以及
+ML工程页第 1–13 节的原四代码单元只读取冻结教学回执与新fold交付回执；第 14 节的独立验收单元按上文真实输入配置执行。
+以下回执设置用于第 1–13 节的历史阅读路线。设置 `AXIOM_ML_TEACHING_RECEIPT` / `AXIOM_ML_TEACHING_RECEIPT_REF`，以及
 `AXIOM_ML_FOLD_DELIVERY` / `AXIOM_ML_FOLD_DELIVERY_REF` 为owner指定路径和完整字节sha256。
 显式函数仅定义，默认不调用业务，也不为展示重复解析大proof；已保存结果由owner和独立reader核验。
 新两fold是65session真实滑动；旧January v1 Top3/Top5账户另列，新v2仅中立验证、账户拒绝。
