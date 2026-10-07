@@ -357,14 +357,17 @@ SZSE [2023 交易规则](https://www.szse.cn/lawrules/rule/repeal/rules/t2023021
 
 状态：父已裁决技术边界；Engine 实现候选为
 [`9f86ac5`](https://github.com/sinnergarden/axiom-engine/commit/9f86ac5) 与
-[`26c49df`](https://github.com/sinnergarden/axiom-engine/commit/26c49df)，
+[`26c49df`](https://github.com/sinnergarden/axiom-engine/commit/26c49df)，创建 PID 修复为
+[`b5dc2f4`](https://github.com/sinnergarden/axiom-engine/commit/b5dc2f4)，
 基于固定 `21cc1d5`，待独立 review 与父审 merge。此增量仅作用于有界股票 v7 输入消费，
 不重跑旧账户、不改变原 Core/SimBroker/ledger 业务，也不增加 Qlib 执行器或新 daily 路径。
 
 公共入口为 `admit_stock_inputs(manifest: BacktestRequest, *, source: StockInputSource,
 block_sessions: int, limits: dict, max_owned_bytes: int) -> AdmittedStockInputs`。
 返回对象作为既有 `run_stock_backtest(manifest, *, source, sink, block_sessions, limits)` 的
-`source` 参数使用；首版顺序运行账户，`block_sessions` 与导入时保持一致。对象支持
+`source` 参数使用；首版仅限创建对象的进程顺序运行账户，`block_sessions` 与导入时保持一致。
+对象记录创建 PID；包括 statistics、inventory、audit、迭代、context 进入/退出和 close 的
+公开入口在触锁、存储或内部状态前拒绝异 PID，fork 继承对象也不能复用。对象支持
 `with`/`close()`，并发执行或执行期间 close 拒绝。原 `StockInputSource` 路径仍完整准入，
 作为 exact oracle 保留；每个账户继续独立创建 ledger、sink 和 run 身份。
 
@@ -386,6 +389,8 @@ delivery URI 仍不改变逻辑输入身份，复用时读取已捕获的原字�
 全范围行约束，再捕获执行所需块。Engine 自有临时存储没有公开路径，导入后没有写入口；
 `max_owned_bytes` 在每次写入前限制总量。原历史 span 索引导入后释放，账户仅解码当前块，
 globals/块/索引/decoder 临时输入仍按累计 decoded 预算限制，不将多年 Python 行对象常驻。
+这里 decoded 是 canonical byte-volume 核算，包含声明的临时/索引预留，不是进程 RSS；
+实际 Python 对象、解释器与 allocator 峰值仍须在有用验收中独立采样，不能把该计数当 RSS 上限。
 任何账户持有的可变解码副本不影响后续账户。所有账户的原 input/fold/row/result 限额继续生效。
 
 冷导入采用最窄的原扫描器优化：`StockInputSource(scalar_cache_bytes=262144)` 在一次导入内
