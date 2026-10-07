@@ -435,10 +435,11 @@ owned 临时存储 14.40 MiB；没有 Data、Feature、fit/predict 或供应商�
 依据为 [Python json 合同](https://docs.python.org/3.12/library/json.html) 与
 [本机同版本 CPython 3.12.12 源码](https://github.com/python/cpython/blob/v3.12.12/Modules/_json.c)。
 
-建议候选配置为 `StockInputSource(..., file_parse_mode="auto"|"stream",
-max_file_parse_bytes=268435456, max_file_parse_rss_bytes=8589934592)`，均为待审参数，
-当前公共入口没有这些参数。文件解析预算独立于现有 64 MiB canonical decoded 的账户块预算；
-机器为 24 GiB，不能把该旧块限额当作整文件解析的架构上限。auto 按物理文件顺序处理，
+建议候选配置为 `StockInputSource(..., file_parse_mode="stream",
+max_file_parse_bytes=None, max_file_parse_rss_bytes=None)`，均为待审参数，
+当前公共入口没有这些参数。首版只在显式 `file_parse_mode="cjson"` 且调用者提供两个
+正整数预算时尝试快路径，不默认 8 GiB。文件解析预算独立于现有 64 MiB canonical decoded 的账户块预算；
+机器为 24 GiB，不能把该旧块限额当作整文件解析的架构上限。opt-in 按物理文件顺序处理，
 去重同文件/相同 ref，一次只有一份整文件 graph；stream 可强制保留旧路径。
 
 1. 对原文件做 stat/fd 锁定和尺寸/总 input gate，读取全部原 bytes；完整 file SHA 保留
@@ -447,15 +448,19 @@ max_file_parse_bytes=268435456, max_file_parse_rss_bytes=8589934592)`，均为�
    拒绝 NaN/Infinity。完整 graph 仍检查 finite（含 `1e999`）、所有 reserved Unknown、
    depth<=128、顶层 object 和原合同，不跳过大型 coverage 的验证。
 2. 释放输入 text 后用标准 C encoder 按现 canonical 参数完整重编码（紧凑分隔、
-   ensure_ascii=False、allow_nan=False、无 indent）；分块 UTF-8 hash 与原 content SHA
-   exact 相等，不能仅 loads 成功。随后复用 `_install_native_limits`/`_native_header` 的
+   ensure_ascii=False、allow_nan=False、无 indent）；canonical 输出分块编码，并与仍保留的
+   原文件只读 fd 按对应字节范围逐块 exact 比较，累计长度等于原 body 长度，尾部只允许
+   最初记录的单个 LF 或 EOF；前后 stat/fd 身份不变。完整 file/content SHA 同时保留。
+   这会增加一次原字节顺序读，单独计数，但不再调用旧 Python scanner、逐标量 decode
+   或整图重解码，不能仅 loads 成功或仅比较规范化后的对象。随后复用 `_install_native_limits`/`_native_header` 的
    domain、Snapshot/Reader、原 query/单位/字段、warmup/calendar/universe、所有原 records
    与 metadata 行数/范围/嵌套行拒绝等 gate，再建紧凑索引；重复/缺 key 与 PIT、factor、
    lifecycle、action、clock、费用及预测配对仍走同一 `_audit` 业务，成功前不创建账户。
 3. 标准 C parser 不给原字节 offsets。完整 canonical 身份已证明后，可把必要 header 与
    原顺序选中 records/metadata 行写入 Engine 私有有界 spool，索引为原 parent_ref、array_path、
    session、原顺序行串联 segment SHA 与 file SHA；均为内部 views，不发布新 DataBatch/ref。
-   header 的 coverage 已全量验证/hash 后释放，沿用现 header() 省略 coverage 的消费语义。
+   生成 views 只借用当前 graph 的行，逐行/有界块编码，不 deepcopy 全图、不另建完整
+   selected graph，也不通过 Pipe/pickle 传整图。header 的 coverage 已全量验证/hash 后释放，沿用现 header() 省略 coverage 的消费语义。
    每文件完成后释放整 graph，父进程只保留小 header/offsets；选中行供现审核与 owned capture。
 
 最大文件的规划估算取 S=205,471,694 bytes（195.95 MiB）；不是实测峰值或严格内存证明：
@@ -465,26 +470,31 @@ max_file_parse_bytes=268435456, max_file_parse_rss_bytes=8589934592)`，均为�
 | 原 bytes 与 UTF-8→Unicode text | S + 最坏 4S，解码前 bytes 释放 |
 | graph、dict/list/数值/字符串、key memo 与 pairs 暂存 | 按 24S 估算，约 4.59 GiB；此乘数不是普适上界 |
 | C encoder Unicode writer 的扩容/旧新缓冲 | 按 10S 预留，约 1.91 GiB；不与输入 raw/text 同时保留 |
-| canonical hash 的 Unicode/UTF-8 小块 | 64 MiB；不再生成完整 canonical bytes 副本 |
+| canonical 比较/hash 的 Unicode/UTF-8 与原 fd 小块 | 合计 64 MiB；不再生成完整 canonical bytes 副本 |
 | 保留 header/索引/父进程及 allocator 余量 | 512 + 256 MiB；spool 另按磁盘 quota |
 
-encoder 阶段规划峰值约 7.31 GiB，解析阶段较低；8 GiB 显式预算在该估算下容纳当前
-205 MB 文件，超出预算估算或 256 MiB 文件尺寸即选 stream，不能全载 594 MB 所有文件。
+encoder 阶段规划峰值为 `(24+10)S + (64+512+256)MiB` = 7.31875 GiB（约 7.32 GiB），
+解析阶段为 graph+text，不与原 bytes 同时保留，预算更低。8 GiB/256 MiB 只是显式 opt-in
+预算的评估例，不是默认值或实测峰值。预检估算、文件尺寸或监控能力不满足调用者预算，
+在启动该文件快解析前明确记录择 stream；不能全载 594 MB 所有文件。
 64 MiB 账户块、128 MiB owned quota 等不因快解析自动增大。
 
 主要风险是 stdlib loads 不能在 list/graph 的每次 C 分配前执行 caller 预算，24S 也不能
 证明恶意/不同形状 JSON 的最坏膨胀。建议只把解析放入一次一文件的临时 helper 进程，由
 owner 监控其 RSS，留出 allocator/采样余量；helper 不持有 owned handle、不调用 Core 策略
-或运行账户。资源/实现不支持时退出并丢弃半成品、确认原文件未变后走 stream；语法、
-身份或业务 gate 失败直接拒绝，不能靠 fallback 放行。父 owner 仍建立最终 handle，PID
-合同不变。RSS 采样会有短时超调风险，不能宣传为逐分配硬上界；监控不可用则直接 stream。
-fallback 的额外读/hash/耗时单独计数，不能继续宣称所有文件都只扫描一次。
+或运行账户。运行中 MemoryError、RSS 停线、worker 退出或其他资源失控均明确失败，
+owner 停止 helper、关闭 fd、丢弃全部未提交 spool/索引，本次准入不返回 handle、不创建账户；
+不捕获 OOM 后悄悄重新跑 stream。语法、身份或业务 gate 失败同样直接拒绝。
+父 owner 仍建立成功的最终 handle，PID 合同不变。RSS 采样会有短时超调风险，不能宣传
+为逐分配硬上界。stream 只在预检时选择或由调用者显式选择；重试需要另起明确调用。
+旧 scanner 保留作定向合成反例/exact oracle，不作为 CJSON 每次准入的第二遍完整审核。
+真实快路径的原字节读、canonical 额外比较读和消费计数分别报告。
 
 这种整文件标准库路径保留 C tokenization，但仍有逐对象语义 walk 与 canonical re-encode。
 标准 `json.load` 内部仍先 read 全文，不能当作 C 流式方案；`iterencode` 常规调用也走
 Python encoder，不能拿来证明 C 加速。SAX/事件式 C 库可减少 graph 常驻，却增加依赖与
 精确数值/canonical/Unknown/source-binding 适配面，首版不引入。后续需先按这些 gate
-做定向合成 exact/拒绝/资源 fallback 对比，再由父另裁决真实窗口；本轮不编码或再跑。
+做定向合成 exact/拒绝/预检 stream 选择与运行中停线对比，再由父另裁决真实窗口；本轮不编码或再跑。
 
 ## 7. 账户与 Ledger 数据模型
 
