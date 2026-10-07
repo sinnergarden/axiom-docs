@@ -353,6 +353,56 @@ SZSE [2023 交易规则](https://www.szse.cn/lawrules/rule/repeal/rules/t2023021
 证明清算周期恰为 T+1。settlement_sessions=1 作为本轮声明模型参数保留此核验边界。
 过户费双边 0.00001 的完整深圳原文未取得，始终标研究费用假设。
 
+### 6.4 已保存股票输入的一次准入与顺序账户复用
+
+状态：父已裁决技术边界；Engine 实现候选为
+[`9f86ac5`](https://github.com/sinnergarden/axiom-engine/commit/9f86ac5) 与
+[`26c49df`](https://github.com/sinnergarden/axiom-engine/commit/26c49df)，
+基于固定 `21cc1d5`，待独立 review 与父审 merge。此增量仅作用于有界股票 v7 输入消费，
+不重跑旧账户、不改变原 Core/SimBroker/ledger 业务，也不增加 Qlib 执行器或新 daily 路径。
+
+公共入口为 `admit_stock_inputs(manifest: BacktestRequest, *, source: StockInputSource,
+block_sessions: int, limits: dict, max_owned_bytes: int) -> AdmittedStockInputs`。
+返回对象作为既有 `run_stock_backtest(manifest, *, source, sink, block_sessions, limits)` 的
+`source` 参数使用；首版顺序运行账户，`block_sessions` 与导入时保持一致。对象支持
+`with`/`close()`，并发执行或执行期间 close 拒绝。原 `StockInputSource` 路径仍完整准入，
+作为 exact oracle 保留；每个账户继续独立创建 ledger、sink 和 run 身份。
+
+输入能力比较使用既有 manifest 的逻辑 ArtifactRef 解释，移除 `request_ref`、
+`account_id`、`initial_account` 与 `portfolio_policy.top_k` 后保留其余全部字段。
+这只是进程内比较，不新增可发布 input ref、receipt/hash 包装或持久 validated 标记。
+delivery URI 仍不改变逻辑输入身份，复用时读取已捕获的原字节，不转读替换路径。
+
+| 变更 | 首版处理 |
+|---|---|
+| account_id、正整数初始现金、合法 TopK | 可复用；初始持仓仍须为空；资金、k 绑定各自请求/run 身份 |
+| 其他 portfolio_policy 字段或新增风险参数 | 不模糊复用；现合同未定义的参数拒绝 |
+| profile、费用、滑点、UNKNOWN 解释、规则与规则 ref | 重新准入 |
+| universe、calendar、anchor、区间、warmup、scope | 重新准入 |
+| Snapshot、native/query/projection refs、fold/model/feature/prediction refs | 重新准入 |
+| clock/action policy、合同/实现版本及其他 manifest 字段 | 重新准入或按原合同拒绝 |
+
+导入先按原合同核对全部源字节真实性、canonical JSON、字段/单位、时钟、PIT 配对与
+全范围行约束，再捕获执行所需块。Engine 自有临时存储没有公开路径，导入后没有写入口；
+`max_owned_bytes` 在每次写入前限制总量。原历史 span 索引导入后释放，账户仅解码当前块，
+globals/块/索引/decoder 临时输入仍按累计 decoded 预算限制，不将多年 Python 行对象常驻。
+任何账户持有的可变解码副本不影响后续账户。所有账户的原 input/fold/row/result 限额继续生效。
+
+冷导入采用最窄的原扫描器优化：`StockInputSource(scalar_cache_bytes=262144)` 在一次导入内
+复用已通过原 decode/canonical 检查的、不超过 256 字节的相同标量字节。缓存计入累计预算，
+在必需输入增长前驱逐；关闭为 `scalar_cache_bytes=0`，保留原 scanner oracle。
+所有物理字节仍完整扫描/hash，结构、键顺序/重复键及每个 reserved Unknown 对象仍逐项验证。
+整份标准 JSON 解码无法保留大型 coverage 的现有流式预算，因此首版不采用该替代路径。
+
+两个可审增量分别为来源所有权/顺序复用与冷 scanner 标量复用。`source.statistics` 提供
+每文件 scan/read/hash、标量 decode/canonical 次数与耗时、选中行消费计数；
+`inputs.statistics` 分开记录首次 source audit/capture 与后续 owned 块消费。
+合成 probe `PYTHONPATH=src:tests python tools/bench_stock_owned_inputs.py` 不调用 Data、
+Feature、fit/predict。一次 2,147,694 字节合成验收中，cold import 为关闭缓存 0.849 秒、
+开启 0.540 秒，decode/canonical 为 105,725 次降至 291 次；五个 TopK 的独立账户复用消费
+合计 0.146 秒，完整保存 run/账本与原路径 exact 一致。原始扫描为一次，后续原始扫描为零。
+这些是合成检查，不外推为真实 594 MB 输入或多年冷导入/规模验收结果。
+
 ## 7. 账户与 Ledger 数据模型
 
 账户权威分两层：Trade ledger 是系统内部流水与状态；RealBroker 是外部订单/成交/账户的对账依据。差异产生显式记录和调整事件，不用券商快照直接覆盖旧账。
