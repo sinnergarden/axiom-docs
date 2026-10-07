@@ -7,9 +7,9 @@ Engine 唯一账户、UI 与缓存边界。真实65-session滑动两折已通过
 [`weekly_ml_pilot.py`](../examples/weekly_ml_pilot.py)仅为原Nov1—Jan31固定窗历史控制，新入口是
 `axiom_research.build_stock_ml_fold_from_saved_inputs`。详细合同仍链接统一设计正文，HTML 从 Notebook 生成，不独立编辑。
 
-第 14 节是 CaseC/A/B 的逐单元验收稿。CaseC 直接调用正式的 matrix_v2/stock_feature_inputs_v3、prepare、batch/fold、OOS frozen-input、Runtime v7及保存账户评价入口；一个 batch内完成四折、同配置 HIT和冻结。使用 Python 3.11 及以上的 kernel，设置 `AXIOM_M1_ROOT` 并按该节 `case-inputs.json` 交接真实输入后，从第 14 节单独开始。新增单元未执行且没有保存输出，既有 HTML 保留此前内容；本轮只核对语法、公共签名与标准库小单元。
+第 14 节是 CaseC/A/B 的逐单元验收稿。CaseC 直接调用正式的 matrix_v2/stock_feature_inputs_v3、prepare、batch/fold、OOS frozen-input、Runtime v7及保存账户评价入口；一个 batch内完成四折、同配置 HIT和冻结。使用 Python 3.11 及以上的 kernel，设置 `AXIOM_M1_ROOT` 并按该节 `case-inputs.json` 交接真实输入后，从第 14 节单独开始。新增单元未执行且没有保存输出；本次通过原导出器生成本地 HTML 语义预览，未传 --execute。源码 Draft PR 保留 Notebook 和本说明，HTML 预览交由既有 UI 入口后续接入；本轮不部署。
 
-CaseA 的窄 TrainSpec、CaseB 的保存组合与组合准入、按年和分组统计仍待原 owner 接口。先用固定 5D/LightGBM 做 CaseC 的四个周度 fold和 50 万元 Top5；每阶段耗时及正式 metrics保存到外部根目录 `runs/<本次运行>/timings.jsonl`，准备和 fold缓存留在 `cache/`。随后沿同一实现做 M1 多年正确性与性能验收。完整用例通过与正常 API返回分别记录，中断重用限于 Research 已完成 fold。
+505 交易日 Feature 完整验收已通过；真实 20 日旧、新实现对照记录提速 29.43%。Label 统一修正代码已双审，整段贯通验证（vertical）尚未通过，完整训练和账户还未运行。CaseA 两字段候选只有 helper unit 结果，真实 MISS/HIT 与保存闭环待验；CaseB 的保存组合与组合准入、按年和分组统计仍待原 owner 接口。先用固定 5D/LightGBM 做 CaseC 的四个周度 fold和 50 万元 Top5；每阶段耗时及正式 metrics保存到外部根目录 `runs/<本次运行>/timings.jsonl`，准备和 fold缓存留在 `cache/`。随后沿同一实现做 M1 多年正确性与性能验收。完整用例通过与正常 API返回分别记录，中断重用限于 Research 已完成 fold。
 
 Data两种路线的唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
 
