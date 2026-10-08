@@ -410,6 +410,12 @@ QuerySpec 固定 Snapshot、字段、scope、PIT/cutoff、价格/复权口径和
 
 相邻研究窗口可在同一 Reader 的既有内存预算内复用未选版本的分区索引，保留原生完整 revisions，按固定 Snapshot、分区字节身份、字段/证券投影及 evidence 绑定；只复用解码和分组。每次请求仍按各输出 session 的 cutoff/PIT 选择 revision 与成员状态，复权仍使用当次 anchor 和 factor 版本。命中时保留文件完整性校验与返回值隔离；超预算退回原读取路径，不增加磁盘物化或无界常驻缓存，缓存启用与禁用的 DataBatch.to_json() 语义内容须完全一致。
 
+研究可显式使用 `Data.open_column_source(snapshot=固定ID, limits={cache_bytes, max_working_bytes})` 的进程内 owner；首版仅提供 `market_daily.open/close` 和 `adjustment_factors.factor` 的数值列。`select(query=QuerySpec, previous=...)` 保留有序 session/证券/字段轴、原始 dtype/单位、值、有效性、缺失原因、UTC 可用时钟及原生 block/ordinal 版本索引；`adjust(prices, factors, fields=..., anchor_session=..., previous=...)` 复用 Data 的共同锚点规则，保留 price/factor/anchor_factor lineage、缺数优先级和先乘后除顺序。按实际 session 分区批量选择 ordinal 并 gather 数组；非法时钟、特殊排序、evidence 及同序号冲突仍按原 Reader 规则在所请求组内检查。普通 Reader 的物理 schema 支持不随列源收窄，例如 Decimal 仍走原读取路径。
+
+`data_column_selection_v1` 的完整 QuerySpec、各输出日 cutoff、source/evidence 身份和实际数组字节绑定 `selection_ref`。`changed_keys` 分别给出当前轴的 added/updated 与 previous_axes 的 removed 坐标；updated 表示实际版本、来源、值、有效性、缺失原因、时钟、PIT 依据或 anchor 依赖变化。仅移动 cutoff 或改政策标签而仍选中相同事实与依据时，query identity 改变，updated 为空；消费者据此更新数值依赖，同时保存完整 query identity。列借用在公共访问边界检查 owner/PID/Snapshot/文件变动，close/clear/refresh 后失效；`to_numpy()` 显式返回独立只读小端数组，`to_batch()` 才物化原 DataBatch。
+
+列源沿用同一 Reader 的有界 LRU，按生命周期累计计入 Snapshot、源 blocks、被借用的已逐出 blocks、selection 元信息/数组及转换预留，预留余额检查为常数工作；关闭 selection 释放其 Query/binding。该显式列源超预算拒绝；未启用它的普通 Reader 缓存超限沿用原退回路径。Snapshot loader 与 Parquet decoder 接纳前的瞬时分配仍须由外部 RSS 监控，不能把已接纳费用当完整峰值。当前固定 head 的证据仅为小型合成 exact JSON、反例和批量操作计数，真实多年 rolling 性能仍须另给窗口验收。
+
 context 的 `contract_version` 标识 DataBatch 返回结构，独立于 Snapshot schema 与 Reader 实现版本；`generated_at` 是这次响应生成时间，不是行情新鲜度或历史可用时间。实际数据时间由 session、field_meta 和域覆盖表达。 本地 DataBatch 的 `to_json()` 保留可复现的语义内容；API 传输使用 `to_response()` 添加 context.generated_at，UI/P12 另有自己的响应生成时间。生成时间不进入逻辑 ViewRef 或缓存身份。UI 映射保留这些字段，同时使用自己的 P12 组合协议版本；未知必要字段/不兼容版本明确报错，不靠列位置或静默默认解释。
 
 同一次 scope/Reader 调用可复用已校验、Snapshot ID 一致的 manifest 对象，避免内部重复加载；不同 Snapshot 不共享该对象，不引入跨调用的全局信任缓存。manifest 完整性校验的分块编码须保持既有 canonical JSON 字节及 Snapshot hash 身份，损坏仍须拒绝；不得为节省内存省略校验、改 PIT/缺失语义、重写旧 Snapshot 或新增持久格式。结果缓存的容量不代表 manifest/临时编码的内存上限；性能验收分别记录 wall time 和进程 peak RSS。

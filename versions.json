@@ -606,7 +606,18 @@
       "merge_commit": "1bb85e354b70200946049b937ba023f60e5fe310",
       "pull_request": "https://github.com/sinnergarden/axiom-data/pull/39",
       "official_fund_share_conversions": "reviewed source and new fixed Snapshot; PR37 parent reviewed and merged",
-      "fixed_daily_snapshot_source_commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c"
+      "fixed_daily_snapshot_source_commit": "aae9b23d0e223b0221fb946b2e9daa9332cd622c",
+      "column_source_review_candidate": {
+        "source_commit": "2d2099b1a643373caf99485b64392e20cb02bb9c",
+        "previous_reviewed_head": "31181f0a58ff54e4fbcc7f8af14b9d1305d11495",
+        "branch": "codex/data-column-source-v1-20261008",
+        "contract_version": "data_column_selection_v1",
+        "status": "pending_parent_review_and_merge",
+        "scope": "batched PIT ordinal selection/gather and adjustment/diff; actual changed_keys dependencies; cumulative retained budget; ordinary Decimal Reader compatibility",
+        "targeted_synthetic_tests_passed": 60,
+        "evidence_scope": "tiny fixed Parquet exact raw/adjusted JSON and counterexamples; four-month operation counts; no real-data query or multi-year performance acceptance",
+        "public_signature_changes": false
+      }
     },
     "axiom-ui": {
       "source_commit": "4bdd8f0316d58b28cad6fe63bc399c73a15cd562",
