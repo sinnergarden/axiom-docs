@@ -9,6 +9,14 @@
 2026-09-28 Data 接口实证：Research 所有的 adapter 已将真实月末 DataBatch/成员结果映射为 FactBatch、ExecutionContext 和 FeaturePlan，并执行 identity/lag/return；这不是全部策略或决策算子的真实验收。
 见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
 
+2026-10-05 当前边界：共享 FeaturePlan 执行与股票中立预测验证、固定 Top5 决策已有有界实现；
+LightGBM fit/inference 仍在 Research。正文中的通用 ModelHandle、SignalPlan/组合参数与正式
+rolling 恢复不因固定样本通过而成为已实现 ABI。TopK 合同已由 Docs PR17 审准且 Engine
+PR8 已合：显式正整数 top_k 使用 Core /2；省略参数仍解释旧 /1 Top5。准确工厂、版本
+与边界见 [Trade §6.1](04_axiom_trade.md#61-有界股票日线-top5)。
+不同组合须保存独立账户，不能用改资金代替。
+已实现/规划图及教学顺序见 [ML 工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)。
+
 ## 1. 一句话定义
 
 Core 是一套可被 Research 和 Trade 调用的**共享计算与投资决策库**。同样的已知事实、信号、账户、策略状态、参数与时间，应该得到同样的目标仓位和订单意图。
@@ -31,6 +39,14 @@ Data 的个人版输入合同见 [Data §7](02_axiom_data.md#7-一个-reader薄�
 P02 的 Reader 返回 Data 所有的 DataBatch；P05 的 FactBatch 是 Core 所有的中立计算 ABI。Research 和 Runtime 各自在调用侧映射，两者不能因都叫“事实表”而合并 owner。映射保留键、字段顺序、单位、可见性、缺失与来源；不重复执行 Data 的 PIT/复权，也不从 Label 结果补 Feature。共享列缓冲可以避免复制，不要求建立额外服务或落盘格式。
 
 稳定边界不代表不许改 Core。新增通用语义才升级 Core；某策略“60/180 如何加权、何时减仓”应由冻结插件或配置表达，不能堆成很多 `if strategy_name`。
+
+### 1.2 回测与 daily shadow 无业务差异的硬原则
+
+2026-10-06 新增用户原则：除为更快的 batch/cache 做等价优化外，Engine 怎么做回测，就必须怎么做 daily shadow，原则上不允许业务 diff。在同一冻结输入及其 source refs、逐 session 时钟/可见性、账户与策略状态、策略/风控/执行 profile、实现版本和随机种子（若有）下，两者共用原计算、决策、风控、订单、模拟 Broker 与账本规则，逐项输出一致；输入 adapter、运输分批及调度可以不同，不能另写一条近似计算或账户路径。
+
+Core 的 Feature/Signal、目标、约束、Intent、策略状态和 trace 均在此约束内；dtype、单位、缺失/拒绝原因、availability/source refs、参考截面及 tie-break 不能因 batch/shadow 模式改变。batch/cache 只能改变等价的计算组织与性能，不能省校验、变更可见性、引入未冻结随机状态或用数值容差掩盖业务差异。
+
+此条是新增设计与验收要求，不是已实现的 shadow 能力声明。当前 Core 已有共享执行和有界规划；完整账户逐 session 推进、盘后模拟结算与持久恢复的现状、缺口和验收顺序统一见 [Trade §2.1](04_axiom_trade.md#backtest-shadow-parity)。不据此扩建第二执行器，也不改变或重跑当前保存结果与正在进行的 Research ML 闭环。
 
 ## 2. 与其他模块交互（P05、P07、P08）
 
@@ -129,13 +145,101 @@ Strategy runtime package
 
 可后端下推的 Qlib/向量化计算由调用方 adapter 执行，需与基准算子 golden case 等价。性能优化必须报告主键、NaN、dtype、误差和排名边界影响，不只比较相关系数。预测数值在容差内但 TopK、意图或约束结果翻转，仍属于行为变化，不能用数值容差掩盖；需要固定 tie-break/稳定计算或单独批准语义变更。
 
+<a id="signal-statistics-proposal"></a>
+### 4.4 保存信号评价的纯统计增量：待主协调与Engine亲审
+
+Research管理[独立信号评价定义与保存](05_axiom_research.md#saved-signal-quality-proposal)，
+Core提供相关与序列统计的共享纯计算。当前股票IC/RankIC由Research现有helper计算；
+新增算子经审准后，该编排调用Core，不在Research保留另一份数值实现。
+
+候选公共函数为 `evaluate_signal_statistics(input, *, spec)`。input固定
+`contract_version='signal_statistics_input_v1'`、有序 `sessions/signal_keys` 和 `pairs`；
+每个pair是 `{signal_key,security_id,session,score,outcome}`，由Research选好共同评价范围、
+成员和成熟标签后传入。score/outcome均为有限无量纲数，三字段键唯一；没有有效配对的
+日期仍在sessions内。signal_key绑定一份Signal或不重叠weekly Signal列表的准确refs。
+pair输入可以乱序，Core先按signal_key/session/security_id稳定排序，再绑定input_ref；
+重复键报错，不能由后写行覆盖前行。
+来源闭包、未来标签可用时间和资格检查由Research负责，Core不读取文件、查询事实、
+加载模型或执行账户。
+
+首版spec固定 `minimum_pairs=20,rank_ties='average',std_ddof=1,
+time_weighting='equal_valid_sessions',annualization='none'`。Core按日期计算Pearson和
+Spearman，并对有效日序列计算均值、样本标准差及mean/std。输出
+`contract_version='signal_statistics_v1'`、`input_ref/spec_ref/statistics_ref`、
+`series=[{signal_key,session,valid_pair_count,ic,rank_ic,reason}]` 和
+`summary=[{signal_key,valid_ic_session_count,mean_ic,ic_std,icir,icir_reason,
+valid_rank_ic_session_count,mean_rank_ic,rank_ic_std,rank_icir,rank_icir_reason}]`。
+输入和spec使用既有规范JSON身份；statistics_ref绑定除自身外全部统计输出。
+
+不足20对、常量截面和非有限相关值给null与原因；不足2个有效日或std为0时IR为null。
+Pearson/Spearman使用同一批配对，ties取平均秩，日权重一致。DuckDB等批量后端只能
+执行同一算子语义，经键/null/计数精确一致及相关值绝对误差≤1e-12的golden核对后采用。
+最低验收包含乱序、重复键、单日错位、ties、常量、缺失日及多Signal共同样本。
+本节是有界纯函数候选，不改变当前FeaturePlan执行器或Engine账户评价。
+
+<a id="neutral-cs-batch-proposal"></a>
+### 4.5 中立批量截面入口候选
+
+> 接口草稿、尚未实现；由 Engine/Core owner 固定和实现。既有 `execute_feature_plan`、FactBatch/FeatureFrame wire 和数学语义不变。调用侧 prepare/packed loader 见 [Research §8.2.1–8.2.2](05_axiom_research.md#821-固定输入矩阵与滚动训练)。
+
+唯一新增入口候选：
+
+```python
+from axiom_engine.core import execute_cs_zscore_batch
+
+def execute_cs_zscore_batch(
+    batch: dict, *, params: dict,
+    clock_projection: str = "ceil_to_core_second_v1",
+) -> dict:
+    ...
+```
+
+这是现 cs_zscore 数学的中立批接口，不是 Data/Label/训练 service。实现复用同一 Core 算子规则/基准；Research processor 仅负责合规选择与 carrier 映射。无路径、Data对象、Research对象、Qlib handler、模型或 I/O 参数；无 fit/状态学习。初版只实现 group=session 的现 ddof0/epsilon/constant-missing/no-clip profile，不扩通用算子平台。Core 模块导入保持中立，不因该入口隐式加载 Data/Research/训练包。
+
+`batch` 为新 opt-in 中立 carrier，**不是声称现 FactBatch 已接受数组**。字段：
+
+| 字段 | 精确含义 |
+|---|---|
+| `contract_version` / `calendar_ref` / `schema` / `output_schema` | `core_cs_zscore_batch_input_v1`；calendar_ref为固定sha256绑定。schema/output_schema均沿现中立列 schema且各一列；输入float64，输出float64/dimensionless/cross_sectional，missing=preserve。 |
+| `sessions` / `security_ids` | 有序、唯一；完整 D×U 网格，day-major 后 security-order；既有 row-index digest/keys exact。 |
+| `values` / `value_validity` | readonly contiguous float64 / bool buffers，长度 D×U；false槽代表 logical null，不以NaN本身替代missing policy。 |
+| `value_reason_codes` / `reason_dictionary` | 同长reason codes和固定词典，保留原 Core 输入缺失原因；不改原因优先级。 |
+| `fact_available_at_utc_us` | 未取整 UTC integer微秒，同长。label调用映射：eligible格为原raw可用时刻；excluded格value=null、时钟为精确fit cutoff，对应原offline eligibility事实，不冒充原raw事实时钟。原raw时钟仍在Target中。 |
+| `reference_member` / `reference_available_at_utc_us` | 同长资格/membership及其未取整时钟；label调用沿原映射：member=完整本fit资格mask，reference clock=精确fit cutoff。 |
+| `selection_cutoff_utc_us` | 每session一个未取整cutoff（长度D）；label批为同一fit cutoff，不能先ceil后判断真实availability。 |
+| `source_bindings_by_session` / `fact_source_codes` / `reference_source_codes` | 沿现 Source binding字段及本次data/view refs；同长source-code buffers按session词典解析。只来源/clock变化仍进入本次input_ref。 |
+
+以上表格枚举输入dict的全部字段，不接受额外字段。schema每列精确为 `{name,dtype,unit,stage,missing}`；label适配使用原 `raw_return` fact列和 `normalized_target` cross_sectional列。`sessions` 按日期升序，`security_ids` 按稳定ID升序，均非空；第 `i*U+j` 个槽对应 `(security_ids[j],sessions[i])`。buffers为标准buffer protocol兼容的一维、C-contiguous、readonly对象，不要求调用方传NumPy对象：values为little-endian float64，validity/reference_member为bool（字节0/1），reason/source codes为little-endian int32，所有UTC微秒时钟为little-endian int64；除selection_cutoff长度D外均长度D×U，无null clock sentinel。missing值槽使用canonical +0.0，独立validity=false；present值有限。`reason_dictionary=[null,*sorted(unique_reason_strings)]`，code0表示无原因；输入present仅code0，missing仅非零合法code，保留本次原原因文字。
+
+`source_bindings_by_session` 精确为 `{session: {bindings: [...], source_sets: [...]}}`，session覆盖同一sessions。每个binding精确为 `{id,data_ref,view_ref,revision_policy,qualification,availability_basis}`，规则沿现Source binding；bindings按id升序且不重复。source_sets是非空、去重的source-ID集合列表，每个集合为排序非空ID列表且全部ID在bindings中；集合列表按ID tuple字典序固定。每槽fact/reference code索引本session的source_sets；reference的集合恰一ID，沿原reference.source。excluded/invalid槽同样有真实映射后的来源和时钟，不能用-1跳过依赖。
+
+所有buffer采用明示dtype和维度，Core检查shape、keys、bool/code域、有限valid值和时钟边界；readonly输入不得在调用期间修改。schema admission与现Core相同：按mask把槽还原为有限值/null后校验列的dtype/unit/stage/missing，不因packed输入绕过 `missing='reject'`；首版label profile明确为preserve。operator params与现规范逐字段一致，不接受trusted/skip-admission flag。调用侧先按native时钟检查PIT/endpoint/maturity/完整cohort，Core再验证映射后的fact/reference原始时钟≤selection cutoff，然后执行projection。
+
+首版共用原 `_std` 与 `math.fsum`，eligible值及依赖按冻结grid的security顺序进入原算术，不先改成NumPy/pandas reduction。undefined scale判定保持 `std is None or std == 0 or std < epsilon`，不是≤epsilon。已审Core按组统计一次的复用优化可沿用，但不改变有序参与值、std、均值和输出依赖。输入reason codes保留缺失/资格原因；输出reason codes独立生成，当前profile的missing/constant/excluded输出为原 `_merge` 的 `REFERENCE_MISSING`，present输出无原因，不能把raw原因直接复制为CS输出原因。
+
+`ceil_to_core_second_v1` 定义为UTC微秒向上取整至整秒，等于原 `core_clock`。fact、reference、cutoff分别投影；输出每格available_at沿原 `_merge`：参与cohort的全部fact clocks、全reference组（含被排除键）的clocks及本格fact clock取最大值。label映射的reference为cutoff，所以输出normalized时钟为projected fit cutoff。缺失/constant/excluded也按原规则输出，不用raw本行时钟替代group依赖；保持原raw label clock在Research父件中，不被改写。
+
+`result` 返回owned float64值buffer、validity、reason codes/dictionary、available_at_utc_us及输出source-code映射，与输入同完整网格；不返回文件路径或拟合状态。metadata为 `core_cs_zscore_batch_result_v1`，包含input_ref、numeric_input_ref、spec_ref、keys_ref、schema/source/context refs、values/flags/clocks digest、implementation_ref和result_ref。`numeric_input_ref`只标明有序值/资格/数学定义同一，不授予来源或时钟复用。`result_ref`绑定本次完整input_ref+参数/clock mode+实际Core实现+全部输出digest；Core自己校验/生成，不接受caller自报的正确结果。
+
+精确输出dict字段为 `contract_version,sessions,security_ids,schema,values,value_validity,value_reason_codes,reason_dictionary,available_at_utc_us,source_bindings_by_session,source_codes,metadata`；contract_version=`core_cs_zscore_batch_result_v1`，schema=输入output_schema，所有输出buffer由Core拥有并以readonly返回，dtype/order/长度沿上文。输出source_sets记录原 `_merge` 依赖source的排序并集，source_codes按本session词典解析；输出原因遵守原Core输出规则（如REFERENCE_MISSING），原输入原因另由input_ref绑定，不把eligibility原因冒充Core输出原因。metadata精确为 `{input_ref,numeric_input_ref,spec_ref,keys_ref,schema_ref,source_ref,context_ref,values_digest,flags_digest,clocks_digest,implementation_ref,result_ref}`。
+
+引用一律为 `sha256:` 加64位小写hex。每buffer的摘要输入为严格canonical JSON `{dtype,shape,bytes_digest}`；bytes_digest散列规范字节，不散列进程地址。input_ref散列完整输入字段，buffer替换为该摘要描述；keys_ref散列 `{sessions,security_ids,order:'session_security'}`，schema_ref散列输入/output schema，source_ref散列本次bindings/source_sets和fact/reference code描述，context_ref散列calendar_ref、keys_ref、reference_member/reference clocks、selection cutoff描述。spec_ref散列 `{abi:'axiom.feature/1',semantics:'axiom.operators/1',operator:'cs_zscore',operator_version:'1',params,clock_projection}`；params全部显式，首版固定 `{group:'session',unknown_group:'reject',missing:'skip',ddof:0,epsilon:1e-12,constant:'missing',clip:null,excluded:'missing'}`。numeric_input_ref散列keys_ref、schema_ref、spec_ref、有序values/validity/reasons和reference_member描述，故仅剥离来源/时钟、不剥离cohort。values_digest散列values描述，flags_digest散列validity/reason code描述及词典，clocks_digest散列available_at描述。implementation_ref绑定实际参与Core代码/算术backend版本，不接受caller指定；result_ref散列完整输出字段（同样把buffer替换为摘要描述，metadata仅移除result_ref），输出source映射同样在闭包内。保存时该canonical result与物理文件descriptor分离，Research索引wrapper负责绑定二者；路径不混入Core输入/结果，见Research §8.2.2。
+
+buffer digest codec固定：day-major float64 little-endian（null槽canonical0、独立valid mask），bool0/1、UTC int64微秒及code词典/keys/source metadata严格canonical JSON；不通过object repr或未知scalar stringify作身份。读取packed父件验证上述codec/digest与selector闭包；不重新执行数学。
+
+新结果不是旧 FeatureFrame，不能将旧frame_ref重贴到新输入。调用侧保存到prepared-view内部表/分区，loader、FoldManifest独立绑定当前lineage。首版每fit可廉价批算一次而仅复用相同物理值文件；不新增数学缓存registry。有限数值容差、exact flags/keys/clocks及排名边界验收按Research §8.2.1；浮点顺序变化必须声明backend/实现与新身份。
+
 ## 5. 信号与策略协议
 
 ### 5.1 SignalPlan
 
 允许单模型、规则信号、多个模型或已保存 SignalRun 的组合。固定输入 alias、source stage、horizon、键对齐、缺失/过期规则、变换版本与 reference universe。
 
-支持基础算术、rank、zscore、条件组合即可。Research 可用受控 SQL/表达式编译计划；Core 执行已验证表示，不直接 `eval()` 任意字符串，也不读取数据库。
+首个组合增量限于已保存 Prediction 的固定权重加法，权重必须是有限数值，例如 `0.6 × P60 + 0.4 × P180`；这些周期只说明配方，不声明当前已有对应预测。需要 rank 或 zscore 时显式调用已有 Core 算子，冻结变换版本、参数与参考截面。Research 负责加载、计划与保存，Core 接收已验证的输入执行纯计算；首版使用少量明确参数，后续能力按用例逐项扩展，不新增 registry、workflow 或任意表达式 DSL。
+
+组合按相同 `(security_id, session)` 精确对齐，保留完整声明范围和缺失原因。任何必需输入缺失、无效或尚不可用，或计算结果非有限数值，输出相应 invalid；禁止静默填零、前向填充、因缺输入重分配权重或再次标准化。预测生成时采用的 rank/zscore 参考截面固定保存，事后 Label 缺失只影响评价配对，不能据此重算预测或组合。输出的可用时点须覆盖全部输入和已冻结变换的可用时点，并计入声明的发布延迟；模型、fold 和每份输入引用完整保留。
+
+首版可暂缓 sqrt。启用时，负数明确返回 invalid；若需要保留符号的开方，另定义 `signed_sqrt` 算子及其语义。拟合组合权重属于后续 Research 训练编排，只能用拟合时已经成熟的目标和 base 模型的 OOS 预测；每次拟合保存允许使用的预测区间，禁止全期拟合后回填历史。
 
 每条 signal 有 `score_semantics`，例如 rank_score、standardized_return_prediction、calibrated_probability。没有校准证据不生成“80% 会涨”的解释字段。
 
@@ -267,6 +371,7 @@ Trace 由调用方写入 run artifacts，UI 按 P12 读取。只要保存的 ref
 | C15 | 保存 trace 后供 UI 查询 | 图上目标/原因与真实运行一致，UI 不调用决策引擎 |
 
 性能验收单独记录 batch/逐日耗时与内存，不通过删校验、改 dtype 或改变算子来达标。具体预算在固定硬件和代表性数据上确认后冻结。
+Core 可在每次 `execute_feature_plan` 内复用一次构造的 history 键集合及校验后 refs 的 session/industry 保序索引以减少重复扫描，但不跨调用或 cutoff 复用结果，完整验证、算子数学及 FeatureFrame payload/identity 必须保持逐字一致。
 
 ## 12. 依据与未决项
 
