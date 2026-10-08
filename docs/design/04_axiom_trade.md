@@ -1376,6 +1376,39 @@ audit/capture 各一次，账户阶段原输入重开为零；无 Data/Research/
 调用，原输入、旧结果与源码不变，handles/helpers 已关闭。这只证明该有界窗口。
 benchmark 口径、合成检查和逐文件计时见 [软件测试说明](https://github.com/sinnergarden/axiom-engine/blob/63b032cf5158a2abfc28ed87eef73acc64665b4f/tools/stock_input_benchmarks.md)。
 
+#### 执行市场与保存 Signal 的独立生命周期
+
+下一步内部拆分保留上述入口，并增加以下入口；公开 request/run v7 与 Model v2 形状不变。
+`StockMarketSpec.from_request(request)` 只提取执行市场字段；也可在 Signal 尚未生成时以
+`StockMarketSpec.from_dict(value)` 提交精确的 `scope, profile_input, market_input,
+stock_action_policy, clock_policy`。其中 market_input 精确含 `contract_version,
+execution_snapshot_id, warmup_sessions, price_basis, projection_version, native_inputs`，
+native_inputs 只含 execution 角色，其他字段沿既有 v7 合同。
+
+```python
+admit_stock_market_inputs(spec: StockMarketSpec, *, source: StockInputSource,
+    block_sessions: int, limits: dict, max_market_bytes: int) -> AdmittedStockMarket
+bind_stock_prediction_inputs(market: AdmittedStockMarket, request: BacktestRequest, *,
+    source: StockInputSource, limits: dict, max_signal_bytes: int) -> AdmittedStockInputs
+```
+
+market owner 一次审核并冻结 execution Snapshot、完整 scope/warmup、原市场、profile、
+规则、费用、行动与时钟及实现，不绑定 model、Signal、账户、现金或 TopK。
+它保留准入时的原始六项价格字段、factor、member 及 `_PAIR_META` 的有界原生视图；
+新的 prediction basis 按原配对规则核验，不能从成交价或投影后的简化行重建。
+同一 market 内，完全相同的 model Snapshot 与 basis 逻辑 refs 复用已通过的配对证明；
+每个新 Signal 仍审核原 fold/model/prediction 闭包、成员与时钟。新的 basis 只读取新来源并
+与保留视图配对，不重开执行市场；执行市场、成员来源、scope、规则或时钟改变则拒绝复用。
+
+返回的 Signal handle 借用 market，以原 `run_stock_backtest` 执行独立账户。
+失败只丢弃此次 Signal 的临时存储和借用；market 仍可用。所有入口先检查创建 PID，
+同一 market 上绑定与账户执行串行；有 Signal 借用时 market.close 拒绝，Signal.close
+释放借用。旧 `admit_stock_inputs` 组合这两个操作并由返回 handle 负责关闭私有 market。
+market 与 Signal 各有正整数字节配额（拒 bool），在写入或索引增长前检查；共享历史只由
+market 生命周期计费一次，Signal 不复制固定历史。账户的临时解码仍受原 limits 约束；
+这些内部字节账目与进程树 RSS 分开。当前先以轻量合成验证及固定源码审阅交付，
+尚未证明五年资源规模；Data 的公共分块保存/打开合同由 Data owner 固定后另行实施。
+
 ## 7. 账户与 Ledger 数据模型
 
 账户权威分两层：Trade ledger 是系统内部流水与状态；RealBroker 是外部订单/成交/账户的对账依据。差异产生显式记录和调整事件，不用券商快照直接覆盖旧账。
