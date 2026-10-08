@@ -355,230 +355,63 @@ SZSE [2023 交易规则](https://www.szse.cn/lawrules/rule/repeal/rules/t2023021
 
 ### 6.4 已保存股票输入的一次准入与顺序账户复用
 
-状态：父已裁决技术边界；Engine 实现候选为
-[`9f86ac5`](https://github.com/sinnergarden/axiom-engine/commit/9f86ac5) 与
-[`26c49df`](https://github.com/sinnergarden/axiom-engine/commit/26c49df)，创建 PID 修复为
-[`b5dc2f4`](https://github.com/sinnergarden/axiom-engine/commit/b5dc2f4)，
-`b5dc2f4` 已完成独立 review 与一次有界真实复用验收；后继
-[`da10733`](https://github.com/sinnergarden/axiom-engine/commit/da10733) 将默认 scalar cache
-恢复为 0，保留 opt-in，12 项定向合成检查通过，待父审 merge。此增量仅作用于有界股票 v7 输入消费，
-不重跑旧账户、不改变原 Core/SimBroker/ledger 业务，也不增加 Qlib 执行器或新 daily 路径。
-
-公共入口为 `admit_stock_inputs(manifest: BacktestRequest, *, source: StockInputSource,
-block_sessions: int, limits: dict, max_owned_bytes: int) -> AdmittedStockInputs`。
-返回对象作为既有 `run_stock_backtest(manifest, *, source, sink, block_sessions, limits)` 的
-`source` 参数使用；首版仅限创建对象的进程顺序运行账户，`block_sessions` 与导入时保持一致。
-对象记录创建 PID；包括 statistics、inventory、audit、迭代、context 进入/退出和 close 的
-公开入口在触锁、存储或内部状态前拒绝异 PID，fork 继承对象也不能复用。对象支持
-`with`/`close()`，并发执行或执行期间 close 拒绝。原 `StockInputSource` 路径仍完整准入，
-作为 exact oracle 保留；每个账户继续独立创建 ledger、sink 和 run 身份。
-
-输入能力比较使用既有 manifest 的逻辑 ArtifactRef 解释，移除 `request_ref`、
-`account_id`、`initial_account` 与 `portfolio_policy.top_k` 后保留其余全部字段。
-这只是进程内比较，不新增可发布 input ref、receipt/hash 包装或持久 validated 标记。
-delivery URI 仍不改变逻辑输入身份，复用时读取已捕获的原字节，不转读替换路径。
-
-| 变更 | 首版处理 |
-|---|---|
-| account_id、正整数初始现金、合法 TopK | 可复用；初始持仓仍须为空；资金、k 绑定各自请求/run 身份 |
-| 其他 portfolio_policy 字段或新增风险参数 | 不模糊复用；现合同未定义的参数拒绝 |
-| profile、费用、滑点、UNKNOWN 解释、规则与规则 ref | 重新准入 |
-| universe、calendar、anchor、区间、warmup、scope | 重新准入 |
-| Snapshot、native/query/projection refs、fold/model/feature/prediction refs | 重新准入 |
-| clock/action policy、合同/实现版本及其他 manifest 字段 | 重新准入或按原合同拒绝 |
-
-导入先按原合同核对全部源字节真实性、canonical JSON、字段/单位、时钟、PIT 配对与
-全范围行约束，再捕获执行所需块。Engine 自有临时存储没有公开路径，导入后没有写入口；
-`max_owned_bytes` 在每次写入前限制总量。原历史 span 索引导入后释放，账户仅解码当前块，
-globals/块/索引/decoder 临时输入仍按累计 decoded 预算限制，不将多年 Python 行对象常驻。
-这里 decoded 是 canonical byte-volume 核算，包含声明的临时/索引预留，不是进程 RSS；
-实际 Python 对象、解释器与 allocator 峰值仍须在有用验收中独立采样，不能把该计数当 RSS 上限。
-任何账户持有的可变解码副本不影响后续账户。所有账户的原 input/fold/row/result 限额继续生效。
-
-`StockInputSource()` 现在默认 `scalar_cache_bytes=0`；标量缓存的真实冷加速没有通过，默认关闭是
-保守性能选择。显式 opt-in `StockInputSource(scalar_cache_bytes=262144)` 在一次导入内
-复用已通过原 decode/canonical 检查的、不超过 256 字节的相同标量字节。缓存计入累计预算，
-在必需输入增长前驱逐；原 scanner oracle 保留。
-所有物理字节仍完整扫描/hash，结构、键顺序/重复键及每个 reserved Unknown 对象仍逐项验证。
-
-两个可审增量分别为来源所有权/顺序复用与冷 scanner 标量复用。`source.statistics` 提供
-每文件 scan/read/hash、标量 decode/canonical 次数与耗时、选中行消费计数；
-`inputs.statistics` 分开记录首次 source audit/capture 与后续 owned 块消费。
-合成 probe `PYTHONPATH=src:tests python tools/bench_stock_owned_inputs.py` 不调用 Data、
-Feature、fit/predict。一次 2,147,694 字节合成验收中，cold import 为关闭缓存 0.849 秒、
-开启 0.540 秒，decode/canonical 为 105,725 次降至 291 次；五个 TopK 的独立账户复用消费
-合计 0.146 秒，完整保存 run/账本与原路径 exact 一致。原始扫描为一次，后续原始扫描为零。
-这些是合成检查，不能作为真实冷导入加速的结论。
-
-真实验收固定源码为 `b5dc2f4`，implementation 为 `sha256:3f35b804fac3a78939dd26ad244f77b4151d8d717d10d001fc40c0b0feb8b545`：
-26 个物理文件共 594,205,431 字节只冷准入一次，capture 后原索引释放。Top5 的 NAV、现金、
-持仓、decision、orders、fills、fees 与 ledgers 对旧账户逐字段 exact，只有新 run 绑定的
-订单/成交关联 ID 规范化；Top3 复用同一保存预测与相同初始资金，产生不同组合和独立账户。
-两账户执行为 0.323/0.293 秒，owned 读取各 15,102,120 字节/11 records，原输入重开和
-原 source 扫描/选中行重读均为零。总窗口 477.96 秒，峰值进程树 RSS 83.22 MiB，
-owned 临时存储 14.40 MiB；没有 Data、Feature、fit/predict 或供应商调用，原输入/旧报告不变。
-
-必须分开裁决：owned 复用通过；scalar cache 的真实冷加速不通过。真实 audit 为 472.64 秒，
-比此前固定 `21cc1d5` 的 349.007 秒参考更慢；这不是同一源码/同机状态的严格 A/B。
-48,112,179 次标量中仅 2,462,313 次命中（5.12%），45,648,342 次驱逐，不能据合成样本
-提速声称真实收益，也不调整 cache 尺寸反复跑。`da10733` 的 implementation 为
-`sha256:0399ff578c5d60f1137aaa2a35ab4f992934a91d62b287cc6adaf1fb16c24732`，
-仅做定向合成验证；旧真实回执不改绑到该后继源码。
-
-#### 6.4.1 文件级 C JSON 快路径候选（已复核及有界真实验收）
-
-目标是保留完整来源身份与准入语义，移除每个字节和每个标量必经 Python scanner 的税。
-现统计中，两份约 205 MB 的 actions 与约 130 MB 的 limits 合计占原字节约 91%，
-占 scan 耗时约 95%；先针对原 native Data JSON，其他 profile/fold/model/prediction 保留
-现 stream。首版不新增解析依赖或账户执行器。CPython 3.12 的 `_json` 支持 C scanner
-及 C encoder；`object_pairs_hook` 仍有逐对象 Python 回调，不能声称纯 C 全部准入。
-依据为 [Python json 合同](https://docs.python.org/3.12/library/json.html) 与
-[本机同版本 CPython 3.12.12 源码](https://github.com/python/cpython/blob/v3.12.12/Modules/_json.c)。
-
-父批准最小实现和定向合成验证后，候选固定为 Engine
-[`2842ca9`](https://github.com/sinnergarden/axiom-engine/commit/2842ca992bb7c557945866ef3a48be80b21d7a75)，
-`implementation_ref=sha256:bd17832943f391e14dd7b3ae78cb5c314e05698fc0f369d8368cbcfc0ed66978`；
-它叠加于 Research 当前使用的 `da10733`，没有改写旧真实保存结果的源码绑定。
-候选的准确 factory 签名为：
+股票 v7 可将固定输入完整准入一次，捕获为 `AdmittedStockInputs`，供多个账户顺序消费。
+账户仍由唯一 Core/Runtime/SimBroker 执行，各自拥有 ledger、sink、account 与 run 身份。
+实现见 [Engine PR21](https://github.com/sinnergarden/axiom-engine/pull/21) 与
+[PR22](https://github.com/sinnergarden/axiom-engine/pull/22)，均已合并；Qlib 不承担账户执行。
 
 ```python
+admit_stock_inputs(manifest: BacktestRequest, *, source: StockInputSource,
+                   block_sessions: int, limits: dict,
+                   max_owned_bytes: int) -> AdmittedStockInputs
 StockInputSource(*, scalar_cache_bytes=0, file_parse_mode="stream",
                  max_file_parse_bytes=None, max_file_parse_rss_bytes=None,
                  max_file_parse_spool_bytes=None, max_file_parse_seconds=120)
 ```
 
-首版只在显式 `file_parse_mode="cjson"` 且调用者提供文件、进程树 RSS、私有 spool 三个
-正整数预算时尝试快路径，拒绝 bool；`max_file_parse_bytes` 按单个物理文件，
-`max_file_parse_rss_bytes` 包含 owner 和其 helper 子树，`max_file_parse_spool_bytes` 为本次
-source 累计私有磁盘 quota，`max_file_parse_seconds` 为每个 helper 的正整数秒超时。
-默认 stream 和标量缓存关闭保持；不默认 8 GiB。文件解析预算独立于现有 64 MiB canonical decoded 的账户块预算；
-机器为 24 GiB，不能把该旧块限额当作整文件解析的架构上限。opt-in 按物理文件顺序处理，
-去重同文件/相同 ref，一次只有一份整文件 graph；stream 可强制保留旧路径。
+返回对象作为 `run_stock_backtest(manifest, *, source, sink, block_sessions, limits)` 的
+`source` 使用，`block_sessions` 与导入一致；支持 `with`/`close()`。
+对象仅由创建 PID 顺序使用，所有公开入口在触锁或存储前拒绝异 PID，包括 fork 继承；
+并发执行及执行期间 close 拒绝。可变解码副本不影响后续账户。
 
-1. 对原文件做 stat/fd 锁定和尺寸/总 input gate，读取全部原 bytes；完整 file SHA 保留
-   terminal LF，content SHA 仅排除允许的最后一个 LF。严格 UTF-8 转为 text 后释放 raw。
-   由 `json.loads` C scanner 解码，pairs hook 保留重复键及严格键顺序拒绝，parse_constant
-   拒绝 NaN/Infinity。完整 graph 仍检查 finite（含 `1e999`）、所有 reserved Unknown、
-   depth<=128、顶层 object 和原合同，不跳过大型 coverage 的验证。
-2. 释放输入 text 后用标准 C encoder 按现 canonical 参数完整重编码（紧凑分隔、
-   ensure_ascii=False、allow_nan=False、无 indent）；canonical 输出分块编码，并与仍保留的
-   原文件只读 fd 按对应字节范围逐块 exact 比较，累计长度等于原 body 长度，尾部只允许
-   最初记录的单个 LF 或 EOF；前后 stat/fd 身份不变。完整 file/content SHA 同时保留。
-   这会增加一次原字节顺序读，单独计数，但不再调用旧 Python scanner、逐标量 decode
-   或整图重解码，不能仅 loads 成功或仅比较规范化后的对象。随后复用 `_install_native_limits`/`_native_header` 的
-   domain、Snapshot/Reader、原 query/单位/字段、warmup/calendar/universe、所有原 records
-   与 metadata 行数/范围/嵌套行拒绝等 gate，再建紧凑索引；重复/缺 key 与 PIT、factor、
-   lifecycle、action、clock、费用及预测配对仍走同一 `_audit` 业务，成功前不创建账户。
-3. 标准 C parser 不给原字节 offsets。完整 canonical 身份已证明后，可把必要 header 与
-   原顺序选中 records/metadata 行写入 Engine 私有有界 spool，索引为原 parent_ref、array_path、
-   session、原顺序行串联 segment SHA 与 file SHA；均为内部 views，不发布新 DataBatch/ref。
-   生成 views 只借用当前 graph 的行，逐行/有界块编码，不 deepcopy 全图、不另建完整
-   selected graph，也不通过 Pipe/pickle 传整图。header 的 coverage 已全量验证/hash 后释放，沿用现 header() 省略 coverage 的消费语义。
-   每文件完成后释放整 graph，父进程只保留小 header/offsets；选中行供现审核与 owned capture。
+复用比较既有 manifest 的逻辑 ArtifactRef；除 `request_ref`、`account_id`、
+`initial_account` 与 `portfolio_policy.top_k` 外，其余全部字段保持一致。
+URI 不改变逻辑输入身份；复用读取已捕获的字节，不转读新路径。
+这是进程内能力，不新增公开 input ref、receipt 或持久 validated 标记。
 
-最大文件的规划估算取 S=205,471,694 bytes（195.95 MiB）；不是实测峰值或严格内存证明：
-
-| 同时存活内容 | 规划预算 |
+| 变更 | 处理 |
 |---|---|
-| 原 bytes 与 UTF-8→Unicode text | S + 最坏 4S，解码前 bytes 释放 |
-| graph、dict/list/数值/字符串、key memo 与 pairs 暂存 | 按 24S 估算，约 4.59 GiB；此乘数不是普适上界 |
-| C encoder Unicode writer 的扩容/旧新缓冲 | 按 10S 预留，约 1.91 GiB；不与输入 raw/text 同时保留 |
-| canonical 比较/hash 的 Unicode/UTF-8 与原 fd 小块 | 合计 64 MiB；不再生成完整 canonical bytes 副本 |
-| 保留 header/索引/父进程及 allocator 余量 | 512 + 256 MiB；spool 另按磁盘 quota |
+| account_id、正整数初始现金、合法 TopK | 可复用；初始持仓为空；资金与 k 绑定各自请求/run |
+| profile、费用、滑点、UNKNOWN、规则、clock/action policy | 重新准入 |
+| universe、calendar、anchor、区间、warmup、scope | 重新准入 |
+| Snapshot、native/query/projection、fold/model/feature/prediction refs | 重新准入 |
+| 其余 policy、合同/实现版本或其他 manifest 字段 | 重新准入或按原合同拒绝；未定义参数拒绝 |
 
-encoder 阶段规划峰值为 `(24+10)S + (64+512+256)MiB` = 7.31875 GiB（约 7.32 GiB），
-解析阶段为 graph+text，不与原 bytes 同时保留，预算更低。8 GiB/256 MiB 只是显式 opt-in
-预算的评估例，不是默认值或实测峰值。预检估算、文件尺寸或监控能力不满足调用者预算，
-在启动该文件快解析前明确记录择 stream；不能全载 594 MB 所有文件。
-64 MiB 账户块、128 MiB owned quota 等不因快解析自动增大。
+导入保留完整原 file/content SHA、canonical JSON、字段/单位、时钟、PIT 与全范围行审核；
+捕获成功前不创建账户。私有有界存储在每次写入前检查 `max_owned_bytes`，无公开路径或写入口；
+导入后释放原索引，账户只解码当前块，原 input/fold/row/result 限额继续生效。
+canonical decoded 预算含 globals/块/索引/decoder 预留，是字节核算，不是 Python RSS。
+`source.statistics` 记录原扫描与选中行消费；`inputs.statistics` 分开记录 audit/capture 和复用。
 
-主要风险是 stdlib loads 不能在 list/graph 的每次 C 分配前执行 caller 预算，24S 也不能
-证明恶意/不同形状 JSON 的最坏膨胀。建议只把解析放入一次一文件的临时 helper 进程，由
-owner 监控其 RSS，留出 allocator/采样余量；helper 不持有 owned handle、不调用 Core 策略
-或运行账户。运行中 MemoryError、RSS 停线、worker 退出或其他资源失控均明确失败，
-owner 停止 helper、关闭 fd、丢弃全部未提交 spool/索引，本次准入不返回 handle、不创建账户；
-不捕获 OOM 后悄悄重新跑 stream。语法、身份或业务 gate 失败同样直接拒绝。
-父 owner 仍建立成功的最终 handle，PID 合同不变。RSS 采样会有短时超调风险，不能宣传
-为逐分配硬上界。stream 只在预检时选择或由调用者显式选择；重试需要另起明确调用。
-旧 scanner 保留作定向合成反例/exact oracle，不作为 CJSON 每次准入的第二遍完整审核。
+默认 `file_parse_mode="stream"`、`scalar_cache_bytes=0`；标量缓存仅显式 opt-in。
+显式 `file_parse_mode="cjson"` 仅处理原 native Data JSON，去重后一次一物理文件；
+profile/fold/manifest/model/prediction 保留 stream。调用者必须提供文件、进程树 RSS、
+累计私有 spool 三个正整数预算（拒 bool），helper 秒超时也为正整数，默认 120 秒。
+RSS 包含 owner/helper 子树，spool 与 owned quota 独立；不把 decoded 预算当 RSS 或扩账户限额。
 
-前驱 `327cbd4` 通过 59 项相关合成回归（CJSON、原 stream、owned inputs、scalar cache、源码绑定）。
-包含重复/乱序键、非 canonical 数字/空白/Unicode、NaN/Infinity/溢出、reserved Unknown、
-深度、原 query/行数/单位 gate，以及已启动 helper 的 MemoryError/RSS/超时/spool 停线和清理。
-完整 header、全部结果/ledger 行及保存后 projection 与原 stream oracle exact 相同；
-Top3/Top5 复用同 Signal、同初始资金，得到不同账户；未新增账户执行器或准入 receipt/ref。
+CJSON helper 只解析及验证，保留完整 finite/Unknown/depth<=128、重复/键序、canonical 字节相等
+和全部原业务 gate；path/fd/stat 与文件 cap 在整读前复核。选中行仅写私有 spool，不发新 Data ref。
+尺寸、规划 RSS 或监控能力不足时，只能在 helper 启动前明确选择 stream。
+helper 已启动后的语法、身份、业务、MemoryError、RSS、超时或 spool 失败均停止准入，
+关闭 helper/fd 并丢弃未提交存储，不返回 handle、不创建账户，也不自动重跑 stream。
+RSS 估算与采样不是逐分配硬上界；成功后释放整图，父进程保留有界索引并建立 owned handle。
 
-前驱 `327cbd4` 的一次混合合成 cold 对照含 20,000 条 coverage（重复字段和值，以及唯一序号、hash、float、
-UTF-8），完整输入 4,065,531 bytes。stream 1.805626 秒、CJSON 1.541866 秒，计时含
-helper 启动、完整 parse/validate/canonical 字节比较、spool、父审核消费及 owned capture。
-9 个去重 native 文件实际走 CJSON；监控/原生 child 峰值合并的进程树 RSS 为
-124,108,800 bytes（约 118.36 MiB），私有 spool 88,461 bytes，最终 owned 73,611 bytes。
-这是一轮小型合成测量，不构成真实 594 MB 输入的加速或 8 GiB 安全证明。
-父释放后的首个真实窗口在 controller 将瞬态 `"(ps)"` 进程名误判为异常子进程后停止。
-它只进入准入早期，完整 cold 结果不可用、账户未执行；不能记为 CJSON 真实 PASS。
-worker/helper 已退出，原文件 stat、旧保存结果 SHA 与固定源码保护通过，未自动重试。
-首个窗口消耗 0.991207 秒，保留为 harness 失败成本。私有 controller 移除运行中的
-进程名称白名单，按自身子树及已声明 helper 的 PID、独立 PGID、出生时间采样与清理；
-5 项小控制验证通过（0.801 秒），覆盖瞬态 ps、独立进程组、worker 先退出及短进程竞态。
-
-父读后批准恢复同一计划一次；2026-10-08 00:04:50 UTC 启动，固定 Engine `2842ca9`
-及上述 implementation 不变，继续使用原 594,205,431 bytes / 26 文件输入及旧 b5 保存 oracle，
-不重做输入或 stream 基线。恢复 controller 45.407932 秒 PASS，加上原失败累计
-46.399139 秒；cold audit 39.658387 秒，owned capture 3.544879 秒，完整 cold admission
-43.221188 秒。原保存观察为 b5 cold 476.202292 秒；两次观察约 11.02 倍，源码版本与机器
-条件不同，不能当成同 head 受控 benchmark。
-
-9 个去重 native 文件全部完成 CJSON，零 native stream 选择；17 个非 native 文件按原范围
-保留 stream（profile 及四个 fold 各自的 fold/manifest/model/predictions）。逐文件 native
-scan 计时含 helper 和父索引建立，helper 计时含其内部阶段，二者不相加：
-
-| native 文件 | 实际路径 | scan 秒 | helper 秒 |
-|---|---|---:|---:|
-| states | CJSON | 0.866264 | 0.834612 |
-| market | CJSON | 2.337932 | 2.303671 |
-| limits | CJSON | 5.127539 | 5.095928 |
-| factor | CJSON | 0.631599 | 0.602397 |
-| actions-ex_date | CJSON | 7.423011 | 7.395639 |
-| actions-record_date | CJSON | 7.569583 | 7.541549 |
-| membership | CJSON | 0.764689 | 0.735081 |
-| warmup-market | CJSON | 0.276322 | 0.247982 |
-| warmup-factor | CJSON | 0.165258 | 0.139195 |
-
-原字节 scan/read/hash 为 594,205,431 bytes，CJSON canonical 额外比较读 580,218,841 bytes。
-native helper 合计 24.896053 秒，其中 UTF-8/parse 2.246812 秒、完整 walk 14.515282 秒、
-含 C encode/UTF-8 的字节比较 2.157597 秒、spool 3.598419 秒；不臆造更细的计时拆分。
-controller 采样峰值 1,799,520,256 bytes；合并 helper 原生峰值的树观察为 2,016,051,200 bytes
-（约 1.87759 GiB），均低于显式 8 GiB 预算，仍不是逐分配硬上界。私有 spool
-46,206,192 bytes、owned 15,102,120 bytes，均低于各自 128 MiB；controller 结束时新命名
-输出 2,673,730 bytes，低于 64 MiB。每 helper 均低于 120 秒，最大原文件低于 256 MiB。
-
-audit/capture 各一次，十个 owned blocks 复用两次。Top5/Top3 账户、public save/load 与旧
-保存 oracle 的八组全部业务行及 header exact 比对通过，零数值容差；仅按既定规则排除
-新源码/输出 provenance 和归一 run 前缀 IDs。账户阶段原 source reopen 为零，
-Data/Research/Feature/fit/predict/supplier 调用均为零。同 Signal、同初始资金得到不同 k 的
-独立账户及 NAV；原输入 stat、旧结果 SHA 和固定源码保护通过。owned handle 已关闭，
-controller/worker/全部九个 helper 的退出已复核。本次结果只证明这个有界真实窗口。
-
-独立集中 review 在前驱发现两个 P2，后继 `2842ca9` 已修：metadata 按原 object/list
-子节点规则保留 span，非空 list 条目进入原 grid gate，额外 scalar/空容器的边界与 stream
-一致；预检、索引初始化与 helper 绑定同一 dev/inode/size/mtime/ctime，改变即失败。
-helper 在 payload 整读前同时检查 path/fd 的显式文件 cap，bulk read 只分配已验尺寸，
-EOF/stat 复核在 hash/parse 前完成，不隐式重试。后继 6 项定向合成检查通过（11.372 秒），
-覆盖 17 组 metadata shape、完整 grid 拒绝、增长/等长修改/inode 替换、读前 cap、
-Top3/Top5 完整保存结果 exact、失败清理与源码 freeze；未重跑原 59 项或 cold benchmark。
-
-Research `6f2aed9` 的 `stock_ml_saved_inputs_v4`、selector descriptor 与外部 fold_control
-保留在原 `fold_v3.definition` 内；原 `fold_manifest_v2` 的八文件表、model_v2、prediction_v2
-及 `definition/fold_spec` selector 未变。静态源码核对和小型合成 source admission 通过，
-Engine 无需兼容代码 delta；原 parent/child/file/definition/fold/stage refs 与全部 clock/union
-gates 保持。Engine 不读取 prepared training/control closure，Research 继续验证其闭包；
-该 probe 未执行账户、fit/predict 或读取真实数据。
-
-这种整文件标准库路径保留 C tokenization，但仍有逐对象语义 walk 与 canonical re-encode。
-标准 `json.load` 内部仍先 read 全文，不能当作 C 流式方案；`iterencode` 常规调用也走
-Python encoder，不能拿来证明 C 加速。SAX/事件式 C 库可减少 graph 常驻，却增加依赖与
-精确数值/canonical/Unknown/source-binding 适配面，首版不引入。后续需先按这些 gate
-做定向合成 exact/拒绝/预检 stream 选择与运行中停线对比；扩大文件形状或真实窗口仍须父另裁决。
+固定 `2842ca9` 的有界真实验收：完整 cold admission 43.22 秒，9 个 native 全部 CJSON，
+17 个非 native 按约定 stream，观察峰值树 RSS 1.88 GiB。Top5/Top3 复用同 Signal、同资金，
+得到不同账户；全部业务 header/八组行对旧保存 oracle exact（仅约定 provenance/ID 归一）。
+audit/capture 各一次，账户阶段原输入重开为零；无 Data/Research/Feature/fit/predict/supplier
+调用，原输入、旧结果与源码不变，handles/helpers 已关闭。这只证明该有界窗口。
+benchmark 口径、合成检查和逐文件计时见 [软件测试说明](https://github.com/sinnergarden/axiom-engine/blob/63b032cf5158a2abfc28ed87eef73acc64665b4f/tools/stock_input_benchmarks.md)。
 
 ## 7. 账户与 Ledger 数据模型
 
