@@ -378,3 +378,93 @@ Core 可在每次 `execute_feature_plan` 内复用一次构造的 history 键集
 继承上传的 Axiom 总纲 v0.1 §5–7，以及 signal-centric 文档关于模型与策略解耦、组合表达式和 target-based plan 的设计。本版进一步明确 Feature stage、插件 ABI、AccountState 版本及 pending order 的职责。
 
 尚待专项确认：首个模型 backend、插件打包方式、具体 portfolio 基线、state migration 规则、日级事件时间表和实际交易规则覆盖。不得因这些未决项引入多个 mode-specific 决策实现；缺支持时明确拒绝。
+
+
+## 13. M1：显式目标合同与已保存 SignalPlan（2026-10-08）
+
+适用候选：Engine 候选 [`aa0647584e9cfb15f30d9d1b1efc94b6c8e112d0`](https://github.com/sinnergarden/axiom-engine/commit/aa0647584e9cfb15f30d9d1b1efc94b6c8e112d0)，基于已审 A `a59f3b4`。本节是具体增量合同；验收证据为 184 项定向合成与既有路径回归测试（27.19 秒），尚未完成 Research 真实保存预测接入或长窗口验收。实现保留唯一 Core 数学和 Runtime 账户执行；Qlib 不成为第二执行器。
+
+### 13.1 原始预测的目标身份
+
+`stock_prediction_run_v3` 与 `stock_model_release_v3` 用显式目标取代新合同中的固定五日字符串。旧 `stock_prediction_run_v1/v2`、旧 v2 model 和 loader 继续执行原规则，不能把新政策塞入旧版本。
+
+完整 `label_spec` 的精确字段与当前支持值：
+
+| 字段 | 支持值或约束 |
+|---|---|
+| `label_id` / `semantic_version` | 非空声明 / `"1"` |
+| `horizon_sessions` | 正整数，拒绝 bool；所有示例 h 均可配置 |
+| `start_session_offset` / `end_session_offset` | 整数 `1` / h，拒绝 bool |
+| `start_price` / `end_price` | `open` / `close` |
+| `calendar_ref` / `adjustment_anchor` | 显式 SHA256 / 明确 session；不猜日历或 anchor |
+| `price_basis` | `common_anchor_adjusted_v1` |
+| `formula` | 声明 `close(f+h) / open(f+1) - 1`；字符串不作为可执行代码 |
+| `normalization` / `costs` | 原始 Label 的 `none` / `none` |
+| `corporate_action_policy` | `factor_ratio_no_separate_cashflow` |
+| `availability` | `max_endpoint_price_factor_anchor_usable_from` |
+| `maturity_rule` | `all_outcome_dependencies_strictly_before_fit_cutoff` |
+| `missing_policy` | `invalid_null_preserve_grid` |
+
+`label_spec_ref` 是完整 spec 的 Core canonical SHA256。其他声明政策明确拒绝。Research 选择实际端点、Data 复权事实、PIT 与 fit 前成熟样本；Core 不查询行情或构造另一套 Label 框架。端点收益的薄共享函数候选 `return_from_prices(start_price, end_price, *, zero="missing")` 尚待 Research 对齐，不能当作本候选已提供的公共函数。
+
+模型训练的 `label_normalization` 单独声明 `{operator, operator_version, params}`，版本 `"1"`；当前为 `identity` + 空 params，或 `cs_zscore` + 完整既有 Core 参数且 `group=session`。这不是 Signal stage：对 zscore Label 训练得到的模型分数仍处于 `raw_prediction`，可以再按明确 SignalPlan 对模型分数作 `daily_zscore`。
+
+v3 prediction 顶层精确字段：
+
+```text
+contract_version signal_run_ref signal_stage score_semantics score_unit
+feature_ref model_ref limitations universe rows fold_spec_ref clock_basis
+label_spec label_spec_ref label_normalization
+```
+
+`signal_stage=raw_prediction`，`score_unit=dimensionless`，`clock_basis=declared_simulation`。`score_semantics` 非空并与真实 model 的 `target_semantics` 和对应 `SignalInput.score_semantics` 完全匹配，不限制 Feature 宽度或目标 h。v3 model 在原 `stock_model_release_v2` 全部字段上增加 `label_spec/label_spec_ref`，其归一化和 spec 必须与 prediction 完全一致；当前接纳 regression objective。
+
+raw 行精确字段：
+
+```text
+security_id session knowledge_cutoff available_at score valid invalid_reason
+source_refs member feature_knowledge_cutoff feature_available_at
+simulated_model_available_at
+```
+
+每 session 保留完整冻结 universe；重复 key、缺失行、非有限分数、有效行缺 Feature availability、未来依赖、跨行 model 时钟冲突均拒绝。无效行 score 必须 null 且有原因。model／Feature source refs 为真实父身份。原始 aware 时点保留微秒，不通过日期截断掩盖未来依赖。
+
+### 13.2 薄 SignalPlan 公共入口
+
+```python
+validate_label_spec(spec: dict) -> dict
+validate_signal_plan(plan: dict) -> dict
+signal_plan_ref(plan: dict) -> str
+execute_signal_plan(
+    plan: dict,
+    inputs: dict[str, StockPredictionFrame],
+    context: dict,
+) -> SignalFrame
+```
+
+入口接受 Research 原 typed `SignalPlanSpec` 序列化，Core 不 import Research。root 的语义字段是 `name/key/inputs/nodes/output/join_policy/score_semantics/available_time_semantics`，inputs 为原 `SignalInput`，nodes 为原 `SignalNode`；各层保留 `contract_version="1"` 和 metadata。保存的 `signal_plan` 去除 `contract_type` 标记，Core Document 的保留类型规则不变。`signal_plan_ref` 恢复已知类型位置后按 Research 原 semantic identity 计算：递归排除 contract metadata 和 ArtifactRef URI，保留其余语义身份。
+
+| 原 op | 精确执行约束 |
+|---|---|
+| `daily_zscore` | 一个 `raw_prediction` 父、空 weights、输出 `daily_zscore`；完整 params `group/unknown_group/missing/ddof/epsilon/constant/clip/excluded`；当前 group=session，node missing_policy 与 params.missing 相等 |
+| `weighted_combine` | 每个输入有明确匹配 stage；输出 `final`；有限非负 weights 按输入顺序，使用原 `math.isclose(sum(weights), 1, abs_tol=1e-12)`；missing_policy=propagate，parameters 为空 |
+
+键固定为 `security_id/session`。join 明确选 `inner_on_security_session` 或 `outer_on_security_session`；outer 的缺父输入是有原因的 null，不能压缩为有效分数。禁止对 daily_zscore 再执行 daily_zscore。执行复用既有 Core `cs_zscore` 与 constant/mul/add，不在 Runtime、Research 或 UI 写近似公式。
+
+Research 原 typed LabelSpec 映射必须匹配 h、open(f+1)/close(f+h)、price_basis、absolute_return、factor_ratio_no_separate_cashflow、normalization_policy=none、invalid_null_preserve_grid；其 MaturitySpec 为上述严格成熟规则、lag_sessions=h、actual_exchange_sessions、上述 availability。typed Label 的 name/feature_session 仍属于 Research 定义；prediction 完整 spec 另绑定 calendar/anchor 等运行事实。
+
+context 精确字段为 `calendar_ref/reference_universe/reference_universe_ref/reference_members/cutoff_by_session/clock_basis`。`reference_members` 按 session 保存完整冻结 union，每项是 `{security_id, member, available_at, source_refs}`，包含被排除证券。所有父输入 cutoff 和 member 必须与该 context 匹配，所有依赖可用时间不得晚于原 cutoff。CS 可用时间包含完整参考截面及被排除成员的依赖，不复制单个输出行时钟；Data 实际来源 refs 保留。
+
+### 13.3 Derived 保存合同
+
+`derived_signal_run_v1` 顶层精确字段：
+
+```text
+contract_version signal_run_ref score_ref signal_plan signal_plan_ref
+parent_signal_refs implementation_ref signal_stage score_semantics score_unit
+universe rows context limitations
+```
+
+`parent_signal_refs` 是 alias → 原始完整父 `signal_run_ref`，派生 Signal 没有虚构的单一 `model_ref/fold_spec_ref`。stage 为 plan 输出的 `daily_zscore` 或 `final`；unit 为 dimensionless。`score_ref` 是精确 rows 的 canonical SHA256，`signal_run_ref` 是完整 unsigned output 的 canonical SHA256，另绑定 plan、context、真实父 refs 和 implementation。
+
+Derived 行使用 raw 行字段但去掉 `feature_available_at/simulated_model_available_at`。输出按 session 和冻结 universe 顺序保存，包含 score、validity、原因、原 cutoff、依赖最大 availability、Feature cutoff、member 和来源。调用方直接保存 Core 输出；不能在 UI 补算分数或来源。Runtime 消费方式见 [Trade §16](04_axiom_trade.md#16-m1rawderived-保存输入与同一账户路径2026-10-08)。

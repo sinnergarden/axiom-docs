@@ -2058,3 +2058,61 @@ src/axiom_trade/
 - [E3] SQLite Online Backup API：`https://www.sqlite.org/backup.html`。
 
 待确认：Broker client_order_id/query 能力；准确费用/税务/交易规则与公司行动范围；最小执行窗口和量限制近似；现金四舍五入；真实账户启动/迁移基准。未完成前只交付相应级别，不以示例参数直接实盘。
+
+
+## 16. M1：raw／derived 保存输入与同一账户路径（2026-10-08）
+
+适用候选：Engine 候选 [`aa0647584e9cfb15f30d9d1b1efc94b6c8e112d0`](https://github.com/sinnergarden/axiom-engine/commit/aa0647584e9cfb15f30d9d1b1efc94b6c8e112d0)，基于已审 A `a59f3b4`。184 项定向合成与回归测试（27.19 秒）已验证短窗保存输入、Top3/Top5 不同账户、派生 trace 和独立结果加载；Research 真实长窗口和 Data native 联合重试仍需另行资源窗口。本节不宣称这些真实验收已完成。
+
+### 16.1 小型引用输入
+
+现有 `BacktestRequest` 的 `backtest_request_v7` 继续使用同一 Core planner、SimBroker、费用、现金、股份整手、T+1、corporate-action 处理和账户 ledger。新增内层 `stock_prediction_input_refs_v2`，精确字段仍为 `contract_version/prediction_ref/frames`，每个 frame 显式声明 kind。旧 `stock_prediction_input_refs_v1` 原路径保留。
+
+raw frame 精确字段：
+
+```text
+kind="raw" fold_ref fold_spec_ref model_ref feature_ref signal_run_ref
+fold_spec_artifact model_metadata_artifact prediction_artifact
+```
+
+derived frame 精确字段：
+
+```text
+kind="derived" signal_run_ref signal_plan_ref score_ref implementation_ref
+signal_stage signal_artifact parent_inputs
+```
+
+`parent_inputs` 是 alias → 上述完整 raw frame binding，绑定真实 model／fold／prediction 原件；本增量没有递归 Derived 执行框架。Derived 的小型绑定同时冻结 plan／score／implementation refs 和输出 stage，供保存结果 loader 不重开大 Signal 文件也能核对实际 trace。`prediction_ref` 和 request_ref 的 logical identity 仅排除这些已知 ArtifactRef 位置的 manifest_uri，包括真实父 raw artifacts；业务字段和 refs 全部保留。
+
+公开 Runtime 入口保持原签名：
+
+```python
+admit_stock_market_inputs(spec, *, source, block_sessions, limits, max_market_bytes)
+bind_stock_prediction_inputs(market, request, *, source, limits, max_signal_bytes)
+run_stock_backtest(manifest, *, source, sink, block_sessions, limits)
+load_stock_backtest_projection(path, *, artifact_reader, limits)
+```
+
+Research 负责已保存预测及 SignalPlan 生成和保存；Runtime 校验完整 raw/derived 原件 SHA256、model／fold／LabelSpec／训练归一化链接、原始 session grid 和真实父 refs。派生分数、validity、来源与最大依赖 clock 在准入时逐 session 用同一 Core 数学核验后，账户直接消费保存分数。对多个 portfolio/资金配置，已准入 market／Signal owner 只保留一份 invocation-local 私有数据；每账户独立执行和保存。禁用 supplier、feature build、fit、predict 均不影响此路径。
+
+### 16.2 时钟、Data 成员与预算
+
+v7 此增量仍使用明确 `stock_prediction_clock_policy_v1`：Feature cutoff 当地 20:30、inference cutoff 21:00、下一 exchange session 08:55 决策、open 执行，declared_simulation。中立 Core 的一般 aware 时点不等于 Runtime 支持其他账户时钟；其他政策未实现时拒绝，旧 v2 不放宽。
+
+每个 Derived context reference 的 member 和 `available_at` 必须与准入的 Data membership／原 `usable_from` 完全一致；`source_refs=[该原 membership native_ref]`。缺原 availability、猜测 membership 时间或伪造 source 均在账户启动前拒绝。完整参考截面包含 excluded 成员，不能为省预算删掉依赖。
+
+所有真实父 fold／model／prediction、派生 output artifacts 和原 descriptor 均纳入 inventory/read/row 限额。`max_prediction_rows` 的实际扫描计数包含原父 rows 和 Derived rows；`max_folds` 包含去重后真实 raw bindings。预扫 row inventory 对新合同按 distinct parents/outputs 的整个请求 grid 作保守上界，因此 caller 必须配置足够的显式限额。Derived context 及保留元数据也计入 decoded budget；过大的完整 context 拒绝，不能免除 quota 或删校验。所有 h、Feature 宽度、TopK、weights 和既有 CS 参数均由明确输入决定，示例规模不成为生产配置。
+
+### 16.3 Trace 与保存读取
+
+股票数量 planner 仍是 `axiom.stock_portfolio/3`，该增量只扩展输入和 trace。旧 v2 的 prediction_clock 字段保持原样。v3/derived trace 为 `stock_signal_clock_v2`：
+
+| 公共字段 | 每种输入的真实绑定 |
+|---|---|
+| `contract_version/kind/clock_basis/feature_knowledge_cutoff/inference_cutoff/signal_stage` | raw／derived 明确区分；原账户 clock 与 stage |
+| raw 附加字段 | `model_ref/fold_spec_ref/simulated_model_available_at/label_spec_ref` |
+| derived 附加字段 | `parent_signal_refs/signal_plan_ref/score_ref/implementation_ref`；不添加虚构单 model ref |
+
+保存 loader 将这些 refs 与 request 的小型 frame binding 核对，继续核对决策 → intent → order → fill／实际费用／cash 和 position ledger。只读取已保存 run、结果 parts 和小型 profile；不重开 Research 训练、预测、大 native Data，不重新执行账户。重新签名但与绑定不一致的 trace 仍拒绝。公共结果目录保持账户独立，旧保存账户与结果不改写。
+
+合成验收包括非五日 h、不同 Feature 宽度、原 typed plan 语义身份、key 乱序、inner/outer join、missing/constant、excluded clock 的微秒边界、错误 units/stage/weights、真实父 ref 绑定、伪造 Derived score／membership 拒绝、同一 Signal 的 Top3/Top5 以及 source／owner 路径精确结果一致。真实预测接入和长窗口证据由 Research 与资源窗口另行记录，不能以这些合成回归替代。
