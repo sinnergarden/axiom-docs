@@ -382,7 +382,7 @@ Core 可在每次 `execute_feature_plan` 内复用一次构造的 history 键集
 
 ## 13. M1：显式目标合同与已保存 SignalPlan（2026-10-08）
 
-适用候选：Engine 候选 [`aa0647584e9cfb15f30d9d1b1efc94b6c8e112d0`](https://github.com/sinnergarden/axiom-engine/commit/aa0647584e9cfb15f30d9d1b1efc94b6c8e112d0)，基于已审 A `a59f3b4`。本节是具体增量合同；验收证据为 184 项定向合成与既有路径回归测试（27.19 秒），尚未完成 Research 真实保存预测接入或长窗口验收。实现保留唯一 Core 数学和 Runtime 账户执行；Qlib 不成为第二执行器。
+适用候选：Engine 复审修正候选 [`70b1eee1911be3e3def0f15a5aff8bffb8daf9b1`](https://github.com/sinnergarden/axiom-engine/commit/70b1eee1911be3e3def0f15a5aff8bffb8daf9b1)，基于已审 A `a59f3b4`。前一候选的 184 项合成与既有路径回归不是本次修复验收；本次生命周期、目标绑定及旧挂接点的 20 项复验通过，最终 selector／父身份／源码闭包等 7 项补验通过（5.38 秒）。104 项组初跑有一个旧验证挂接点失败，已在上述复验中修复；另有 7 项 native 测试因缺 Data 包跳过。Research 真实保存预测接入、长窗口验收和集中复审仍待完成。实现保留唯一 Core 数学和 Runtime 账户执行；Qlib 不成为第二执行器。
 
 ### 13.1 原始预测的目标身份
 
@@ -405,7 +405,7 @@ Core 可在每次 `execute_feature_plan` 内复用一次构造的 history 键集
 | `maturity_rule` | `all_outcome_dependencies_strictly_before_fit_cutoff` |
 | `missing_policy` | `invalid_null_preserve_grid` |
 
-`label_spec_ref` 是完整 spec 的 Core canonical SHA256。其他声明政策明确拒绝。Research 选择实际端点、Data 复权事实、PIT 与 fit 前成熟样本；Core 不查询行情或构造另一套 Label 框架。端点收益的薄共享函数候选 `return_from_prices(start_price, end_price, *, zero="missing")` 尚待 Research 对齐，不能当作本候选已提供的公共函数。
+`label_spec_ref` 是完整 spec 的 Core canonical SHA256。其他声明政策明确拒绝。Research 选择实际端点、Data 复权事实、PIT 与 fit 前成熟样本；Core 不查询行情或构造另一套 Label 框架。共享端点收益的批量入口待 Research 提供列式端点数组及 validity 需求后固定，优先复用既有 bulk divide/sub；本候选未新增逐 cell scalar 公共 API。
 
 模型训练的 `label_normalization` 单独声明 `{operator, operator_version, params}`，版本 `"1"`；当前为 `identity` + 空 params，或 `cs_zscore` + 完整既有 Core 参数且 `group=session`。这不是 Signal stage：对 zscore Label 训练得到的模型分数仍处于 `raw_prediction`，可以再按明确 SignalPlan 对模型分数作 `daily_zscore`。
 
@@ -454,6 +454,8 @@ execute_signal_plan(
 Research 原 typed LabelSpec 映射必须匹配 h、open(f+1)/close(f+h)、price_basis、absolute_return、factor_ratio_no_separate_cashflow、normalization_policy=none、invalid_null_preserve_grid；其 MaturitySpec 为上述严格成熟规则、lag_sessions=h、actual_exchange_sessions、上述 availability。typed Label 的 name/feature_session 仍属于 Research 定义；prediction 完整 spec 另绑定 calendar/anchor 等运行事实。
 
 context 精确字段为 `calendar_ref/reference_universe/reference_universe_ref/reference_members/cutoff_by_session/clock_basis`。`reference_members` 按 session 保存完整冻结 union，每项是 `{security_id, member, available_at, source_refs}`，包含被排除证券。所有父输入 cutoff 和 member 必须与该 context 匹配，所有依赖可用时间不得晚于原 cutoff。CS 可用时间包含完整参考截面及被排除成员的依赖，不复制单个输出行时钟；Data 实际来源 refs 保留。
+
+完整公共执行和 `validate_derived_signal` 保留完整 plan／context／行校验。Runtime 的私有准入一次校验原件与全范围 context，再建立深不可变 plan、逐 session reference／cutoff 和 member 索引；逐日执行同一 `_signal_plan_rows` 数学，只提供当日父行和 reference。每日校验不重新构建完整 Derived Document、不重新遍历或序列化全范围 context，成员查找使用已准入索引。该能力绑定本次 source 的原索引与生命周期，每次读取仍检查原文件及当日行；不存在公开或保存的免校验布尔开关。私有保存与账户消费见 Trade §16.2。
 
 ### 13.3 Derived 保存合同
 

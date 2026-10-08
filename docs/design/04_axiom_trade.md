@@ -2062,7 +2062,7 @@ src/axiom_trade/
 
 ## 16. M1：raw／derived 保存输入与同一账户路径（2026-10-08）
 
-适用候选：Engine 候选 [`aa0647584e9cfb15f30d9d1b1efc94b6c8e112d0`](https://github.com/sinnergarden/axiom-engine/commit/aa0647584e9cfb15f30d9d1b1efc94b6c8e112d0)，基于已审 A `a59f3b4`。184 项定向合成与回归测试（27.19 秒）已验证短窗保存输入、Top3/Top5 不同账户、派生 trace 和独立结果加载；Research 真实长窗口和 Data native 联合重试仍需另行资源窗口。本节不宣称这些真实验收已完成。
+适用候选：Engine 复审修正候选 [`70b1eee1911be3e3def0f15a5aff8bffb8daf9b1`](https://github.com/sinnergarden/axiom-engine/commit/70b1eee1911be3e3def0f15a5aff8bffb8daf9b1)，基于已审 A `a59f3b4`。本次 20 项复验和最终 7 项补验（5.38 秒）通过，覆盖实际行数边界、三入口生命周期、保存目标引用及原 selector／父身份保护。104 项组初跑中的旧挂接点失败已修复并复验；7 项 native 测试因缺 Data 包跳过。前一候选的 184 项回归只作为既有证据；集中复审、Research 真实长窗口和 Data native 联合验收仍待完成。
 
 ### 16.1 小型引用输入
 
@@ -2101,7 +2101,9 @@ v7 此增量仍使用明确 `stock_prediction_clock_policy_v1`：Feature cutoff 
 
 每个 Derived context reference 的 member 和 `available_at` 必须与准入的 Data membership／原 `usable_from` 完全一致；`source_refs=[该原 membership native_ref]`。缺原 availability、猜测 membership 时间或伪造 source 均在账户启动前拒绝。完整参考截面包含 excluded 成员，不能为省预算删掉依赖。
 
-所有真实父 fold／model／prediction、派生 output artifacts 和原 descriptor 均纳入 inventory/read/row 限额。`max_prediction_rows` 的实际扫描计数包含原父 rows 和 Derived rows；`max_folds` 包含去重后真实 raw bindings。预扫 row inventory 对新合同按 distinct parents/outputs 的整个请求 grid 作保守上界，因此 caller 必须配置足够的显式限额。Derived context 及保留元数据也计入 decoded budget；过大的完整 context 拒绝，不能免除 quota 或删校验。所有 h、Feature 宽度、TopK、weights 和既有 CS 参数均由明确输入决定，示例规模不成为生产配置。
+所有真实父 fold／model／prediction、派生 output artifacts 和原 descriptor 均纳入 inventory/read/row 限额。`max_prediction_rows` 包含去重的原父 rows 和 Derived rows，`max_folds` 包含去重后真实 raw bindings。新引用 envelope 不含可信 OOS 行数时，预扫 `declared_rows.prediction_rows=null` 表示待原有有界扫描确定；不是零行，也不按每个 fold 乘全日历。准入以原 fold OOS scope 限制索引增长，扫描同一原文件一次后填入实际计数；两个不重叠 fold 共 18 行可在 18 行限额下准入，不因虚构 36 行上界拒绝。此修正不增加全量读取或提升 caller 限额。
+
+完整 Derived header／context 的 decoded quota 在原件准入时计入，深不可变的逐日 reference/member 索引另在构建前计费。普通 source 的全 context 校验一次，逐日仅校验原行与相应索引，首次消费各日用既有 Core 数学校验真实父分数；同次 source 后续消费保留文件不变和当日 span 检查，不再重建全范围 context。market+bind 与 combined admit 也走该准入逻辑：私有文件仅保存一条完整原 Derived 元数据记录，账户的 offset 列表不包含它；小 globals 保存 SignalRef→小 header，逐日块只保存 `{session, signal_ref, rows}`。账户按 ref 找小 header，不解码完整 context，不再逐日复制它。byte／decoded／index 限额和 source 关闭、PID、exclusive lease、borrow 保护继续生效。所有 h、Feature 宽度、TopK、weights 和既有 CS 参数均由明确输入决定，示例规模不成为生产配置。
 
 ### 16.3 Trace 与保存读取
 
@@ -2113,6 +2115,8 @@ v7 此增量仍使用明确 `stock_prediction_clock_policy_v1`：Feature cutoff 
 | raw 附加字段 | `model_ref/fold_spec_ref/simulated_model_available_at/label_spec_ref` |
 | derived 附加字段 | `parent_signal_refs/signal_plan_ref/score_ref/implementation_ref`；不添加虚构单 model ref |
 
-保存 loader 将这些 refs 与 request 的小型 frame binding 核对，继续核对决策 → intent → order → fill／实际费用／cash 和 position ledger。只读取已保存 run、结果 parts 和小型 profile；不重开 Research 训练、预测、大 native Data，不重新执行账户。重新签名但与绑定不一致的 trace 仍拒绝。公共结果目录保持账户独立，旧保存账户与结果不改写。
+新输入合同保存 `stock_input_audit_v2`：原 audit 的 `contract_version/request_ref/market_ref/prediction_ref/profile_ref/implementation_ref/counts/limitations` 加上 `prediction_targets`。该小型 map 为真实原 raw `signal_run_ref → label_spec_ref`，包含去重 Derived 父；原 raw v2 无显式目标时存 null。map 在原件准入时冻结，key 必须与 request 中完整 raw bindings 一致。旧 input refs v1 继续保存和读取原 `stock_input_audit_v1` 字段。
+
+保存 loader 将 trace refs 与 request 的小型 frame binding 核对，并将 raw v3 决策的 `label_spec_ref` 与上述已准入目标相等比较；只检查 SHA256 格式不足以通过。它继续核对决策 → intent → order → fill／实际费用／cash 和 position ledger。只读取已保存 run、结果 parts 和小型 profile；不重开 Research 训练、预测、大 native Data，不重新执行账户。重新签名但与绑定不一致的 trace 仍拒绝，删除原 Signal／model／fold 文件后该核验仍有效。公共结果目录保持账户独立，旧保存账户与结果不改写。
 
 合成验收包括非五日 h、不同 Feature 宽度、原 typed plan 语义身份、key 乱序、inner/outer join、missing/constant、excluded clock 的微秒边界、错误 units/stage/weights、真实父 ref 绑定、伪造 Derived score／membership 拒绝、同一 Signal 的 Top3/Top5 以及 source／owner 路径精确结果一致。真实预测接入和长窗口证据由 Research 与资源窗口另行记录，不能以这些合成回归替代。
