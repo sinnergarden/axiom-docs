@@ -395,7 +395,7 @@ globals/块/索引/decoder 临时输入仍按累计 decoded 预算限制，不�
 实际 Python 对象、解释器与 allocator 峰值仍须在有用验收中独立采样，不能把该计数当 RSS 上限。
 任何账户持有的可变解码副本不影响后续账户。所有账户的原 input/fold/row/result 限额继续生效。
 
-`StockInputSource()` 现在默认 `scalar_cache_bytes=0`；真实冷加速没有通过，默认关闭是
+`StockInputSource()` 现在默认 `scalar_cache_bytes=0`；标量缓存的真实冷加速没有通过，默认关闭是
 保守性能选择。显式 opt-in `StockInputSource(scalar_cache_bytes=262144)` 在一次导入内
 复用已通过原 decode/canonical 检查的、不超过 256 字节的相同标量字节。缓存计入累计预算，
 在必需输入增长前驱逐；原 scanner oracle 保留。
@@ -425,7 +425,7 @@ owned 临时存储 14.40 MiB；没有 Data、Feature、fit/predict 或供应商�
 `sha256:0399ff578c5d60f1137aaa2a35ab4f992934a91d62b287cc6adaf1fb16c24732`，
 仅做定向合成验证；旧真实回执不改绑到该后继源码。
 
-#### 6.4.1 文件级 C JSON 快路径候选（已编码及复核；待完整真实验收）
+#### 6.4.1 文件级 C JSON 快路径候选（已复核及有界真实验收）
 
 目标是保留完整来源身份与准入语义，移除每个字节和每个标量必经 Python scanner 的税。
 现统计中，两份约 205 MB 的 actions 与约 130 MB 的 limits 合计占原字节约 91%，
@@ -517,8 +517,47 @@ helper 启动、完整 parse/validate/canonical 字节比较、spool、父审核
 父释放后的首个真实窗口在 controller 将瞬态 `"(ps)"` 进程名误判为异常子进程后停止。
 它只进入准入早期，完整 cold 结果不可用、账户未执行；不能记为 CJSON 真实 PASS。
 worker/helper 已退出，原文件 stat、旧保存结果 SHA 与固定源码保护通过，未自动重试。
-该监控识别修正仅在私有 controller 中准备，Engine 固定源码不变；重新开启真实窗口须父明确授权。
-真实快路径的原字节读、canonical 额外比较读和消费计数分别报告。
+首个窗口消耗 0.991207 秒，保留为 harness 失败成本。私有 controller 移除运行中的
+进程名称白名单，按自身子树及已声明 helper 的 PID、独立 PGID、出生时间采样与清理；
+5 项小控制验证通过（0.801 秒），覆盖瞬态 ps、独立进程组、worker 先退出及短进程竞态。
+
+父读后批准恢复同一计划一次；2026-10-08 00:04:50 UTC 启动，固定 Engine `2842ca9`
+及上述 implementation 不变，继续使用原 594,205,431 bytes / 26 文件输入及旧 b5 保存 oracle，
+不重做输入或 stream 基线。恢复 controller 45.407932 秒 PASS，加上原失败累计
+46.399139 秒；cold audit 39.658387 秒，owned capture 3.544879 秒，完整 cold admission
+43.221188 秒。原保存观察为 b5 cold 476.202292 秒；两次观察约 11.02 倍，源码版本与机器
+条件不同，不能当成同 head 受控 benchmark。
+
+9 个去重 native 文件全部完成 CJSON，零 native stream 选择；17 个非 native 文件按原范围
+保留 stream（profile 及四个 fold 各自的 fold/manifest/model/predictions）。逐文件 native
+scan 计时含 helper 和父索引建立，helper 计时含其内部阶段，二者不相加：
+
+| native 文件 | 实际路径 | scan 秒 | helper 秒 |
+|---|---|---:|---:|
+| states | CJSON | 0.866264 | 0.834612 |
+| market | CJSON | 2.337932 | 2.303671 |
+| limits | CJSON | 5.127539 | 5.095928 |
+| factor | CJSON | 0.631599 | 0.602397 |
+| actions-ex_date | CJSON | 7.423011 | 7.395639 |
+| actions-record_date | CJSON | 7.569583 | 7.541549 |
+| membership | CJSON | 0.764689 | 0.735081 |
+| warmup-market | CJSON | 0.276322 | 0.247982 |
+| warmup-factor | CJSON | 0.165258 | 0.139195 |
+
+原字节 scan/read/hash 为 594,205,431 bytes，CJSON canonical 额外比较读 580,218,841 bytes。
+native helper 合计 24.896053 秒，其中 UTF-8/parse 2.246812 秒、完整 walk 14.515282 秒、
+含 C encode/UTF-8 的字节比较 2.157597 秒、spool 3.598419 秒；不臆造更细的计时拆分。
+controller 采样峰值 1,799,520,256 bytes；合并 helper 原生峰值的树观察为 2,016,051,200 bytes
+（约 1.87759 GiB），均低于显式 8 GiB 预算，仍不是逐分配硬上界。私有 spool
+46,206,192 bytes、owned 15,102,120 bytes，均低于各自 128 MiB；controller 结束时新命名
+输出 2,673,730 bytes，低于 64 MiB。每 helper 均低于 120 秒，最大原文件低于 256 MiB。
+
+audit/capture 各一次，十个 owned blocks 复用两次。Top5/Top3 账户、public save/load 与旧
+保存 oracle 的八组全部业务行及 header exact 比对通过，零数值容差；仅按既定规则排除
+新源码/输出 provenance 和归一 run 前缀 IDs。账户阶段原 source reopen 为零，
+Data/Research/Feature/fit/predict/supplier 调用均为零。同 Signal、同初始资金得到不同 k 的
+独立账户及 NAV；原输入 stat、旧结果 SHA 和固定源码保护通过。owned handle 已关闭，
+controller/worker/全部九个 helper 的退出已复核。本次结果只证明这个有界真实窗口。
 
 独立集中 review 在前驱发现两个 P2，后继 `2842ca9` 已修：metadata 按原 object/list
 子节点规则保留 span，非空 list 条目进入原 grid gate，额外 scalar/空容器的边界与 stream
@@ -539,7 +578,7 @@ gates 保持。Engine 不读取 prepared training/control closure，Research 继
 标准 `json.load` 内部仍先 read 全文，不能当作 C 流式方案；`iterencode` 常规调用也走
 Python encoder，不能拿来证明 C 加速。SAX/事件式 C 库可减少 graph 常驻，却增加依赖与
 精确数值/canonical/Unknown/source-binding 适配面，首版不引入。后续需先按这些 gate
-做定向合成 exact/拒绝/预检 stream 选择与运行中停线对比，再由父另裁决真实窗口。
+做定向合成 exact/拒绝/预检 stream 选择与运行中停线对比；扩大文件形状或真实窗口仍须父另裁决。
 
 ## 7. 账户与 Ledger 数据模型
 
