@@ -382,7 +382,7 @@ Core 可在每次 `execute_feature_plan` 内复用一次构造的 history 键集
 
 ## 13. M1：显式目标合同与已保存 SignalPlan（2026-10-08）
 
-适用候选：Engine 复审修正候选 [`70b1eee1911be3e3def0f15a5aff8bffb8daf9b1`](https://github.com/sinnergarden/axiom-engine/commit/70b1eee1911be3e3def0f15a5aff8bffb8daf9b1)，基于已审 A `a59f3b4`。前一候选的 184 项合成与既有路径回归不是本次修复验收；本次生命周期、目标绑定及旧挂接点的 20 项复验通过，最终 selector／父身份／源码闭包等 7 项补验通过（5.38 秒）。104 项组初跑有一个旧验证挂接点失败，已在上述复验中修复；另有 7 项 native 测试因缺 Data 包跳过。Research 真实保存预测接入、长窗口验收和集中复审仍待完成。实现保留唯一 Core 数学和 Runtime 账户执行；Qlib 不成为第二执行器。
+适用候选：Engine 合并接线候选 [`defc3dd42a81d47ba407edee7423d52840f2a32d`](https://github.com/sinnergarden/axiom-engine/commit/defc3dd42a81d47ba407edee7423d52840f2a32d)，基于已审 A `a59f3b4`。前一 `70b1eee` 的实际行数与 context 生命周期两项 P1 已通过集中复核；本次补齐批量收益入口、typed LabelSpec v2 和保存 clock 降级拒绝。28 项定向测试通过（1.85 秒），实际 Research typed 合同身份与两个合成 fold 使用真实 Core 入口的保存／只读接线也通过。此证据不代表真实预测长窗口、Data native 联合验收或最终集中复审已完成；先前 7 项 native 测试仍缺 Data 包。本实现保留唯一 Core 数学和 Runtime 账户执行；Qlib 不成为第二执行器。
 
 ### 13.1 原始预测的目标身份
 
@@ -405,7 +405,15 @@ Core 可在每次 `execute_feature_plan` 内复用一次构造的 history 键集
 | `maturity_rule` | `all_outcome_dependencies_strictly_before_fit_cutoff` |
 | `missing_policy` | `invalid_null_preserve_grid` |
 
-`label_spec_ref` 是完整 spec 的 Core canonical SHA256。其他声明政策明确拒绝。Research 选择实际端点、Data 复权事实、PIT 与 fit 前成熟样本；Core 不查询行情或构造另一套 Label 框架。共享端点收益的批量入口待 Research 提供列式端点数组及 validity 需求后固定，优先复用既有 bulk divide/sub；本候选未新增逐 cell scalar 公共 API。
+`label_spec_ref` 是完整 spec 的 Core canonical SHA256。其他声明政策明确拒绝。Research 选择实际端点、Data 复权事实、PIT 与 fit 前成熟样本；Core 不查询行情或构造另一套 Label 框架。最小公共批量算术入口已固定：
+
+```python
+execute_forward_returns(start, end, *, endpoint_validity) -> dict
+```
+
+三项输入沿用 packed Core buffer 约束：同长度一维、只读、C contiguous；start/end 是 little-endian float64，endpoint_validity 是 bool，且必填。Core 先捕获不可变字节快照，避免只读 view 的可写 alias 改动结果；错误 shape／dtype／endian／bool domain 拒绝。输出只有 `values/validity`，分别为有限 `<f8` 和 bool 的不可写字节支撑数组，保留输入顺序；无效值是 canonical `+0.0`。mask=false、任一价格非有限或不大于零、计算结果非有限均无效。正 subnormal 不设 epsilon 门槛；计算严格按 `end/start` 后减 `1.0`，不改成 `(end-start)/start`，空块返回空数组。
+
+该入口使用 Core 内的整块 NumPy divide/subtract，无逐 cell scalar API、日历或成熟政策默认值。可选依赖为 `axiom-engine[forward-returns]`；NumPy 仅调用该入口时导入，原 stdlib Core／Runtime 入口不增加必需依赖。Research 继续负责键、端点选择、共同复权 anchor、来源、availability、PIT／maturity 和 caller 的块资源限额。
 
 模型训练的 `label_normalization` 单独声明 `{operator, operator_version, params}`，版本 `"1"`；当前为 `identity` + 空 params，或 `cs_zscore` + 完整既有 Core 参数且 `group=session`。这不是 Signal stage：对 zscore Label 训练得到的模型分数仍处于 `raw_prediction`，可以再按明确 SignalPlan 对模型分数作 `daily_zscore`。
 
@@ -442,7 +450,7 @@ execute_signal_plan(
 ) -> SignalFrame
 ```
 
-入口接受 Research 原 typed `SignalPlanSpec` 序列化，Core 不 import Research。root 的语义字段是 `name/key/inputs/nodes/output/join_policy/score_semantics/available_time_semantics`，inputs 为原 `SignalInput`，nodes 为原 `SignalNode`；各层保留 `contract_version="1"` 和 metadata。保存的 `signal_plan` 去除 `contract_type` 标记，Core Document 的保留类型规则不变。`signal_plan_ref` 恢复已知类型位置后按 Research 原 semantic identity 计算：递归排除 contract metadata 和 ArtifactRef URI，保留其余语义身份。
+入口接受 Research 原 typed `SignalPlanSpec` 序列化，Core 不 import Research。root 的语义字段是 `name/key/inputs/nodes/output/join_policy/score_semantics/available_time_semantics`，inputs 为原 `SignalInput`，nodes 为原 `SignalNode`。SignalPlanSpec／SignalInput／SignalNode／MaturitySpec 保留 `contract_version="1"` 和 metadata；新股票 typed LabelSpec 单独明确使用 `contract_version="2"`，不是全局放宽所有合同版本。保存的 `signal_plan` 去除 `contract_type` 标记，Core Document 的保留类型规则不变。`signal_plan_ref` 恢复已知类型位置后按 Research 原 semantic identity 计算：递归排除 contract metadata 和 ArtifactRef URI，保留其余语义身份，包括 typed Label 的实际版本。
 
 | 原 op | 精确执行约束 |
 |---|---|
@@ -451,7 +459,9 @@ execute_signal_plan(
 
 键固定为 `security_id/session`。join 明确选 `inner_on_security_session` 或 `outer_on_security_session`；outer 的缺父输入是有原因的 null，不能压缩为有效分数。禁止对 daily_zscore 再执行 daily_zscore。执行复用既有 Core `cs_zscore` 与 constant/mul/add，不在 Runtime、Research 或 UI 写近似公式。
 
-Research 原 typed LabelSpec 映射必须匹配 h、open(f+1)/close(f+h)、price_basis、absolute_return、factor_ratio_no_separate_cashflow、normalization_policy=none、invalid_null_preserve_grid；其 MaturitySpec 为上述严格成熟规则、lag_sessions=h、actual_exchange_sessions、上述 availability。typed Label 的 name/feature_session 仍属于 Research 定义；prediction 完整 spec 另绑定 calendar/anchor 等运行事实。
+Research typed LabelSpec v2 映射必须匹配 h、start=1/end=h、open(f+1)/close(f+h)、price_basis、absolute_return、factor_ratio_no_separate_cashflow、normalization_policy=none、invalid_null_preserve_grid；声明 formula 可为通用 `close(f+h) / open(f+1) - 1` 或对应实际整数 h 的同式文本。其 MaturitySpec v1 必须为上述 strictly-before 成熟规则、lag_sessions=h、actual_exchange_sessions 和上述 availability。`all_outcome_dependencies_at_or_before_fit_cutoff` 本轮不支持，Research resolver 应在执行前明确拒绝，Core 同样拒绝。
+
+旧 typed LabelSpec v1 的 horizon 原义保持 `end-start=h`。合法旧定义不能映射当前 open(f+1)→close(f+h) 目标时，Core 明确拒绝；不会把其 offset 或 h 偷换成 v2 原义。此 typed v2 版本与 prediction 完整运行 spec 的 `semantic_version="1"` 属于不同合同。typed Label 的 name/feature_session 仍属于 Research 定义；prediction 完整 spec 另绑定 calendar/anchor 等运行事实。旧 raw v1/v2 合同和已保存账户 loader 不改变。
 
 context 精确字段为 `calendar_ref/reference_universe/reference_universe_ref/reference_members/cutoff_by_session/clock_basis`。`reference_members` 按 session 保存完整冻结 union，每项是 `{security_id, member, available_at, source_refs}`，包含被排除证券。所有父输入 cutoff 和 member 必须与该 context 匹配，所有依赖可用时间不得晚于原 cutoff。CS 可用时间包含完整参考截面及被排除成员的依赖，不复制单个输出行时钟；Data 实际来源 refs 保留。
 

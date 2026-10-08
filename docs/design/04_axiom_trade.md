@@ -2062,7 +2062,7 @@ src/axiom_trade/
 
 ## 16. M1：raw／derived 保存输入与同一账户路径（2026-10-08）
 
-适用候选：Engine 复审修正候选 [`70b1eee1911be3e3def0f15a5aff8bffb8daf9b1`](https://github.com/sinnergarden/axiom-engine/commit/70b1eee1911be3e3def0f15a5aff8bffb8daf9b1)，基于已审 A `a59f3b4`。本次 20 项复验和最终 7 项补验（5.38 秒）通过，覆盖实际行数边界、三入口生命周期、保存目标引用及原 selector／父身份保护。104 项组初跑中的旧挂接点失败已修复并复验；7 项 native 测试因缺 Data 包跳过。前一候选的 184 项回归只作为既有证据；集中复审、Research 真实长窗口和 Data native 联合验收仍待完成。
+适用候选：Engine 合并接线候选 [`defc3dd42a81d47ba407edee7423d52840f2a32d`](https://github.com/sinnergarden/axiom-engine/commit/defc3dd42a81d47ba407edee7423d52840f2a32d)，基于已审 A `a59f3b4`。前一 `70b1eee` 的实际行数和 context 生命周期两项 P1 已通过集中复核；本次统一交付批量收益 API、typed LabelSpec v2 与保存 clock 降级修复。28 项定向测试（1.85 秒）及实际 Research 合同／两个合成 fold 的真实 Core 入口接线通过。7 项 native 测试仍缺 Data 包；集中复审、Research 真实长窗口和 Data native 联合验收仍待完成。
 
 ### 16.1 小型引用输入
 
@@ -2117,6 +2117,6 @@ v7 此增量仍使用明确 `stock_prediction_clock_policy_v1`：Feature cutoff 
 
 新输入合同保存 `stock_input_audit_v2`：原 audit 的 `contract_version/request_ref/market_ref/prediction_ref/profile_ref/implementation_ref/counts/limitations` 加上 `prediction_targets`。该小型 map 为真实原 raw `signal_run_ref → label_spec_ref`，包含去重 Derived 父；原 raw v2 无显式目标时存 null。map 在原件准入时冻结，key 必须与 request 中完整 raw bindings 一致。旧 input refs v1 继续保存和读取原 `stock_input_audit_v1` 字段。
 
-保存 loader 将 trace refs 与 request 的小型 frame binding 核对，并将 raw v3 决策的 `label_spec_ref` 与上述已准入目标相等比较；只检查 SHA256 格式不足以通过。它继续核对决策 → intent → order → fill／实际费用／cash 和 position ledger。只读取已保存 run、结果 parts 和小型 profile；不重开 Research 训练、预测、大 native Data，不重新执行账户。重新签名但与绑定不一致的 trace 仍拒绝，删除原 Signal／model／fold 文件后该核验仍有效。公共结果目录保持账户独立，旧保存账户与结果不改写。
+保存 loader 将 trace refs 与 request 的小型 frame binding 核对。已准入 `prediction_targets[signal_ref]` 非 null 时，强制 raw 决策声明 `stock_signal_clock_v2`，并将其 `label_spec_ref` 与该真实目标相等比较；不能由待验 trace 的版本自行选择是否核验目标。错误目标重新签名后再删除、替换或降级 clock version 仍拒绝；只检查 SHA256 格式不足以通过。它继续核对决策 → intent → order → fill／实际费用／cash 和 position ledger。只读取已保存 run、结果 parts 和小型 profile；不重开 Research 训练、预测、大 native Data，不重新执行账户。删除原 Signal／model／fold 文件后该核验仍有效。公共结果目录保持账户独立，旧保存账户与结果不改写。
 
 合成验收包括非五日 h、不同 Feature 宽度、原 typed plan 语义身份、key 乱序、inner/outer join、missing/constant、excluded clock 的微秒边界、错误 units/stage/weights、真实父 ref 绑定、伪造 Derived score／membership 拒绝、同一 Signal 的 Top3/Top5 以及 source／owner 路径精确结果一致。真实预测接入和长窗口证据由 Research 与资源窗口另行记录，不能以这些合成回归替代。
