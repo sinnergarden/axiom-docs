@@ -721,7 +721,7 @@ close，不造OHLC、量额、严格历史vintage或美国收盘时刻日历。
 
 ### 7.4 显式保存 native JSON 分块视图
 
-状态：接口与工作预算修复固定于 [Data `991bfbc`](https://github.com/sinnergarden/axiom-data/commit/991bfbc5d6ba6876029ddeea140793bee1d2a8a9)，供亲审合并。合成核对已通过，消费者接入与真实五年端到端验收仍待完成。
+状态：接口与工作预算修复固定于 [Data `ad274d7`](https://github.com/sinnergarden/axiom-data/commit/ad274d7f3037667563c5f0839f9cdcc6b0d66c77)，供亲审合并。合成核对已通过，消费者接入与真实五年端到端验收仍待完成。
 
 `Data.export_native_view(snapshot=..., reads=[{"method": ..., "query": ...}], destination=..., limits=..., source_symbol_block=64)` 是可选的显式导出，目的地必须是 Data root 外的新目录。`data_native_view_v1` 首版支持原生 daily `read/read_market`、`members`、仅 `close` 的 `states`，以及 `corporate_actions` 的 `events`；其他组合明确拒绝。producer 在原 Reader 的 revision、evidence、成员完整状态和 cutoff 选择循环中输出小块，不先构造多年完整 DataBatch/to_json；事件先完成每个证券原生逻辑键的跨分区 revision 选择，再应用经济日期与 filters。证券分组不改变原始事件输出顺序、unavailable scope 顺序或全局计数。Arrow 投影复用共用 Reader 的既有有界缓存，超缓存预算不常驻；`limits` 明确给出 `max_part_bytes/max_working_bytes/max_saved_bytes/max_rows_per_block`，工作预算计入所有已加载 Snapshot 图、缓存，以及仍存活或借用的 reference、evidence、Raw candidates、输出缓冲和描述符；转换按小批在分配前预留。states 的 master/listing 未选版本分组在操作内复用，calendar/status 按窗口准备，各输出日仍按自己的 cutoff 选择。统计中的 working charge 是保守预留，完整进程 RSS 另测，不能省略 Snapshot baseline。
 
