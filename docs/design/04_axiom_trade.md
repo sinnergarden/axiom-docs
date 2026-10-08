@@ -1316,6 +1316,66 @@ EX/PAY、factor/null、池外持仓、现金/STAR 数量约束与 BLOCKED 边界
 exact，来源、数量和 reason 不豁免。独审、draft PR 父审及 merge 后方可申请多年执行窗口。原输入无法有界校验或
 历史规则/行动覆盖不足会延长工期或导致真实 BLOCKED，不能用预算估算替代验收。
 
+### 6.6 已保存股票输入的一次准入与顺序账户复用 <a id="64-已保存股票输入的一次准入与顺序账户复用"></a>
+
+股票 v7 可将固定输入完整准入一次，捕获为 `AdmittedStockInputs`，供多个账户顺序消费。
+账户仍由唯一 Core/Runtime/SimBroker 执行，各自拥有 ledger、sink、account 与 run 身份。
+实现见 [Engine PR21](https://github.com/sinnergarden/axiom-engine/pull/21) 与
+[PR22](https://github.com/sinnergarden/axiom-engine/pull/22)，均已合并；Qlib 不承担账户执行。
+
+```python
+admit_stock_inputs(manifest: BacktestRequest, *, source: StockInputSource,
+                   block_sessions: int, limits: dict,
+                   max_owned_bytes: int) -> AdmittedStockInputs
+StockInputSource(*, scalar_cache_bytes=0, file_parse_mode="stream",
+                 max_file_parse_bytes=None, max_file_parse_rss_bytes=None,
+                 max_file_parse_spool_bytes=None, max_file_parse_seconds=120)
+```
+
+返回对象作为 `run_stock_backtest(manifest, *, source, sink, block_sessions, limits)` 的
+`source` 使用，`block_sessions` 与导入一致；支持 `with`/`close()`。
+对象仅由创建 PID 顺序使用，所有公开入口在触锁或存储前拒绝异 PID，包括 fork 继承；
+并发执行及执行期间 close 拒绝。可变解码副本不影响后续账户。
+
+复用比较既有 manifest 的逻辑 ArtifactRef；除 `request_ref`、`account_id`、
+`initial_account` 与 `portfolio_policy.top_k` 外，其余全部字段保持一致。
+URI 不改变逻辑输入身份；复用读取已捕获的字节，不转读新路径。
+这是进程内能力，不新增公开 input ref、receipt 或持久 validated 标记。
+
+| 变更 | 处理 |
+|---|---|
+| account_id、正整数初始现金、合法 TopK | 可复用；初始持仓为空；资金与 k 绑定各自请求/run |
+| profile、费用、滑点、UNKNOWN、规则、clock/action policy | 重新准入 |
+| universe、calendar、anchor、区间、warmup、scope | 重新准入 |
+| Snapshot、native/query/projection、fold/model/feature/prediction refs | 重新准入 |
+| 其余 policy、合同/实现版本或其他 manifest 字段 | 重新准入或按原合同拒绝；未定义参数拒绝 |
+
+导入保留完整原 file/content SHA、canonical JSON、字段/单位、时钟、PIT 与全范围行审核；
+捕获成功前不创建账户。私有有界存储在每次写入前检查 `max_owned_bytes`，无公开路径或写入口；
+导入后释放原索引，账户只解码当前块，原 input/fold/row/result 限额继续生效。
+canonical decoded 预算含 globals/块/索引/decoder 预留，是字节核算，不是 Python RSS。
+`source.statistics` 记录原扫描与选中行消费；`inputs.statistics` 分开记录 audit/capture 和复用。
+
+默认 `file_parse_mode="stream"`、`scalar_cache_bytes=0`；标量缓存仅显式 opt-in。
+显式 `file_parse_mode="cjson"` 仅处理原 native Data JSON，去重后一次一物理文件；
+profile/fold/manifest/model/prediction 保留 stream。调用者必须提供文件、进程树 RSS、
+累计私有 spool 三个正整数预算（拒 bool），helper 秒超时也为正整数，默认 120 秒。
+RSS 包含 owner/helper 子树，spool 与 owned quota 独立；不把 decoded 预算当 RSS 或扩账户限额。
+
+CJSON helper 只解析及验证，保留完整 finite/Unknown/depth<=128、重复/键序、canonical 字节相等
+和全部原业务 gate；path/fd/stat 与文件 cap 在整读前复核。选中行仅写私有 spool，不发新 Data ref。
+尺寸、规划 RSS 或监控能力不足时，只能在 helper 启动前明确选择 stream。
+helper 已启动后的语法、身份、业务、MemoryError、RSS、超时或 spool 失败均停止准入，
+关闭 helper/fd 并丢弃未提交存储，不返回 handle、不创建账户，也不自动重跑 stream。
+RSS 估算与采样不是逐分配硬上界；成功后释放整图，父进程保留有界索引并建立 owned handle。
+
+固定 `2842ca9` 的有界真实验收：完整 cold admission 43.22 秒，9 个 native 全部 CJSON，
+17 个非 native 按约定 stream，观察峰值树 RSS 1.88 GiB。Top5/Top3 复用同 Signal、同资金，
+得到不同账户；全部业务 header/八组行对旧保存 oracle exact（仅约定 provenance/ID 归一）。
+audit/capture 各一次，账户阶段原输入重开为零；无 Data/Research/Feature/fit/predict/supplier
+调用，原输入、旧结果与源码不变，handles/helpers 已关闭。这只证明该有界窗口。
+benchmark 口径、合成检查和逐文件计时见 [软件测试说明](https://github.com/sinnergarden/axiom-engine/blob/63b032cf5158a2abfc28ed87eef73acc64665b4f/tools/stock_input_benchmarks.md)。
+
 ## 7. 账户与 Ledger 数据模型
 
 账户权威分两层：Trade ledger 是系统内部流水与状态；RealBroker 是外部订单/成交/账户的对账依据。差异产生显式记录和调整事件，不用券商快照直接覆盖旧账。
