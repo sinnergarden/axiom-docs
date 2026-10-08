@@ -721,7 +721,7 @@ close，不造OHLC、量额、严格历史vintage或美国收盘时刻日历。
 
 ### 7.4 显式保存 native JSON 分块视图
 
-状态：接口与工作预算修复固定于 [Data `ae7cf6d`](https://github.com/sinnergarden/axiom-data/commit/ae7cf6dd0094fdde084dd4bde3846df8c860584f)，供亲审合并。合成核对已通过，消费者接入与真实五年端到端验收仍待完成。
+状态：接口与工作预算修复固定于 [Data `7f08c1a`](https://github.com/sinnergarden/axiom-data/commit/7f08c1a5ffbce7e09d0ee2b54abbef36128e97d9)，供亲审合并。合成核对已通过，消费者接入与真实五年端到端验收仍待完成。
 
 `Data.export_native_view(snapshot=..., reads=[{"method": ..., "query": ...}], destination=..., limits=..., source_symbol_block=64)` 是可选的显式导出，目的地必须是 Data root 外的新目录。`data_native_view_v1` 首版支持原生 daily `read/read_market`、`members`、仅 `close` 的 `states`，以及 `corporate_actions` 的 `events`；其他组合明确拒绝。producer 在原 Reader 的 revision、evidence、成员完整状态和 cutoff 选择循环中输出小块，不先构造多年完整 DataBatch/to_json；事件先完成每个证券原生逻辑键的跨分区 revision 选择，再应用经济日期与 filters。证券分组不改变原始事件输出顺序、unavailable scope 顺序或全局计数。Arrow 投影复用共用 Reader 的既有有界缓存，超缓存预算不常驻；`limits` 明确给出 `max_part_bytes/max_working_bytes/max_saved_bytes/max_rows_per_block`，`max_working_bytes` 约束已接纳的保留工作集和 Python 转换预留，计入加载后实算的全部 Snapshot 图、缓存，以及仍存活或借用的 reference、evidence、Raw candidates、输出缓冲和描述符。Parquet 每次读取最多 4096 行，关闭预读及列并行并保留字符串 dictionary；实际 buffers 收费后才接纳进既有 LRU，转 Python 时按最多 64 行的逻辑展开长度提前预留，超限明确拒绝。相同 dictionary 可在缓存投影内共用，批次的物理 ordinal 和完整 revision 选择不变。states 的 master/listing 未选版本分组在操作内复用，calendar/status 按窗口准备，各输出日仍按自己的 cutoff 选择。统计分别报告已接纳费用、观测到的解码批 buffers 和 Python 展开预留，不能省略 Snapshot baseline。普通 Snapshot loader 的 JSON 解码及完整 hash 校验保持原流程，加载后才检查实际图预算，不按文件字节乘倍率制造预分配保证。Parquet 编码页大小也不是展开 Arrow 上界；即使限定批行数，decoder 的页、dictionary 或一个变长单值仍可能在接纳前瞬时超出该预算。两种 loader 的瞬时分配与 allocator 保留均由外部进程 RSS 监控停线，批 buffers 观测不代表完整瞬时峰值。此 native 路径只接受所选标量事实列，嵌套及扩展类型明确拒绝；普通 Reader 的类型支持保持。
 
