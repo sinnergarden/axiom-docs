@@ -5,8 +5,7 @@
 > 上位边界：[总体设计](01_axiom_overview.md)。关联：[Data](02_axiom_data.md)、[Core](03_axiom_core.md)、[Trade](04_axiom_trade.md)、[UI](06_axiom_ui.md)。\
 > 来源以 signal-centric、Feature inventory、PIT/LLM 专项及历史讨论为主。历史文档中的“已存在”“可用”“有效”仅代表当时记载，未重新核对的内容不能直接 promotion。
 
-2026-09-28 Data 接口实证：ViewRef 的真实 Query 重放和 Research→Core 薄 adapter 已执行；连续成员、完整 FeatureBuild/模型/OOS/策略回测仍不是本次 Data 教程的验收结论。
-见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
+已实现能力、固定版本与实测范围见[当前交付](../current-delivery.md)。早期试点说明保留在[工程历史记录](history-engineering-20261009.md)。本正文定义研究工作流与产物合同。
 
 ## 1. 目标与最小闭环
 
@@ -48,7 +47,6 @@ Data 只提供可信事实与稳定派生；Research 不直接读 raw 或未登�
 
 Model/Feature 插件发布为独立、冻结的轻量运行包，生产不 import mutable Research 源码树。Research 可调用 Trade 的离线公共 API，Trade 不依赖 Research 训练主包，避免循环依赖。
 
-2026-10-04 当前有界实现：Research 0.2.1 保留联合输入、固定 ETF Feature/Signal 与持久复用，增加固定六特征/五 session 归一化 target/单 fold 股票模型及独立保存阶段投影。Engine 已消费冻结 ETF 信号和股票预测生成有界离线账户/评价，Research 只读登记原 owner 结果；UI 保存件工作台与股票消费源码已亲审合并交付，owner QA、root 亲看像素和用户验收另记。固定源码、实际范围与限制见 [当前交付](../current-delivery.md)；正文中的通用模型/OOS/插件平台仍是目标。
 
 ## 3. 核心产物合同（P01、P05、P06）
 
@@ -873,6 +871,58 @@ Data 保存文档原文/版本与公开证据
 
 ## 8. 工程性能：复用，而非第二套快速语义
 
+### 8.0 日常实验应付出的成本
+
+这一节约定每次实验需要重做什么。缓存和物理布局为此服务。
+
+| 本次改变 | 应复用 | 必要的新工作 |
+|---|---|---|
+| 模型或模型参数 | 固定事实、适用 Feature 和 Label | 按训练样本拟合必要处理器，训练、预测、评价 |
+| 训练 Label | Feature 原值、可复用行情 | 新 Label、成熟样本与归一化，随后训练与预测 |
+| 评价 Label | 已保存预测 | 新评价目标、样本配对及统计 |
+| 特征子集 | 已有特征列与原始事实 | 投影；资格或截面发生变化时重算受影响部分，再训练 |
+| 信号组合 | 各原始预测 | 组合、评价及需要的账户回测 |
+| 持仓策略或风险参数 | 原预测、适用组合信号和市场输入 | 决策、账户及账户评价 |
+| 时间范围或股票池 | 已覆盖事实和适用列 | 读取新范围；补缺失输入，重算受影响的截面、训练或策略 |
+| 查看已有结果 | 保存报告与曲线 | 读取和展示 |
+
+复用必须满足输入与业务语义相同。改变股票池、特征资格、训练窗口或处理器拟合样本，可能改变截面归一化；此时重算受影响部分。原始特征不因改变模型而重新计算。选择已有列不重新准备全套特征。
+
+#### 数据只在需要的边界完整验证
+
+按 §8.2.2 的公开入口完整验证共同输入，建立当前进程的只读批对象。一个实际文件在这次批量准入中只读取、散列和解码一次；引用同一文件的不同来源描述仍分别核对。相邻窗口复用批对象，仅重新选择当前窗口、特征列和已成熟样本。旧独立完整来源加载器保留原语义。新进程重新执行适用的完整准入，不信任磁盘上保存的“已验证”标记。
+
+进入计算后，主要工作集是数值、有效性、时间、索引和必要状态。完整来源保留在可追溯的产物中。压缩表示已建立且无消费者再使用原解析对象时，释放原对象及其记账。避免同时驻留原 JSON、复制行对象和数值矩阵。
+
+运行边界保留来源变化检查；新进程、变化的输入或显式深度审计重新验证适用内容。校验与消费必须对应同一批字节。任何复用都不能改变 PIT 选择、成熟条件、样本键、缺失原因或数学规则。
+
+#### 物理开销随实际变化增长
+
+值和索引采用可投影的列式或只读数组存储，配置及小清单使用易读格式。来源引用尽量按共同分区、列或批次共享；确有逐值差异的来源才保留对应映射。
+
+只在真实需要时增加缓存层。先消除重复加载和对象副本，再决定是否并行。并行选择一个主要层级，限制总线程和内存，避免多层并发相乘。
+
+磁盘容量、逻辑工作集和进程内存分别计量。预算依据当前硬件及完整输入范围设置。某次实验的 5.5 GiB、2 GiB 或时间上限属于运行配置，不是业务合同或永久架构要求。不能通过缩小股票池、跳过校验或改变精度来伪造达标。
+
+#### 性能怎样验收
+
+先确认正确性与效率路径，再运行有代表性的实际用例。首次准备、同进程复用、新进程读取、改模型、改 Label、选子列和改策略分别计时；只报告实际测过的范围。单折结果不能冒充五年总耗时，合成宽矩阵不能冒充真实 300 特征构建。
+
+每项改动使用必要的局部反例和受影响路径对照。已完成的有效证据继续复用；只有相关实现或语义改变才补跑受影响范围。昂贵重跑前应能说明本次要验证的变化和预计收益。
+
+
+#### 标签按列计算，时间规则在取数和样本选择时执行
+
+LabelSpec 固定起止端点、价格口径与实际交易日历。对已按本次 cutoff 选好的行情列，Core 用现有公式批量计算收益，再按定义进行必要的截面变换。例如收益使用约定终点价格除以起点价格再减一。训练只选取当时已成熟的样本，事后评价可以使用更晚的评价截止时间。
+
+同一价格列、调整基准和所选版本可复用；改变 horizon 只增加实际需要的新端点及标签计算。不同 fit 时钟可能看到不同修订，批处理必须保留逐时钟选择，不能把最终版本的整张行情表切片后当作历史可见事实。每个结果保留必要的来源引用和时间，共同来源按批或分区保存一次。
+
+#### 研究定义与共享执行各归其位
+
+Research 维护 idea、可读配置、实验组合、模型与策略插件，以及研究结果的组织。Data 负责事实选择、版本与视图。稳定、跨实验复用的计算和执行能力按 Core/Engine 的既有边界提供公共入口；统一账户与按日运行归 Trade。Qlib View 是数据适配边界，Qlib 的模型及处理器通过这一边界使用。
+
+当前仍在 Research 的通用准备和加载实现可以先沿现入口完成 M1；移动源码时应保持公共接口和业务结果。仓库搬迁单独安排，避免把研究者下一次实验与目录重组绑定。每次更换模型、标签或策略，都应能从上表看清复用什么及新增成本。
+
 ### 8.1 阶段缓存身份
 
 已实现的 ETF 产物按内容绑定数据/查询/配方/实际实现身份，原子发布；已有目录须验证文件与 digest，冲突或损坏保留原件并拒绝。Core 来源证明表按引用共享保存；`feature_frames()` 可展开已保存表，`signal_frame()` 可导出中立 JSON，均不执行 Core。相同输入缓存命中不读取 Data 事实、不改 mtime；搬移及新进程只读已测。证据 JSON 仍有明显体积成本，本轮小样本耗时/bytes 见 [当前交付](../current-delivery.md)，不推断多年规模。
@@ -900,7 +950,7 @@ Cache hit 必须校验 manifest/身份与输出支持范围；prefix/superset re
 
 ### 8.2.1 固定输入矩阵与滚动训练
 
-> 接口草稿：现有 v1 路径保持；下列 opt-in 布局及批数学入口尚未实现，需 Core owner 与父任务固定后施工。
+> 本节约定 opt-in 布局与批数学入口；实现版本和实际验收范围见[当前交付](../current-delivery.md)。现有 v1 保存件继续沿原合同读取。
 
 
 批量研究复用现有 Snapshot/View、FeatureSpec、LabelSpec 和 prepared-view；Feature/Target 只是在该 view 内部保存的值、mask、时钟与索引表/分区，不新增事实层、registry、逐日文件平台或通用双时态 provider。Research 通过 Data 公共 Reader 取得固定事实，经调用侧 adapter 的受控 Qlib/向量化后端准备矩阵；数学定义和验收基准仍归 Core。保持既有 float64/数值投影、price basis、缺失和动态 universe 规则；新的模型/策略不能隐式改变它们。
@@ -915,7 +965,7 @@ prepared-view 复用既有 manifest 字段，仅增加分区 descriptor、schema
 
 **Qlib 与内存。** 从 Arrow/Parquet 的行组和列投影或标准只读 mmap，在 Qlib 外先取当前 fold 必需行列；禁止把全期 parquet 路径交 StaticDataLoader 后期待 DatasetH.segments 限制首 load。StaticDataLoader/DataHandlerLP 只接已投影的当前训练/validation/OOS DataFrame。初始矩阵写块可用 64 输出日×32列，预算不足缩块；lookback/anchor 输入按 Data 合同补齐。固定 Snapshot/Reader 只在事实准备阶段驻留；两年 native 读取也分块并保留当前 fit cutoff/anchor，训练前释放 Reader、native/proof 临时对象。
 
-622×2367×300 的 float64 全期纯值约3.53GB，保存在分区/只读文件中，不承诺全 RAM。训练期驻留上限：一份当前两年训练 X（486×622×300约0.726GB），至多一份同形可写 processor/model-input，validation/inference 小块顺序转换，以及模型内部 Dataset/工作内存；不得额外保留全期 raw/infer/learn 三套 handler panel。DataHandlerLP 只承担当前切片，并避免重复 mutating processor 分支；同一已转换表可由 empty-processor handler 承载。Qlib/pandas/DropnaLabel 不得隐式再创建完整 panel；任何 DataFrame/NumPy/native Dataset 仍引用底层 buffer 时，不得 close mmap/Arrow backing。批对象拥有 backing 生命周期，退出前释放当前投影，仍借用时 close 明确拒绝。时钟/mask/索引和 native 模型内存另计，逐相位记录副本数及 process-tree RSS，硬 cap5.5GiB、单重进程；预检或监控超限即停止该批/报范围限制，不降精度、减少 universe 或跳校验达标。
+622×2367×300 的 float64 全期纯值约3.53GB，保存在分区/只读文件中，不承诺全 RAM。训练期驻留上限：一份当前两年训练 X（486×622×300约0.726GB），至多一份同形可写 processor/model-input，validation/inference 小块顺序转换，以及模型内部 Dataset/工作内存；不得额外保留全期 raw/infer/learn 三套 handler panel。DataHandlerLP 只承担当前切片，并避免重复 mutating processor 分支；同一已转换表可由 empty-processor handler 承载。Qlib/pandas/DropnaLabel 不得隐式再创建完整 panel；任何 DataFrame/NumPy/native Dataset 仍引用底层 buffer 时，不得 close mmap/Arrow backing。批对象拥有 backing 生命周期，退出前释放当前投影，仍借用时 close 明确拒绝。时钟/mask/索引和 native 模型内存另计，逐相位记录副本数及 process-tree RSS，按当前硬件设置进程树 RSS 上限与并行度；预检或监控超限即停止该批/报范围限制，不降精度、减少 universe 或跳校验达标。
 
 **处理器拟合。** 在每 fit 的 PIT/mature/task 资格后先确定 train/validation 键，再仅在 train 键拟合 learned X processor；用保存同一状态转换 valid/infer。多个 horizon/task 的训练 mask 若不同，不默认复用 scaler。stateless 日期 CS 保留完整批准 cohort。不得继承 SysQ DNN 全 train→predict+30d median/MAD，或先全 X_train scaler 再尾15%validation 的顺序。未来 OOS/extreme 扰动不得影响 earlier-fit state/训练矩阵/模型；validation-only 扰动不得影响训练 scaler/矩阵，但显式 early stopping 结果可由 validation 改变。
 
@@ -945,7 +995,7 @@ prepared-view 复用既有 manifest 字段，仅增加分区 descriptor、schema
 
 `storage_options` 首版固定为 layout、row_block_sessions、column_block、maximum_resident_bytes；矩阵默认块64输出日×32列。v1 `shard_sessions` 与 v2 块选项分开声明，冲突配置拒绝。`preparation_options` 复用块和 resident 限制，声明 `normalization_backend='core_cs_batch_v1'`；其他数学/clock 配置从冻结规范取得，不提供随意 override。输入/输出、后端/库、buffer codec、块选项和实现进入保存定义。调用侧预算独立记录 source bytes、allocated matrix bytes 与包括 native 模型的 process-tree RSS；不将磁盘 source-byte limit 当成内存保证。
 
-六特征长周期与158/300列规模使用同一列式writer/loader、批处理、缓存、日期/列块和窗口实现，只改变冻结selection/ordered_features、列数与预算配置；不提供临时六列专用路径。六特征只是首个业务配置，代表规模压力测试可以后置，共享实现和5.5GiB上限从首版生效。后续压力测试导致共享代码修正时，受影响的短golden对照和长验收补跑，新输出绑定新implementation_ref，旧保存件不覆写。
+六特征长周期与158/300列规模使用同一列式writer/loader、批处理、缓存、日期/列块和窗口实现，只改变冻结selection/ordered_features、列数与预算配置；不提供临时六列专用路径。六特征只是首个业务配置，代表规模压力测试可以后置，共享实现从首版生效，内存上限由运行配置声明。后续压力测试导致共享代码修正时，受影响的短golden对照和长验收补跑，新输出绑定新implementation_ref，旧保存件不覆写。
 
 **Feature v2索引。** `stock_feature_inputs_v2` 是同一prepared Feature输入的列式包装，精确字段为 `{contract_version,definition,definition_ref,status,qlib_view,qlib_manifest,schema,schema_digest,row_index,source_selection,partitions,feature_inputs_ref,content_digest}`。与v1共用原 `spec`、scope、Snapshot/PIT、calendar/universe、catalog/selection/ordered_features、QLib引用和actual implementation/environment；不复制旧两年父图。definition精确为 `{spec,storage_options,implementation_sources,implementation_ref,environment}`，spec仍是原 `stock_feature_inputs_spec_v1`，storage_options使用上文精确字段且layout=`matrix_v1`；definition_ref=digest(definition)，implementation_ref=digest(implementation_sources)。status只接受COMPLETE；qlib_view保持原投影字段，qlib_manifest保持原 `{path,file_digest,view_id}`；实际输出日历史选版另由source_selection及metadata证明，不用QLib逐日vintage替代。
 
@@ -959,7 +1009,7 @@ Feature索引的source_selection子件精确为 `{contract_version,definition_re
 
 prepare按domain/列块/相关partition或小邻接partition组调度，再在该物理工作集内连续处理所需fit cutoffs；固定完整union/列投影，不能按每fit成员子集改变缓存键。先处理同一分区的相关folds，再移到下一组，不按fit循环整段两年源分区。anchor与t+1/t+5跨分区依赖按冻结calendar/原adjust_prices保留，最终完整日cohort后CS。公共Query可按日期块拆分；保存各块原Query与选版证据及声明的逻辑范围，不能伪称执行了未实际调用的全窗DataBatch。结果仅写当前fit选择/cohort/clock及共享来源叶/值分区，不重读、重序列化同两年完整父图。
 
-现有Reader的未选索引、evidence index和Query-result共用 `cache_bytes` LRU，`_build_index` 还为Arrow/Python候选构建保守预留空间；缩短Query.sessions只减返回工作集，**不能降低整partition候选构建峰值**。依次复用同physical key时，让索引在每次Query中成为最近使用项；预算须同时容纳相关索引、evidence和至少一个当前Query-result，才不会被该结果挤出。按实测构建峰值和5.5GiB全进程预算选择工作组/列块，避免多domain/整两年分区往返把热索引淘汰；若候选本身不准入，缩小fold组不会使它自动准入，必须报告并维持原窄查询路径。索引miss/负准入/fallback及实际重读分别记录，不虚称已经消除全部解码。
+现有Reader的未选索引、evidence index和Query-result共用 `cache_bytes` LRU，`_build_index` 还为Arrow/Python候选构建保守预留空间；缩短Query.sessions只减返回工作集，**不能降低整partition候选构建峰值**。依次复用同physical key时，让索引在每次Query中成为最近使用项；预算须同时容纳相关索引、evidence和至少一个当前Query-result，才不会被该结果挤出。按实测构建峰值和本次全进程预算选择工作组/列块，避免多domain/整两年分区往返把热索引淘汰；若候选本身不准入，缩小fold组不会使它自动准入，必须报告并维持原窄查询路径。索引miss/负准入/fallback及实际重读分别记录，不虚称已经消除全部解码。
 
 当前已确认Research profile仍为cache0；既有小样本64MiB无命中且比cache0慢，不能因功能存在便默认启用。新的分区优先调度使用同输入做有界3–4fold验收，只有实际index命中/解码减少、整体时间改善、wire/业务等价且RSS达标后才采用该缓存配置；这不是重跑旧六次读比较。首版不新造Data cache或固定安排另一个Data模块。若共用LRU/结果计费仍阻断实际复用，先报具体候选峰值/淘汰证据，仅由原Data owner决定必要窄修改；公共Query语义不变。训练前沿原 `clear_cache` 释放本Data实例Reader工作集，不清理原数据或其他任务实例。
 
@@ -1004,65 +1054,21 @@ loader验收顺序为batch/definition/ref→prepared-view共同scope/schema/inde
 
 固定硬件、样本规模、冷/热 cache 和参数，记录每阶段 wall time、peak memory、bytes read、cache hit/miss、训练/推理次数。首轮测量后确定预算，不在本设计凭空承诺分钟数或倍数。
 
-**本轮有界 rolling 性能基线（2026-10-05）。** 固定原 January 的 314 canonical ID 作为
-规模样本、原六特征、五实际交易日 label、模型参数与单线程；月度重训，前置三个月训练，
-复用已保存 January 基线后尝试 February/March 两折。各日仍按当时历史成员筛选，固定
-January union 不代表后两月完整 CSI300，也不用于策略收益结论。先测 1–3、再 10–20 个
-日期，累计预算 15 分钟 / 6 GiB RSS / 1 GiB 新产物，超预算停止本私有任务并保存瓶颈证据。
-事实读取、Qlib 投影、调整/adapter、Core、label/Dataset、数组组装、fit/infer、校验/序列化
-及缓存分别计时；共同日期只构建一次，每折显式绑定裁剪范围、fit 与预测 cutoff，不借
-旧 exact-config 缓存冒充跨折复用。每个 session 原 cutoff 的公共查询是批处理参考，不能
-用月末事实回填月初；预热保留实际日历与连续 union，label 按实际 f+1/f+5 和可用时间成熟，
-normalization 仍为该日可见成员/有效且成熟样本的既定 cs_zscore，无全期间拟合变换。
-允许本次运行内复用不可变 Core 文档的固定 identity、Qlib 引用和已完整校验的保存对象，
-DataBatch 适配在本次调用读取一次完整 wire，批引用与逻辑 ViewRef 仍绑定该 wire 原值；
-batch_field 来源标识仅按完整 field/batch_ref/qualification/basis 键复用，逐键 provenance
-仍完整保留，cell 来源模式维持逐键身份。每次调用重新读取、验证，不继承此前信任。
-不省略 hash/ref/来源闭包验证，不跨调用持久信任；先核对逐窗口/批处理的 keys、值、null、
-时钟、成员、排名边界及缓存隔离，再报告提速。旧产物不覆盖，5–6 年外推单列历史 union
-扩张、重训/窗口重复、证据内存与 I/O；单折 fit 或 Feature 线性参考不能称完整 rolling 实测。
+2026-10-05 的短样本预算与运行方案见[工程历史记录](history-engineering-20261009.md)。当前验收按 §8.0 的完整研究用例分别记录首次及后续成本。
 
 最低硬断言：只改 portfolio 时 train/predict 为 0；只看图或评估不触发训练；同 FeatureBuild 可被多实验并发只读；恢复不重复完成 fold；优化前后 keys/NaN/Feature/prediction 及关键排名边界满足声明一致性。
 
 ### 8.4 变更影响与重跑边界
 
 <a id="ml-engineering-current-boundary"></a>
-**2026-10-05 当前工程边界与有界验收。** 本文规定 owner 与合同；
-[ML 工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)沿固定真实短样本解释输入、
-准备、成熟、训练、保存 Signal、唯一账户、评估与展示，不另建一份规范正文。固定配置首建/HIT、两周控制试点与同 Signal Top3/Top5 对照已实际通过，
-用户功能确认与源码实现、教学运行验收分开登记。后续先审整体设计及小流程；所有未开始的
-全年/多年 ML 构建暂停，不能沿此前条件计划先跑。
+每次改动先确定受影响的用例和语义，再选择需要补跑的证据。纯性能改动应保持样本键、有效性、时钟、数值及决策结果的约定一致性；实现版本只用于追溯，不能解释未经批准的结果差异。若修复了业务错误，应明确标记受影响的旧结论并重算相关结果。
 
-Data 的 Raw/Canonical/Snapshot 和 Qlib 导出是事实/格式准备；导出不执行预测 Feature。
-Research catalog 编译既有 Core FeaturePlan，调用共享执行器；成熟 Label、Dataset、
-LightGBM fit/inference、保存预测目前由 Research 编排。通用 Core ModelHandle/SignalPlan/
-组合与正式公开 rolling 恢复仍为目标。本轮完整日期跨 fold parent 复用是有界编排证据，
-不是通用持久 feature/cache 平台。
-
-当前单折 builder 身份绑定 Research Python、Data Python、Core Python 的整体实现及环境，
-非语义代码也可能造成 MISS；旧保存件可读不代表最新 builder 必须 HIT。公开
-`build_stock_ml_from_saved_features` 复用固定同 config 的 Feature/raw Label，免 Data/Feature
-执行，仍重新处理 label/norm/Dataset/fit/infer；完全相同目标再次调用才是整实验 HIT。
-Qlib 和保存件复用仍有完整解析/hash/ref/证明核验成本，不称零 I/O。只换无账户依赖预测
-Signal 的组合，应仅执行 Core 组合/Runtime/Evaluation；TopK 合同已由 Docs PR17 审准且 Engine PR8 已合，
-不同组合对照绑定已审来源以证明零 Feature/fit/predict，不以改资金替代。
-
-两项目标方向已接受，最小新增合同仍待冻结：一是把过粗失效身份拆到真实语义依赖，完整实现来源继续用于审计；
-二是将长历史 Feature/proof 按完整日期截面持久化、逐片校验并释放，冻结多 parent 与原子
-checkpoint/resume 边界。两折通过尚未证明长历史常驻内存有界；教程不据此大重构生产代码。
-
-用户新增五年 **weekly retrain** 规模问题：保存日历的 2021-01-01—2025-12-31 有 1,212 个实际 session、256 个有交易日的 ISO 周。
-这只证明日历数量，不证明五年股票源/成员覆盖。已测两周保持 **2023-11-01—2024-01-31** 的 65 个训练日期不变，
-成熟日期分别为 62/65，预测为 4/5 日；固定规模、已准备 Feature、相同暖源与 proof 体积的条件外推为 65.15–66.87 分钟，
-不是五年滑动训练实测或总耗时上界。总计划还须加唯一冷准备、五年账户/评价、导出展示三个未测项；不能给有限总上界。
-逐项公式与假设见 [Notebook §12](../../notebooks/ml_engineering_tutorial.html#section-12)，旧 monthly 3–6 小时不适用，全年/五年仍不启动。代码读取实际 catalog 自动成表，不手写
-另一份 Feature 事实源；模型无量纲分数、账户状态缓存、来源限制均保持原合同。
+对已验证且未受影响的阶段继续复用保存结果。完整流程在关键接口稳定后验收；局部检查和短样本只用于定位及回归。当前交付状态见[交付记录](../current-delivery.md)，早期暂停和预算见[工程历史记录](history-engineering-20261009.md)。
 
 <a id="ml-engineering-review-proposals"></a>
 ### 8.4.1 四项工程边界与状态
 
-缓存 key/有界 loader 的准确新增合同仍是候选，不改变当前 builder 或旧保存件 loader。
-Weekly 有界试点与同 Signal Top3/Top5 对照已通过；TopK 合同已审准且 Engine PR8 已合。全年/五年仍暂停。
+本节保留早期候选与已冻结兼容合同。A、B 中的候选入口按其明确版本解释，后续 opt-in 矩阵与 verified batch 见 §8.2.1–§8.2.2；实际实现与验收状态见交付记录。
 
 **A. 失效身份与复用边界。** 建议把阶段 recipe/cache identity 与完整实现审计 receipt 分开，
 在新版本命名空间试验，旧保存件和其身份不覆盖。Feature key 绑定实际输入 batch/view refs、
@@ -1072,7 +1078,7 @@ Snapshot/QuerySpec、cutoff/PIT/价格与单位、完整 reference-members 截�
 固定参数/seed/训练后端版本及训练实现；Signal 绑定 Model、Feature、预测时钟及推理实现。
 完整 repo/source/environment 仍留作审计，不因 UI 排版或未使用模块改动自动重算所有阶段。
 不能只比较人工 semantic_version 而忽略实际计算代码；未证明无关的改动保守 MISS。
-相同 key 仍逐次读取并核验原内容/来源闭包，不引入跨次持久“信任缓存”。
+旧独立 loader 对相同 key 仍按原合同读取并核验内容及来源。§8.2.2 的 verified batch 在同进程内复用已验证输入，保留当前窗口检查及源变化检查。
 
 只改 portfolio 以原 account-independent Signal 为输入，生成新的 Runtime plan/run 与
 Evaluation；不重训或改 Signal 身份。只改 label/model 从实际受影响阶段往下失效；改字段、
@@ -1087,7 +1093,7 @@ Snapshot、PIT/cutoff 或 Feature 语义按真实依赖失效。账户、持仓�
 `load_feature_stage(path, *, expected_key: str) -> dict` 只读取/hash/闭包校验并返回原
 `stock_feature_build_v1`，不调用 Data/Core；新 manifest 分开保存 stage_key、完整审计来源和
 文件引用。首版仅 exact scope，不建设通用依赖服务、多 parent 拼装或自动 superset。
-两个函数仍为待冻结候选，当前没有导出；后续增量单独审阅，今晚不建设完整缓存平台。
+这两个函数保留为早期候选，是否导出以实际版本为准。它们不替代 §8.2.2 的已定义批入口。
 
 **B. 长 Feature/proof 切块、落盘与加载。** 首个最小增量的公开入口和恢复合同已固定于
 [§4.8.1](#stock-feature-checkpoint)，仍保留原 v1 parent 格式；以下 proof blob、磁盘矩阵等
@@ -1108,25 +1114,7 @@ proof 解析对象随校验释放，不常驻全部证明。分别测校验阶�
 先验证 peak RSS、累计新文件、两 shard 交界 keys/NaN/排名、一次中断恢复与零重复 fit；
 预算不够先停止，不能把本轮私有多 parent 编排直接晋升为公共平台。
 
-**C. Weekly 真实小例、fit 窗口与预算（已批准）。** OOS 为 **2024-02-05—02-08** 与
-**2024-02-19—02-23**；fit 分别为严格前一实际 session **02-02 / 02-08，20:30 +08**。
-教学控制使用此前三个完整日历月 **2023-11-01—2024-01-31** 的固定 Feature 日期，各周重新
-筛其 fit 时钟已经成熟且有效的 label；这是固定训练日期控制，尚非完整滑动窗口实现。
-不能借 04-15 outcome cutoff 进入训练。日历、成员与
-cutoff 从同一固定 Snapshot 的公开合同证明；缺覆盖就 BLOCKED，不用工作日推断。
-314 原 January IDs/六特征是规模对照，不称两周完整 CSI300；字段由实际 registry 自动拉取
-OHLC/amount/factor 及成员/日历证据，原 Feature 复用需完整 parent 校验。每周推理包括严格
-前 session anchor；模型不能回填到自身 fit 之前的时钟。OOS outcome 仅用于事后评价，
-与训练 cutoff 分开。本次两周事后 outcome 共同固定到 **02-29 20:30 +08**，共享
-完整来源读取/归一化，不供任一训练时钟使用。两周是教学/测量样本，不是全年模型或账户收益证据。
-批准上限：1 次同配置 saved-Feature 首建 fit/infer + 实际第二次 HIT；两 weekly folds 各
-1 次业务 fit/infer，最多 8 次公共 Data label-outcome 查询、供应商 0；不同组合最多 2 次
-账户。初次评价停止后，已批准仅补缺少阶段的分进程恢复，累计 3 次评价尝试（含失败）、2 份完整评价；
-已完成 Top5 账户不重跑，失败记录保留，额外恢复共用 480 s 时钟。一个重进程，RSS 硬上限 6 GiB、外部 own-PID guard 在 5.5 GiB
-停止；每阶段 120 s、总业务 480 s、累计新产物 1 GiB，超限保存证据停止，不自动扩预算。
-保存件解析、norm/Dataset、fit/infer、proof/hash、序列化/文件字节分别计时；冷 Data/Qlib
-准备先引用既有实测并明确“历史证据”，不冒称本次新冷跑。五年 weekly fold 数从真实日历
-枚举，估计按唯一日期冷准备与各实际 weekly 成本分开汇总；旧 monthly 3–6 小时不适用。
+**C. Weekly 试点记录。** 原日期、样本和运行预算已移至[工程历史记录](history-engineering-20261009.md)，用于解释旧证据。
 
 **D. Engine TopK 合同已审准，PR8 已合并。** 合同来源为 Docs PR17，准确字段见
 [Trade §6.1](04_axiom_trade.md#61-有界股票日线-top5)。已审源码 `f6d93a1` /
@@ -1261,3 +1249,4 @@ M1 的用例及多年正确性、性能验收全部完成后才进入 M1.5，将
 - [E5] LightGBM LGBMRanker：`https://lightgbm.readthedocs.io/en/stable/pythonapi/lightgbm.LGBMRanker.html`，query group、评估与 fit 接口。
 
 仍需专项确认：当前真实可复验 baseline refs、数据/PIT 可用范围、首个标签公式、phase 定义、相关性/正例等级与主指标、冻结 holdout、资源预算、首批 Feature/model 插件。不要凭本设计重新解释旧结果为已验证结论。
+

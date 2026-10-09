@@ -6,16 +6,7 @@
 
 本专项描述 axiom-engine 内的逻辑模块，物理仓库按[补丁 A](07_重要补丁_A.md)执行；Data 输入与首版范围已同步 2026-09-27 个人版，不改变本模块的计算或交易职责。
 
-2026-09-28 Data 接口实证：Research 所有的 adapter 已将真实月末 DataBatch/成员结果映射为 FactBatch、ExecutionContext 和 FeaturePlan，并执行 identity/lag/return；这不是全部策略或决策算子的真实验收。
-见 [真实 Developer 教程](../../notebooks/developer_tutorial.html#section-9) 与 [设计对照](../design-conformance.md)。正文继续定义目标合同。
-
-2026-10-05 当前边界：共享 FeaturePlan 执行与股票中立预测验证、固定 Top5 决策已有有界实现；
-LightGBM fit/inference 仍在 Research。正文中的通用 ModelHandle、SignalPlan/组合参数与正式
-rolling 恢复不因固定样本通过而成为已实现 ABI。TopK 合同已由 Docs PR17 审准且 Engine
-PR8 已合：显式正整数 top_k 使用 Core /2；省略参数仍解释旧 /1 Top5。准确工厂、版本
-与边界见 [Trade §6.1](04_axiom_trade.md#61-有界股票日线-top5)。
-不同组合须保存独立账户，不能用改资金代替。
-已实现/规划图及教学顺序见 [ML 工程 Notebook 初稿](../../notebooks/ml_engineering_tutorial.ipynb)。
+已实现能力、固定版本与实测范围见[当前交付](../current-delivery.md)。早期试点说明保留在[工程历史记录](history-engineering-20261009.md)。本正文定义计算与接口合同。
 
 ## 1. 一句话定义
 
@@ -378,3 +369,4 @@ Core 可在每次 `execute_feature_plan` 内复用一次构造的 history 键集
 继承上传的 Axiom 总纲 v0.1 §5–7，以及 signal-centric 文档关于模型与策略解耦、组合表达式和 target-based plan 的设计。本版进一步明确 Feature stage、插件 ABI、AccountState 版本及 pending order 的职责。
 
 尚待专项确认：首个模型 backend、插件打包方式、具体 portfolio 基线、state migration 规则、日级事件时间表和实际交易规则覆盖。不得因这些未决项引入多个 mode-specific 决策实现；缺支持时明确拒绝。
+
