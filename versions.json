@@ -108,7 +108,7 @@
         "source_commit": "4c462948d7fe622a71fbb74623db5c2ada47246a",
         "branch": "codex/research-reusable-evaluation-20261008",
         "version": "0.2.6",
-        "status": "feature_pushed_review_budget_efficiency_fix_awaiting_rereview",
+        "status": "feature_pushed_source_review_passed_real_onefold_partial_budget_blocked",
         "commits": [
           "975075074bab0091ff71e1da1bb8f62732babc72",
           "78fe119c3959a5a7ad8a59ce76376b19e0090301",
@@ -128,14 +128,27 @@
           "prior_targeted_source": "192ec630354a69c7d0beb3c551556a3106e889bc",
           "targeted_source": "4c462948d7fe622a71fbb74623db5c2ada47246a",
           "targeted_seconds": 7.136,
-          "review_fix_scope": "First root source/matrix/parent before decode; live root and earlier owner deductions; incremental piece accounting and one operation/index per owner; source mutation rejected; Raw publication validated once; old compact path included"
+          "review_fix_scope": "First root source/matrix/parent before decode; live root and earlier owner deductions; incremental piece accounting and one operation/index per owner; source mutation rejected; Raw publication validated once; old compact path included",
+          "real_onefold": {
+            "status": "PARTIAL",
+            "completed_train_calls": 2,
+            "completed_predict_calls": 2,
+            "Feature_rebuild_calls": 0,
+            "account_calls": 0,
+            "passed": "Fixed onefold independent5D outcome equality and100-tree prediction equality; label and model HIT;3D evaluation without fit/predict; two real six-column models common-mask comparison",
+            "remaining": "Three-column COMPLETE owner/model and real two-owner comparison",
+            "joint_matrix_limit_bytes": 6442450944,
+            "rejected_live_total_bytes": 6754184217,
+            "children_exited": true,
+            "private_results": "local_only_not_in_this_repository"
+          }
         },
-        "review_status": "192ec63_correctness_PIT_compiler_passed; 4c46294_budget_efficiency_fix_pending_parent_and_independent_rereview",
+        "review_status": "4c46294_parent_and_independent_rereview_passed",
         "publication_status": "feature_branch_pushed_no_merge_no_new_wheel",
         "data_source": "e457372950f30ab36cce743dbdb6633f0147e033",
         "engine_source": "1fa97878fda28769bbf1fea4ca37e7bdfbaa4524",
         "frozen_previous_run_source": "d5cfbe30c84ec108e8ba3b32eadfbd5f82167769",
-        "real_acceptance_status": "plan_only: independent_5D_labels; saved_prediction_reevaluation; distinct_owner_inventory; bounded_feature_and_current_implementation_model_warm; no_new_heavy_execution",
+        "real_acceptance_status": "PARTIAL: independent5D exact outcome and baseline prediction comparison, 5D/3D evaluation, six100/six50 shared Dataset and model/report HIT passed; three-column normalization rejected before allocation by combined6GiB; two real owners pending",
         "source_tree": "18385b9851a1d046c3e4c99c87472ae5e663c208"
       }
     },

@@ -7,7 +7,7 @@ Engine 唯一账户、UI 与缓存边界。真实65-session滑动两折已通过
 [`weekly_ml_pilot.py`](../examples/weekly_ml_pilot.py)仅为原Nov1—Jan31固定窗历史控制，新入口是
 `axiom_research.build_stock_ml_fold_from_saved_inputs`。详细合同仍链接统一设计正文，HTML 从 Notebook 生成，不独立编辑。
 
-第 14 节更新 CaseA/B/C 的分阶段能力与缺口。独立评价 Label、多 owner 保存评价及短时间配置已有三个本地提交，等待主协调审查。第 14.5 节新增一个人工日历的纯编译单元，执行得到 2 折；原 4 个代码单元的 source、输出与执行计数全部保留。真实 255 折只核对控制值，没有读取旧预测或重训；Engine 的上市生命周期阻断仍由原 owner 处理，没有新账户结果。HTML 从保存输出生成，没有执行其余单元。
+第 14 节同步 `4c46294` 的源码审查和单折真实复用状态。独立 5D/3D 评价、原六列 100/50 棵配置、模型及统计 HIT 和共同样本比较已通过；三列准备在归一化前被联合矩阵预算拒绝，第二真实 owner 未完成。实际执行使用隔离本地编排，私人结果保留本地。Notebook 五个代码单元的源码、输出和执行次数保持原值；HTML 从保存输出生成，没有重新执行单元。Engine 账户进度由其 owner 另行维护。
 
 Data两种路线的唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
 
