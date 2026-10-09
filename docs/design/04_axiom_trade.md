@@ -1407,6 +1407,88 @@ audit/capture 各一次，账户阶段原输入重开为零；无 Data/Research/
 调用，原输入、旧结果与源码不变，handles/helpers 已关闭。这只证明该有界窗口。
 benchmark 口径、合成检查和逐文件计时见 [软件测试说明](https://github.com/sinnergarden/axiom-engine/blob/63b032cf5158a2abfc28ed87eef73acc64665b4f/tools/stock_input_benchmarks.md)。
 
+### 6.7 股票公司行动的最小权益状态机（2026-10-09，集中实现候选，待父审）
+
+本节补充新的股票账户合同。现有现金事件、旧请求和保存结果仍按各自冻结版本读取；
+方向获审不等于实现或五年真实账户通过。新 Data 事实尚未取得时，旧事件不能放行。
+Core 继续规划组合，Runtime 的同一账本核算权益、成交和 NAV，Evaluation 读取保存流水。
+
+**事实与身份。** 现金使用每股税前金额，股份使用可靠的每股送转总量。
+Data 已核实 `stk_div` 表示每股送转总量；同一实施事件的现金为正且总量显式为零，
+足以证明没有送转，两个分项仍可为 null。已知总量为正也不要求两分项齐全，
+不能将总量与分项再次相加。未知总量或现金不能补零。付款日、红股上市日及其 Data 字段证据分别绑定到补充
+ViewRef，Engine 使用保守的共同可用时刻；上市日不是实际到账凭证，本合同只采用
+明确的日频模拟约定。
+
+原公告日、金额或日期修订不能生成第二份经济权益。先按证券、报告期及登记／除权
+窗口检查跨公告候选，由带来源证据的统一身份规则确定经济事件及别名；
+相同日期或金额本身不能证明别名。已核实别名合并 refs，只登记一次；未消歧候选
+保留一个歧义组，禁止把各行分别入账。稳定 economic_event_id 与事实修订 digest 分开，
+同一 economic_event_id／阶段重复幂等，冲突 payload 在修改账本前拒绝。
+
+**阶段与账户状态。** 新 profile 固定下列日频顺序，两种驱动复用同一规则。
+PAY 和上市日的日期到 session 映射、阶段 cutoff 与近似声明参与 profile／run 身份，
+不把日期近似称为真实盘前到账证据，也不改变旧 profile 的阶段。
+
+| 阶段 | 同一账本的处理 |
+|---|---|
+| 盘前结转、EX、PAY、上市 | 先结转普通买入 T+1；EX 按已冻结登记量建立现金应收及待上市股份权益；已知 PAY 转为可用现金，已知上市阶段将待上市权益转为持仓及可卖数量，再进行决策 |
+| 决策及成交 | 应收不能买入，待上市股份不能卖出；原 Core、原价、数量规则、费用及普通买入 T+1 沿用，不伪造送转成交 |
+| 登记日收盘 | 成交后冻结实际登记持仓数量及水位，后续卖出不能取消该权益；待上市权益不自动充当已登记股份，重叠登记无法判定时保留缺口 |
+| 估值及保存 | 使用原价按明确证券／股份单位估值持仓和待上市股份权益，保存现金、权益、股份流水及同一水位；划转不重复增加收入或 NAV |
+
+沿用 `gross_before_tax_no_personal_tax_model`、40 位 Decimal 和金额 HALF_UP 到 CNY 分。
+免费送转不增加买入费用，成本分配总额守恒；整数股份约束和零碎权益处理必须明确，
+缺规则时保留精确未舍入数量并说明缺口，不借用 ETF 向上取整。未知 PAY／上市日期
+分别标明缺阶段事实；不得猜日期或把未知付款当作已证实长期未付。
+
+**阻断与因子诊断。** 因子继续按全池检查并保存潜在漏事件诊断，不从因子变化反推
+数量，也不要求精确复现供应商因子舍入公式。可靠现金和总送转数量已证实的实施事件，
+不能仅因因子变化而永久阻断。未匹配变化不生成虚构权益；只有缺必要事实确实涉及
+该账户的登记资格或遗留权益时，Runtime 才按权益缺口处理。已无登记及遗留权益的
+账户不因全池历史事件停机，EX 后新买入也不能继承原有股东的权益阻断。
+
+保存验证须从成交及公司行动流水共同重建权益和数量，并验证 EX 确认、PAY／上市
+划转、可卖约束、成本和 NAV 守恒。持仓段归属继续绑定登记权益，尚有股份权益或
+归属待结算时不能提前宣称完整闭合；送转不计成交换手或费用。新事件、请求／profile
+及保存版本明确区分，旧 loader 和旧结果不改写。
+
+**候选 API 与新输入边界。** Engine 导出
+`equity_profile(*, execution_rules, fee_schedule, unknown_status_policy="block")`，
+生成 `stock_daily_open_profile_v3`；它沿用原股票费用、数量、现金与 T+1 规则，
+增加参与身份的 `stock_equity_simulation_v1` 日频权益约定。
+`equity_request(request, *, profile_input, action_facts_artifact)` 只从冻结
+`backtest_request_v7` 分叉 `backtest_request_v8`，保留原 prediction_input、价格输入和
+Core 组合规则。调用方用原 `run_stock_backtest` 执行，新结果为
+`backtest_run_v8`／`axiom.backtest/8`；市场与预测 Owner 仍经同一个 Runtime 账户路径。
+此候选验证了两种输入驱动共用规则，尚未提供独立在线 shadow 接入验收。
+
+`action_facts_artifact` 是已有 ArtifactRef 形式的轻量补充输入，逻辑版本为
+`stock_action_facts_v1`。它只消费 Data 已选定 PIT revision 的经济事件，不承担别名
+消歧；新增字段来自新的 corporate-action ViewRefs，不能声称旧 Snapshot 已包含它们。
+
+| 输入层 | 精确字段与约束 |
+|---|---|
+| 顶层绑定 | `contract_version`、`producer="axiom-data"`、新的 `snapshot_id`、实际 `observed_at`、`availability_basis="declared_vendor_assumption"`、冻结 `universe`／`calendar`、原两份行动 `parent_native_refs`、非空 `supplemental_view_refs`、版本化 `identity_policy_ref`、`actions`、`limitations` |
+| 每个选定经济事件 | `economic_event_id`、`revision_ref`、`identity_status`、`security_id`、`report_period`、`record_date`、`ex_date`、`payment_date`、`stock_listing_date`、`cash_dividend_before_tax_per_share`、`stock_distribution_shares_per_share`、`bonus_shares_per_share`、`capital_transfer_shares_per_share`、`available_at`、实际 `first_observed_at`、`raw_batch_ids`、`source_refs`、`aliases` |
+| 数值、身份与来源 | 现金为 CNY/share、三个股份比例为 shares/share，已知值使用精确十进制字符串，未知日期或数值为 null。总量只使用 `stock_distribution_shares_per_share`，分项保留而不重复相加。`economic_event_id` 是 Data 的非空 source-relative ID，`revision_ref` 为选定事实修订 digest；每个事件来源必须绑定补充 ViewRef。 |
+| 原披露别名 | 每个 alias 保留 `security_id`、`report_period`、`announcement_date`、`process_status`；一个原披露键只归属一个经济事件，原实施披露不能从补充 catalog 消失。Data 的版本化规则负责选定 revision 和别名，Engine 不按相同日期或金额自行归并。 |
+
+Data 新字段分别来自 `stk_div`、`pay_date` 与 `div_listdate`。75 组共同条款候选只有在
+Data 的版本化 vendor 规则确认新增字段也一致时才能归并；另外两组差异暂不消歧，
+以 `identity_status="UNRESOLVED"` 保存。新 Snapshot／ViewRef 及真实 Raw 接收时钟
+参与新请求和保存账户事件身份，历史 `available_at` 仍明确标为供应商假设。
+本轮真实 Data 载体尚需按最终原生形状对齐并获得父执行授权；合成通过不代表实盘到账
+或历史账户全程通过。
+
+新结果保存 `stock_account_events_v2`、登记／EX／上市股份流水、EX／PAY 现金流水、
+独立待上市数量、最终权益状态和共同水位。加载器仅重放这些保存会计事实检查守恒，
+不运行 Core、Feature、fit 或 predict。Evaluation 对 v8 采用明确的
+`record_origin_fifo_v1`：登记持有人保留权益来源，新买入不会继承旧权益；混合股份
+按原持仓段入场顺序归属卖出，精确有理数记录股份分配，现金分采用最大余数法并以
+入场顺序打破平局，每个保存成交的金额及费用守恒。上市不是新 BUY，也不增加成本；
+仍有待上市权益或待 EX 归属的段不进入合格闭合段收益统计。
+
 ## 7. 账户与 Ledger 数据模型
 
 账户权威分两层：Trade ledger 是系统内部流水与状态；RealBroker 是外部订单/成交/账户的对账依据。差异产生显式记录和调整事件，不用券商快照直接覆盖旧账。
