@@ -103,6 +103,34 @@
         "source_commit": "90b378a6e7d8283b0b021c537a95c5468b9161bc",
         "source_tree": "8ae4a69269594c99e42289c5757cffda6aae8ad9",
         "pull_request": "https://github.com/sinnergarden/axiom-research/pull/4"
+      },
+      "reusable_evaluation_candidate": {
+        "source_commit": "192ec630354a69c7d0beb3c551556a3106e889bc",
+        "branch": "codex/research-reusable-evaluation-20261008",
+        "version": "0.2.6",
+        "status": "local_only_awaiting_parent_review",
+        "commits": [
+          "975075074bab0091ff71e1da1bb8f62732babc72",
+          "78fe119c3959a5a7ad8a59ce76376b19e0090301",
+          "192ec630354a69c7d0beb3c551556a3106e889bc"
+        ],
+        "scope": "Independent saved evaluation Labels, explicit multi-owner frozen evaluation, short weekly configuration; original single-batch route retained",
+        "validation": {
+          "targeted_tests": 32,
+          "weekly_compilation": "255 original folds and 1213 prediction sessions exactly equal; controls only",
+          "tiny_Data_Core_case": "3 synthetic Label cells through public Data ColumnSource and original Engine Core; no real model or account execution",
+          "multi_owner": "Two 24-security fake-backend owners, 3D/5D training Labels and 3/6 model columns; different natural coverage, same common mask, non-null Core statistics and saved fixed Core combination",
+          "targeted_status": "PASS",
+          "cache_compatibility": "300-column warm/cold original owner checks; stale test assumptions corrected to actual retained physical parts and original Raw reuse preflight reasons",
+          "notebook": "Only one added synthetic pure-compile cell executed; original four code sources, outputs and execution counts unchanged"
+        },
+        "review_status": "pending_parent_and_independent_review",
+        "publication_status": "no_push_no_merge_no_new_wheel",
+        "data_source": "e457372950f30ab36cce743dbdb6633f0147e033",
+        "engine_source": "1fa97878fda28769bbf1fea4ca37e7bdfbaa4524",
+        "frozen_previous_run_source": "d5cfbe30c84ec108e8ba3b32eadfbd5f82167769",
+        "real_acceptance_status": "planned_only_no_full255_reread_or_retraining",
+        "source_tree": "c204d59556f157ddf1393fb2458302c3555d39a1"
       }
     },
     "axiom-engine": {
