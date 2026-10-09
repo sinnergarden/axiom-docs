@@ -108,7 +108,7 @@
         "source_commit": "192ec630354a69c7d0beb3c551556a3106e889bc",
         "branch": "codex/research-reusable-evaluation-20261008",
         "version": "0.2.6",
-        "status": "local_only_awaiting_parent_review",
+        "status": "feature_pushed_awaiting_parent_review",
         "commits": [
           "975075074bab0091ff71e1da1bb8f62732babc72",
           "78fe119c3959a5a7ad8a59ce76376b19e0090301",
@@ -125,7 +125,7 @@
           "notebook": "Only one added synthetic pure-compile cell executed; original four code sources, outputs and execution counts unchanged"
         },
         "review_status": "pending_parent_and_independent_review",
-        "publication_status": "no_push_no_merge_no_new_wheel",
+        "publication_status": "feature_branch_pushed_no_merge_no_new_wheel",
         "data_source": "e457372950f30ab36cce743dbdb6633f0147e033",
         "engine_source": "1fa97878fda28769bbf1fea4ca37e7bdfbaa4524",
         "frozen_previous_run_source": "d5cfbe30c84ec108e8ba3b32eadfbd5f82167769",
