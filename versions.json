@@ -103,6 +103,40 @@
         "source_commit": "90b378a6e7d8283b0b021c537a95c5468b9161bc",
         "source_tree": "8ae4a69269594c99e42289c5757cffda6aae8ad9",
         "pull_request": "https://github.com/sinnergarden/axiom-research/pull/4"
+      },
+      "reusable_evaluation_candidate": {
+        "source_commit": "4c462948d7fe622a71fbb74623db5c2ada47246a",
+        "branch": "codex/research-reusable-evaluation-20261008",
+        "version": "0.2.6",
+        "status": "feature_pushed_review_budget_efficiency_fix_awaiting_rereview",
+        "commits": [
+          "975075074bab0091ff71e1da1bb8f62732babc72",
+          "78fe119c3959a5a7ad8a59ce76376b19e0090301",
+          "192ec630354a69c7d0beb3c551556a3106e889bc",
+          "4c462948d7fe622a71fbb74623db5c2ada47246a"
+        ],
+        "scope": "Independent saved evaluation Labels, explicit multi-owner frozen evaluation, short weekly configuration; bounded first-ingress audit and incremental admission repair; original single-batch route retained",
+        "validation": {
+          "targeted_tests": 28,
+          "weekly_compilation": "255 original folds and 1213 prediction sessions exactly equal; controls only",
+          "tiny_Data_Core_case": "Historical three synthetic Label cells through public Data ColumnSource and original Engine Core remain evidence of the then-current producer; not rerun or relabeled for 4c46294",
+          "multi_owner": "Two 24-security fake-backend owners, 3D/5D training Labels and 3/6 model columns; different natural coverage, same common mask, non-null Core statistics and saved fixed Core combination",
+          "targeted_status": "PASS",
+          "cache_compatibility": "300-column warm/cold checks remain the separate prior 192ec63 evidence; not rerun for this repair",
+          "notebook": "Only the previous one added synthetic pure-compile cell was executed; current change is prose/metadata plus HTML render without execution; all five code cells, outputs and counts unchanged",
+          "prior_targeted_tests": 32,
+          "prior_targeted_source": "192ec630354a69c7d0beb3c551556a3106e889bc",
+          "targeted_source": "4c462948d7fe622a71fbb74623db5c2ada47246a",
+          "targeted_seconds": 7.136,
+          "review_fix_scope": "First root source/matrix/parent before decode; live root and earlier owner deductions; incremental piece accounting and one operation/index per owner; source mutation rejected; Raw publication validated once; old compact path included"
+        },
+        "review_status": "192ec63_correctness_PIT_compiler_passed; 4c46294_budget_efficiency_fix_pending_parent_and_independent_rereview",
+        "publication_status": "feature_branch_pushed_no_merge_no_new_wheel",
+        "data_source": "e457372950f30ab36cce743dbdb6633f0147e033",
+        "engine_source": "1fa97878fda28769bbf1fea4ca37e7bdfbaa4524",
+        "frozen_previous_run_source": "d5cfbe30c84ec108e8ba3b32eadfbd5f82167769",
+        "real_acceptance_status": "plan_only: independent_5D_labels; saved_prediction_reevaluation; distinct_owner_inventory; bounded_feature_and_current_implementation_model_warm; no_new_heavy_execution",
+        "source_tree": "18385b9851a1d046c3e4c99c87472ae5e663c208"
       }
     },
     "axiom-engine": {
