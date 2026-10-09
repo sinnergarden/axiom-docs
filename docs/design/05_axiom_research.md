@@ -1218,7 +1218,7 @@ M1 固定实际可用的 Data、Feature 和五交易日 Label，逐段完成保�
 
 2. **CaseB：保存预测组合后批量评价。** 目的是比较原始预测与固定加权 Signal，并验证更换评价定义只影响评价阶段。当前 SignalEval 已有经审查的 frozen-input 评价路径；原 Core 组合、矩阵 OOS-only 已接入；以下新本地候选补齐独立 Label 与多 owner 适配。输入为固定保存预测、显式权重及同一实际可用的五交易日 Label；先冻结评价输入，再经 `evaluate_stock_signal_inputs` 评价，准确公开调用沿以下 §11.1–§11.2，教学示例区分候选工程检查与真实消费。输出为独立组合 Signal、共同样本和自然覆盖、整体及按年 IC/RankIC、分组标签收益与保存评价。60/180 模型和 Y40/Y180 留待实际目标与成熟范围具备后使用。
 
-3. **CaseC：3–4 个周度 fold 与 Top5 账户，优先交付。** 目的是验证连续窗口的正确性、已完成 Research fold 的重用和资源成本。当前已有固定 5D/LightGBM 的两折真实滑窗历史证据，Engine 有界窗口源码已获父任务审查通过；此前冻结共享执行源码已完成 255 折 Research 保存与独立信号评价；该轮 Engine 上市生命周期准入冲突尚未解决，没有新账户结果。输入为同一正式准备矩阵、固定日历和 fold 时钟、已准入预测、市场回放、执行配置及 50 万元初始账户；输出为每折保存模型/预测、唯一 Runtime 的 Top5 订单与 ledger、扣费 NAV 和账户评价，并报告阶段耗时、读写量、峰值 RSS 及 Research fold 重用前后的实际 fit/predict 次数。v7 Runtime 当前不支持任意账户崩溃恢复，本 case 的中断重用范围限于 Research 已完成 fold。
+3. **CaseC：3–4 个周度 fold 与 Top5 账户，优先交付。** 目的是验证连续窗口的正确性、已完成 Research fold 的重用和资源成本。当前已有固定 5D/LightGBM 的两折真实滑窗历史证据，Engine 有界窗口源码已获父任务审查通过；此前冻结共享执行源码已完成 255 折 Research 保存与独立信号评价。原保存账户尝试记录了 Engine 上市生命周期准入冲突；其后续修正和账户验收由 Engine owner 与主协调另行登记，本轮 Research 没有执行账户。输入为同一正式准备矩阵、固定日历和 fold 时钟、已准入预测、市场回放、执行配置及 50 万元初始账户；输出为每折保存模型/预测、唯一 Runtime 的 Top5 订单与 ledger、扣费 NAV 和账户评价，并报告阶段耗时、读写量、峰值 RSS 及 Research fold 重用前后的实际 fit/predict 次数。v7 Runtime 当前不支持任意账户崩溃恢复，本 case 的中断重用范围限于 Research 已完成 fold。
 
 三个 case 已有分阶段源码与工程证据；真实模型对照、共同评价 Label 消费和连续账户的完成范围分别记录，不能把控制值编译或合成小例称作完整真实验收。Data revision 索引、Core 批横截面、Research 矩阵、Runtime 窗口和 SignalEval 均复用既有增量与原 owner，逐段说明已有能力、实测范围和剩余工作。
 
@@ -1227,7 +1227,7 @@ M1 的用例及多年正确性、性能验收全部完成后才进入 M1.5，将
 <a id="stock-evaluation-label-owner"></a>
 ### 11.1 独立评价 Label：先固定结果输入，再比较保存预测
 
-2026-10-09 本地源码按三个提交实现独立 Label producer、多 owner 保存评价准入和短时间配置编译，沿用原列式准备、Core 数学及冻结评价路径。源码为 `9750750`、`78fe119`、`192ec63`，本轮代码与本文通过 feature 分支交主协调亲审，尚未合并或制作新安装包。下文描述已存在的接口及定向检查范围。此前经审查的共享执行源码 `d5cfbe3` 与其 255 折保存输出保持冻结；真实账户在 Engine 行情准入遇到上市生命周期矛盾后被阻断，尚无该轮账户或账户评价结果。新的复用接口没有重训这份样本。
+2026-10-09 源码按三个提交实现独立 Label producer、多 owner 保存评价准入和短时间配置编译，沿用原列式准备、Core 数学及冻结评价路径。原提交为 `9750750`、`78fe119`、`192ec63`；审阅后的预算与效率修正另保存为 `4c46294`。四个提交通过 feature 分支交主协调亲审，尚未合并或制作新安装包。下文描述已存在的接口及定向检查范围。此前经审查的共享执行源码 `d5cfbe3` 与其 255 折保存输出保持冻结；原账户尝试因 Engine 行情准入的上市生命周期矛盾而阻断，该历史记录保留。后续账户进度由 Engine owner 和主协调另行登记，新的复用接口没有重训这份样本。
 
 模型用什么目标训练，与研究者用什么 Label 比较保存预测，分别固定。独立 producer 使同一份实际评价 Label 能被多个模型或组合信号复用，而无需再准备训练截面、训练模型或生成预测。公开入口为：
 
@@ -1246,6 +1246,8 @@ load_stock_evaluation_label_inputs(descriptor, *, limits=None)
 评价日期指 Feature session；Label 的 f+1、f+h 端点依据完整冻结 calendar，允许落在评价日期区间之后。端点在 calendar 内且实际依赖不晚于 evaluation_cutoff，才可能成为有效评价单元。calendar 未覆盖端点或 Data 在该 cutoff 没有有效依赖时，保留原 Raw 算子的对应原因；不猜休市日、不借 cutoff 之后的事实，也不因标签无效裁掉末尾样本。训练仍按原 fit 的严格成熟规则筛选，较晚的评价结果不能改变原模型。
 
 首个验收用原 5D Label：对照既有 Raw Core 数值、完整键、mask、原因和时钟；保存后同定义复用、独立冷载入与篡改拒绝分别检查。评价区间之后的成熟端点和冻结 calendar 未覆盖的端点各设一个小例，单独确认没有 Feature、fit、predict 或账户执行。其他 horizon 只沿当前 LabelSpec 已支持的定义使用，不依据评价收益改参数。
+
+`4c46294` 将整次 Raw 验证放在原 store 的一次操作边界内，发布前只核验一遍各 Raw part。manifest 的最终链接仍核对原已验证字节，所有 Raw 祖先的原文件指纹持续有效；链接造成的 manifest ctime 变化只在同 inode、大小、mtime 和最终字节全部证明相符后登记。源 buffer 在链接后变化会拒绝返回描述符。同定义 producer HIT 仍在 Data selection 前核验并复用旧件。实现身份按原规则绑定实际 producer 字节，因此这次代码修改产生的新定义不能冒称命中旧实现的缓存。
 
 <a id="stock-multi-owner-signal-evaluation"></a>
 ### 11.2 多 owner 冻结评价：按键对齐，保留原父件与覆盖
@@ -1270,6 +1272,10 @@ save_stock_signal_evaluation_inputs(
 raw_metadata 保留原九字段 `mode/label_ref/label_spec/calendar_ref/snapshot/pit_policy/sources/label_inputs/label_shard_refs`，mode 为 `independent_targets`，label_ref 为独立 producer 的原身份，sources 保存全部原 Raw descriptor/header，label_inputs 为空列表。各日 shard 沿原 `stock_signal_evaluation_date_v4`，保留完整键、原预测和 Label row binding；独立 manifest/Raw buffers 与原 owner 闭包均进入来源表。训练 Label 从各原 owner manifest 保留，不能混入共同评价 Label。原 v1–v5 保存件不改写；原 `save_stock_derived_signal_evaluation_inputs` 接受 v4 或新 v6 共同 base，仍保存其原预测父件与显式组合定义，Derived 包装版本保留 v5。
 
 资源限制沿原 owner 的 resident、source、parent 预算，按实际仍活着的 store/backing 所有权联合计量。共享物理 backing 只计一次，不凭内容 hash 相同合并两个实际副本，也不把每个 owner 的独立上限相乘。有选列的原 owner 沿其已经验证的 model_parts 收集所选物理 parts 和共同 metadata 的字节证明；完整列路径保留原 parts 检查，不读取未被模型选择的额外列。准入后的保存、公共加载和评价从冻结值取数据，Data、Feature、归一化、fit、predict、账户次数均为 0；统计仍由原 Core 执行。
+
+`4c46294` 修正审计读取的预算缺口：首次 root 字节及解码工作区先受 ArtifactRef 中的三项预算约束；该 root 保留期间，后续 owner 的公共 loader 只获得扣除 root 和已打开 owner 后的剩余额度。逐片准入只计新增 rows、metadata 和来源引用，共享 manifest 与 fold 索引只建一次；每个原 owner 的一次操作覆盖全部片段，操作退出及发布边界仍检查源文件变更。完整准入图只在最终审计比较边界再计量一次，避免随片段数量反复扫描历史投影。
+
+研究流程应调用保存入口一次，随后将返回的 frozen ArtifactRef 交给整体、按年或组合评价复用。再次调用同一保存入口仍会重新准入原预测并准备临时日期 shards，直到最后才核对已存在的目标；这个保存 HIT 有准备成本，不能记成零读取或零物化。独立 Label producer 的 selection 前 HIT 是另一条路径，成本须分别记录。
 
 验收用两个小型原 owner，比较原始预测与一份固定加权组合。交换证券轴和行顺序后，键、有效样本、覆盖与指标必须一致；删行、重复键、错 owner、错 calendar、晚到 Label 和闭包篡改均明确拒绝或保留原无效原因。共同与自然覆盖分别核对，联合预算边界和所有 owner 正常释放也要检查，不启动新训练或账户。
 
@@ -1300,11 +1306,22 @@ timezone、fit/model/inference 本地时间和 aware evaluation_cutoff 全部显
 
 ### 11.4 本地增量验收与真实补验边界
 
-三个本地增量已通过 32 项定向检查。两个 24 证券的原 owner 使用 fake backend，分别固定 3D/5D 训练目标及 3/6 列模型选择；不同自然覆盖和共同样本分别核对，原 Core 输出有效统计。固定 .25/.75 组合沿既有 Core 保存和读取。补充的 300 列旧用例按共享 owner 中已经加载的完整块及选列缓存计算实际新增读取次数，冷缓存用例仍准确检查所需新增件；错误 fold vintage 或 query plan 在读取 buffer 前拒绝。
+原三项 API 增量在 `192ec63` 通过 32 项定向检查。两个 24 证券的原 owner 使用 fake backend，分别固定 3D/5D 训练目标及 3/6 列模型选择；不同自然覆盖和共同样本分别核对，原 Core 输出有效统计。固定 .25/.75 组合沿既有 Core 保存和读取。补充的 300 列旧用例按共享 owner 中已经加载的完整块及选列缓存计算实际新增读取次数，冷缓存用例仍准确检查所需新增件；错误 fold vintage 或 query plan 在读取 buffer 前拒绝。
 
-公共 Data ColumnSource 与原 Engine Core 的保存小例包含三个合成 Label 单元，证明数值、null 原因、同定义复用和冷加载。此前保存的两个控制件另与短配置编译结果逐项比对，原 255 折和 1213 个预测 session 完全一致；控制件 hash、mtime 与大小保持原值。这些检查没有真实模型训练、旧 255 折预测重读或账户执行。Notebook 只新增一个人工日历的纯编译单元，原四个业务代码单元及保存输出保留。
+审阅修正 `4c46294` 另通过 28 项有界检查，用时 7.14 秒。范围包括独立 Label、多 owner 和旧 compact 保存评价；负例分别核对首次 root 的 source、matrix、parent 预算在解码前拒绝，第二个 owner 使用扣除仍活着的 root 和首个 owner 后的额度，以及延后源检查仍拒绝发布变更文件。16 个重复 alias 只用于计量路径压力检查，最后仍按原规则拒绝重复 Signal 身份，不作为 16 个模型对照。该次没有重跑 300 列用例；32 项旧证据与 28 项修正证据分别保存，不能相加称作一次完整套件通过。新修正尚待主协调与独立复审。
 
-真实补验只提交计划，等待主协调审查源码及安排唯一重进程窗口。候选范围最多为两个相邻原 fold、10 个预测日期和完整原 569-ID universe，沿用原 Snapshot、PIT、5D LabelSpec 与 evaluation_cutoff。先核预算和父件，再通过原公共 loader 准入已有保存预测；若准入需要全 255 折预测物化或超过预算，则停下报告。共同评价 Label 的首次构建、HIT、冷加载和冻结信号评价分别记录实际次数。第二个相容真实 owner 尚未完成盘点，缺少时保留 CaseB 真实对照待验状态，不隐含启动训练。此前冻结账户尝试仍是 Engine 准入阻断记录，后续行情合同处理及新账户准入由 Engine owner 和主协调确认。
+公共 Data ColumnSource 与原 Engine Core 的旧保存小例包含三个合成 Label 单元，证明当时实现的数值、null 原因、同定义复用和冷加载；本次没有把旧 producer 证据重标为新实现的真实执行。此前保存的两个控制件另与短配置编译结果逐项比对，原 255 折和 1213 个预测 session 完全一致；控制件 hash、mtime 与大小保持原值。编译与原 validator 在 `4c46294` 保持原字节。这些检查没有真实模型训练、旧 255 折预测重读或账户执行。Notebook 只新增一个人工日历的纯编译单元，原四个业务代码单元及保存输出保留。
+
+真实补验仅提交计划，等待主协调审查源码及安排唯一重进程窗口。所有步骤先固定输入引用与预算，超预算或需要完整 255 折预测物化时停止并报告。下列范围均未执行。
+
+| 补验 | 固定范围与预期证据 | 首轮资源边界 |
+|---|---|---|
+| 独立 Label | 最多两个相邻原 fold、10 个预测日期、完整原 569-ID universe；原 Snapshot、PIT、5D LabelSpec 与 evaluation_cutoff。核对数值、mask、原因、时钟、首次构建、HIT 和冷加载，Feature、fit、predict、账户为 0 | 5 分钟、RSS 2 GiB；source 256 MiB、matrix 512 MiB、parent 128 MiB、总产物 256 MiB |
+| 已有预测复评 | 原公共 loader 准入有界保存预测，冻结输入一次，再复用 ref 做整体及按年评价；核对原预测绑定与自然覆盖，Data、fit、predict、账户为 0 | 3 分钟、RSS 2 GiB；沿上一行三项字节预算和产物上限 |
+| 跨 owner | 先盘点实际不同、范围相容的原 owner 和模型引用。有第二个保存件才冻结联合预算并核对自然及共同样本；缺少时记录待验，不重复 alias 冒充第二个模型 | 盘点只读控制件；实际消费另固定联合额度与单一执行窗口 |
+| Feature 与模型 warm | 单 fold、线程 1。当前实现首建模型后同配置 HIT；受控参数对照候选为原 100 棵与 50 棵，其余显式参数保持原值。特征候选为原六列与 `MOM010/MOM020/MOM030` 三列，各自保存原选择与自然有效范围 | 每个候选先按 10 分钟、RSS 2 GiB 预检，失败不自动放大范围 |
+
+模型 warm 必须在同一当前实现内验收。现 builder 将 Research、Core、Data 的整体实现字节纳入身份，加载旧模型不执行训练，但拿新源码重建旧定义可能 MISS；不得把这个重建当作必然 HIT。新参数对照不称 booster 增量续训。Raw reuse 仍要求完整原 fold 集合及一致 query plan，不能截取 255 折后伪装成原 owner；若没有可直接复用的短批次，单 fold 目标与选列准备应另计 Data、Raw 和归一化成本，经主协调安排后才执行。此前冻结账户尝试及后续新账户准入由 Engine owner 和主协调确认。
 
 ## 12. 最小验收标准
 
