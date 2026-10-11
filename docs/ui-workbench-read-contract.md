@@ -6,7 +6,9 @@
 
 Research 的字段与过滤语义以 [Research 主章实验记录合同](design/05_axiom_research.md#experiment-records) 为准。UI 调用 `ExperimentReader(index_path).index()` 读取问题→不可变版本→运行和整理状态，使用 `compare_versions` 读取已声明变化及保存参数/输入差异。收藏、搁置和标签只在本地展示/筛选，不写 Research 业务状态。未运行、失败、阻断或未载入账户结果均保留入口，不生成 Engine run_id、假设或零指标。默认导航沿 owner 的 saved_run_ref 聚合、registration_history 保留登记修订，回测数和登记数分别读 owner counts；运行收藏/搁置按组读取，不因更换评价多算一次回测。旧 `load_rotation_experiment(path)` 只作明确提供的冻结实验验证，不能替代新的问题说明。
 
-Engine 的 [P10 主合同](design/04_axiom_trade.md#daily-evaluation) 定义评价与统计口径。`load_backtest_run(path)` 和 `load_backtest_evaluation(path)` 均仅读取并校验保存结果，UI 不调用执行、评价或保存入口。评价逐原值绑定 `input_run_ref` 的 run_id/content_digest/committed_sequence，以及 signal/market/profile refs；逐 session NAV、水位和成交关联不能混用。Research 索引关联也逐值核对，索引 URI 不自动跟随读取。基准必须保留价格指数不含分红说明，月份 partial/null 与已知/未知分红范围分别标示；不足分布门槛仅展示 owner 逐段值。
+2026-10-11 新增的[保存结果发现合同](design/05_axiom_research.md#experiment-result-discovery)是 v2 增量，Research/Engine producer 与 UI consumer 分别验收。私人本地工作区一次配置 `research_root`（固定索引）与 `engine_root`，不为每个 idea、Signal、回测或评价手工搬文件/输入路径。短时只读页面只绑定 `127.0.0.1`：启动或页面按钮显式刷新时只读 `ExperimentReader.index()` 的轻量 head、问题/版本元数据和索引修订；在页面点开某一结果才调用 `ExperimentReader.result(result_id,roots=...)` 与固定类型公共 loader，无轮询或后台计算。不能启动本地服务时允许 CLI 轻量列表加单结果导出，作为降级入口，不称页面直接点选验收。跨 owner 文件只以 root_id+根内相对路径解析，并由公共 loader 核对保存身份；拒绝越界路径、任意 URI、未登记目录及不支持的类型。新 A01 sequential/fold、SignalEval 与多策略账户须使用各 owner 新的固定读取投影；旧股票 ML v1 入口保留，不把新 `experiment-result.json` 直接交给旧 `load_stock_ml_experiment`。失败、阻断、运行中、partial 或缺件保持原状态/原因；Research 阶段 COMPLETE 不表示账户完成。静态导出标明生成时间、store_revision 和 index digest，显式刷新后才代表新索引，不声称浏览器自动访问本地磁盘。
+
+Engine 的 [P10 主合同](design/04_axiom_trade.md#daily-evaluation) 定义评价与统计口径。`load_backtest_run(path)` 和 `load_backtest_evaluation(path)` 均仅读取并校验保存结果，UI 不调用执行、评价或保存入口。评价逐原值绑定 `input_run_ref` 的 run_id/content_digest/committed_sequence，以及 signal/market/profile refs；逐 session NAV、水位和成交关联不能混用。Research 索引关联也逐值核对；旧 v1 索引 URI 不自动跟随，v2 只解析已登记 typed ref 的可信根内相对路径。基准必须保留价格指数不含分红说明，月份 partial/null 与已知/未知分红范围分别标示；不足分布门槛仅展示 owner 逐段值。
 
 UI 同入口兼容 v1 与 [多年评价 v2](design/04_axiom_trade.md#long-history-evaluation)。v2 读取保存的年化区间与账户/沪深300 CAGR、累计收益、同区间最大回撤；保留累计收益展示，年化值及其不可用原因分别按 owner 原值格式化。v1 不补年化字段；短跨度或边界缺失的 null 不填零，也不因报告 COMPLETE、局部月或持仓段资格推断年化可用。窗口选择仍只控制保存点展示，年化区间保持原报告归属；基准仍为不含分红的价格指数。历史候选保存件只作接口测试并显式标候选，正式展示绑定父任务指定的最终 Engine 身份与文件，页面验收单独登记；UI 不计算 CAGR、年化回撤或 Sharpe，新增风险分析须读新评价保存值。具体字段、时钟与公式均只引用 Trade 主章，本页不另维护。
 
@@ -33,7 +35,7 @@ Data 沿用 [Data 公共 Reader](design/02_axiom_data.md) 与 [P12](design/06_ax
 - **收益轴与原值：**主图按 Owner 保存收益百分比序列显示，只有 nav_index 的旧报告仍称净值指数；不得由 UI 把 nav_index-1 补成业务收益序列。跨基准同日缺值保留缺失，不插值/邻日填充。新报告与旧账户按 input_run_ref 原值三元组绑定，新增报告登记不增加回测次数。
 - **保存交易依据：**当前股票显示投影已有 Core targets/intents/trace、订单 quantity/intent_id 与 fill order_id/quantity/price/fee，优先保留可公开展示的窄依据并按真实关联连链。运行方不足的批次 ID、目标/买卖理由和 ETF 关联由 Owner 明示未提供，UI 不把同日记录造成因果链。Research 保存的说明/版本差异与运行自然标签用于摘要，无说明不猜意图。
 
-新 Owner 文件由调用方显式提供并通过公共 Reader 校验，然后进入 UI 显示投影。浏览器不 import Owner、不自动 evaluate/query/build、不沿 index URI 补读。UI 对既有文件做只读/hash/mtime 检查，页面验收不要求 Owner 重跑账户、训练或 bulk。
+旧 v1 Owner 文件仍由调用方显式提供并经公共 Reader 校验；v2 新件由一次配置的本地可信根与 Research 原子登记发现，按需调用固定公共 Reader 后进入 UI 显示投影。浏览器不 import Owner、不自动 evaluate/query/build、不沿任意 index URI 补读。UI 对既有文件做只读/hash/mtime 检查，页面验收不要求 Owner 重跑账户、训练或 bulk。
 
 ## 页面交互应用
 

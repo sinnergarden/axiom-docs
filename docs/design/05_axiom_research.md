@@ -136,6 +136,26 @@ diff = reader.compare_versions(left_version_ref, right_version_ref)
 
 Reader 构造、索引、详情和比较仅读取并校验索引元数据，不创建目录或文件，不逐次哈希整个产物目录，不导入 Data/Core 执行入口，也不调用训练或回测。外部产物在登记与实际读取时由各 owner 的公开 loader 校验；索引校验不替代产物可用性或真实性证明。旧产物未登记时不自动扫描成研究结论。UI 经此投影浏览，再按 Engine 公共 loader 读取已保存账户与评估结果。
 
+<a id="experiment-result-discovery"></a>
+#### 保存结果自动发现：v2 增量合同
+
+状态：`accepted design`（2026-10-11）；Research producer 与 UI consumer 尚待实现和合成验收。沿用上述唯一 `ExperimentStore` 索引及问题→版本→运行关系，不建立第二 registry 或数据库。`experiment_index_v1` / `experiment_projection_v1` 继续可读；首次登记新结果时在原子替换中升级为 `experiment_index_v2`，保留原 questions、versions、runs、组织历史与计数语义。v2 新增轻量 `result_heads`；`ExperimentReader.index()` 的 `experiment_projection_v2` 原样保留旧问题投影，并携带这些 head。索引不内嵌训练批次、逐日信号、账户 ledger 或评价序列。
+
+| 层次 | v2 保存字段与含义 |
+|---|---|
+| 稳定结果 | `result_id` 为 Research 在冻结运行请求时保存的稳定 ID，绑定 `question_id`、不可变 `version_ref` 与一次执行的 `attempt_id`；同定义主动再跑使用新的 attempt。评价追加、登记说明或文件定位变化只增加修订，不改变 result_id，也不增加回测次数。`attempt_id` 与 result_id 在执行前持久化，重试复用。 |
+| 索引 head | `result_heads[]` 每项 `{result_id,question_id,version_ref,revision,manifest_ref,status,reason,updated_at}`；`manifest_ref={root_id,relative_path,content_digest}`。同一 result_id 只有一个最新 head，旧不可变 manifest 仍可按身份读取；head 状态与被引用 manifest 一致。 |
+| 不可变 manifest | `experiment_result_manifest_v1` 含 `{result_id,revision,question_id,version_ref,created_at,status,reason,configuration_ref,artifacts,folds,signals,accounts,content_digest}`。`content_digest` 是除自身外规范 JSON 的 SHA-256。`configuration_ref` 指向本 manifest 的一个 typed artifact；其他层只用 artifact key 引用，避免复制 locator。 |
+| typed artifact | `artifacts[]` 每项 `{artifact_key,owner,artifact_type,artifact_id,artifact_contract_version,content_digest,root_id,relative_path}`；artifact_key 在本 manifest 唯一，content_digest 沿用该 owner 合同的含义，不擅自当作文件字节摘要。`owner` 首版为 Research 或 Engine，`root_id` 在调用方一次配置的可信根映射中解析。路径为根内相对 POSIX 路径，拒绝绝对路径、`..`、空段、符号链接越界和网络 URI；旧绝对 URI 只作 v1 历史元数据，不在 v2 自动跟随。 |
+| 多产物关系 | `folds[]` 各有 `fold_ref/status/reason/artifact_keys`；`signals[]` 各有 `signal_run_ref/status/reason/prediction_artifact_key/lineage_artifact_keys/evaluation_artifact_keys`；`accounts[]` 各有 `strategy_ref/signal_run_ref/status/reason/backtest_ref/evaluation_refs`。`backtest_ref` 为 null 或 `{artifact_key,run_id,content_digest,committed_sequence}`；每个 `evaluation_refs[]` 项为 `{artifact_key,evaluation_ref,content_digest,input_run_ref:{run_id,content_digest,committed_sequence}}`，与本账户 backtest 三元组逐值相等。一个结果可有多个信号和策略账户，缺件保持 null 或空数组并说明状态，不虚构 Signal、回测或指标。 |
+| 状态与次数 | 新 manifest/head 使用 `RUNNING`、`PARTIAL`、`COMPLETE`、`FAILED`、`BLOCKED`；旧不可变 run record 的 COMPLETE/FAILED/BLOCKED 含义不变。COMPLETE 要求声明的必需件均经 owner 公共 loader 验证；失败、阻断和 partial 保存原因与已完成件。列表分别显示结果数、已验证的唯一 Engine run 数和登记修订数，不把 SignalEval 或新增评价算作回测。 |
+
+Research producer 在 owner 保存与公共校验后写入新的不可变 manifest，随后用现有索引锁和原子替换更新 head；相同 result_id+revision+digest 重试幂等，冲突拒绝。旧 head 在新 manifest 或引用核验失败时保持可读，失败状态可作为新的修订保存，不能让 RUNNING 或仅有 `experiment-result.json` 的目录冒充 COMPLETE。A01 的 `experiment-result.json`、`batch.json`、`prediction-bindings.json` 和信号评价由 producer 登记为 typed refs；Engine 的多个策略账户及后续评价按原 owner 身份追加 manifest 修订，无须移动已保存文件或逐项运行人工登记工具。未登记的旧目录仍不被 UI 猜测扫描。
+
+公开入口增量为 `ExperimentStore.publish_result(manifest, roots=...)` 和 `ExperimentReader(index_path).result(result_id, roots=...)`；后者只验证 head、manifest 与相对引用，不打开大型训练/账户原件。`index()` 仍只读小索引。Research 为 A01 的 `experiment-result.json`、`batch.json` 和 prediction bindings 提供可按需读取的固定公共投影/loader，UI 不把私有 JSON 当新业务合同。旧单记录 API 与 v1 Reader 行为保持。
+
+UI 一次配置 `research_root`（含固定 `index.json`）及 `engine_root`，映射到 `root_id=research|engine`；不把本地路径写进公开 Docs 或静态页面。列表只读索引 head 与问题/版本元数据；点选一个详情才经 Research 公共 Reader 验证其 manifest、相对定位和引用闭包，再按固定 artifact_type→owner 公共 loader 读取所选原件并核对身份与 digest。缺失、失配或不可读显示明确原因，不执行 manifest 中的代码，不调用 Data、训练、评价或回测。首版可启动短时、仅绑定 `127.0.0.1` 的只读本地页面；页面按钮显式刷新同一索引，无后台轮询，点击某结果才读取该结果。不能启用本地服务时保留 CLI 先导出轻量列表、再单个导出详情的降级入口；静态页标明生成时间、`store_revision` 与索引 digest，不宣称保存后无需刷新即实时更新。无需为每个新 idea、Signal、评价或账户手填文件路径。准确 UI 消费边界见 [只读约定](../ui-workbench-read-contract.md)。
+
 ## 4. Dataset、Label 与时序
 
 ### 4.1 数据准备顺序
