@@ -6,6 +6,8 @@
 
 公共接口为 `compiled = compile_feature_columns(plan: FeaturePlan)` 和 `result = execute_feature_columns(compiled, *, inputs: dict, output_sessions: list[str], max_working_bytes: int)`。编译调用原 `validate_plan`、依赖闭包和 `required_history`，保存原图、列顺序、参数、单位与语义身份。首版覆盖 Research 88 列实际用到的 sessions 域、element、shift/pct_change、rolling 和 session 截面算子；未覆盖的 event/asof 或其他 profile 显式拒绝，不制造替代公式。冻结输入/schema 和执行 profile 均进入新结果身份。
 
+准入要求 `inputs.sessions` 恰为 `sorted(compiled.reference_members)` 的一个连续切片；不能只以升序和逐日成员存在证明日历完整。若冻结日历为 `[d1,d2,d3]`，输入 `[d1,d3]` 会以 `MISSING_SESSION` 拒绝，避免把 shift1 错当成跨 d2 的位移；`[d2,d3]` 等连续子窗口可正常输入。编译阶段一次冻结日历顺序，执行不重建 FeaturePlan JSON。首版 partial profile 在第一条输入 session 对 `inclusive_current=false` 的 rolling 请求会因空窗口显式拒绝；Research 当前 88 列不依赖该情形。
+
 `inputs` 是完整有序 sessions × security_ids 的 NumPy 列矩阵及轻量元数据。精确字段为 `contract_version, calendar_ref, reference_ref, schema, source_bindings, sessions, security_ids, cutoffs_utc_us, values, validity, reason_codes, reason_dictionary, available_at_utc_us, source_codes, source_sets, reference_member, reference_industry, reference_available_at_utc_us, reference_source_codes, input_refs`。数值列以 schema 名索引，float64 或 bool；每列的 validity、reason、available 和 source code 保持相同二维 shape，日期列等未支持类型先拒绝。reference 各矩阵也是同一网格，cutoff 是 session 向量。source code 指向 source_sets，source_sets 指向 source_bindings 内原 id；input_refs 必须是 Research 实际准备的 Data/View/范围准入产物身份，不能以声明已校验代替真实绑定。
 
 精确输入版本是 `feature_column_input_v1`。`sessions` 为日期升序、`security_ids` 为字符串字典序，两者非空且唯一；输入五个列字典的 key 集合恰等于 schema 列名。values 为 schema 指定的 float64/bool ndarray；validity/reference_member 为 bool；reason_codes/source_codes/reference_source_codes 为 int32；三个 UTC 数组为 int64 微秒。reference_industry 为同 shape 的 object ndarray，cell 只能是非空字符串或 null。reason_dictionary 是 `[null, "原缺值原因", ...]`，唯一且 0 只用于有效 cell；无效 cell 必须给非零原因。输入 source_sets 每项为非空、无重复的原 source id 列表，reference code 必须指向单一 id。首版 profile 最多 64 个原 source binding，内部 uint64 集合联合，不支持的数量显式拒绝。所有 metadata 与输入实际 buffers 摘要共同绑定 input_ref。
@@ -27,3 +29,5 @@ Research 负责一次读取、准备同单位列及原始来源范围，保留�
 只做少量小合成对照：同一原 plan 和实际输入，旧 row 与新列式逐 cell 对照数值、validity、reason、来源及 availability；覆盖嵌套 rolling/shift、截面并列与常数、缺值/未来 cell、暖机与不压缩停牌日。加一个 569 证券的小规模源码性能检查，分别报准备、准入、数值和输出成本，不把快微基准冒称一年端到端完成。Research 再做其原单日真实预检，确认关键路径确实被解除后才继续原一年任务，Engine 不另启动账户或训练。
 
 旧入口、算子数学、旧保存 Feature 和账户不改身份。新入口和承载类型显式新增；全局 implementation ref 在最终源码一次冻结，纳入已亲审 PR30 的 signal_groups 模块，Research 统一固定最终 source，必要的 Derived 迁移沿原规则执行。目标父审后 45 分钟交可集成源码；若受原输入独立视图或内核限制无法达到端到端速度，立即交可用的免 JSON 列式入口及实测瓶颈，不继续局部缓存补丁或声称问题已解决。
+
+当前源码候选为 Engine draft PR32；父已亲读入口和共享 element 改动，独立复审指出的缺中间 session 准入缺口已补校验及单个反例。准确固定 source/implementation 由本轮最终交接给 Research，尚待父审批准合并；真实预检和 OOS 功能闭环由 Research 执行，Engine 的合成性能检查不构成真实一年结果。后续夜间增量缓存另行独立推进，不纳入此候选。
