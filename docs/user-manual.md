@@ -61,12 +61,32 @@
 每次只改变有明确目的的一组配置。先确认范围和样本可比，再看差异。信号改善但账户变差时，检查换手、费用、仓位、持有时间和退出行为。异常收益先检查数据与交易口径，不能直接归因为模型能力。
 结果应显示实际完成区间和缺失状态。中断后只复用已经完整保存、可正常读取且输入相符的结果；未完成文件不能作为成功缓存。恢复失败时报告可恢复阶段，不擅自重跑全部准备。
 ## 用法九：管理实验，并在 UI 打开结果
-**目标用法（正在补齐）**：首次配置研究目录及 Engine 结果目录，之后正常运行实验。打开 UI、点击刷新，就能在对应研究 idea 下看到新结果。无需搬文件、转换结果格式或逐个填写路径。
+**当前可用**：普通 A01 训练与评价自动登记，Engine 保存账户可关联到同一结果。首次配置研究目录及 Engine 结果目录，之后运行实验，打开 UI 点击刷新即可查看对应 idea 的结果。
 同一 idea 下可以有多个实验版本；每次运行有稳定的结果编号。一个结果可以关联多份预测、信号评价和策略账户。比如同一预测跑 Top5、排名缓冲和退出策略，页面显示三个账户；后来追加年度评价，更新对应账户的评价，不增加一个重复实验。
 Research 负责保存结果并自动登记到现有实验索引。登记内容包括配置、运行状态、实际覆盖、产物类型、版本和位置；完整产物保存成功后才发布对应引用。失败或只完成部分阶段时，页面显示已完成内容和未完成原因。
 UI 列表先读取轻量索引，打开详情时才通过对应模块的公共读取接口加载结果。各目录只需配置一次；索引中的路径相对于这些目录解析。刷新和查看结果不触发数据采集、训练或回测。静态导出页面标明生成时间，展示当时的结果快照。
-**当前缺口**：现有平台已有 idea／版本／运行索引，但本轮新训练入口还没有自动登记；UI 仍依赖逐项提供结果路径，新预测与评价的展示适配也待补齐。因此上述自动发现流程尚不能算已交付。
-**验收**：两个 idea、同 idea 多版本、多信号与多策略结果都能自动出现；追加评价、重复刷新不会重复计数；失败和缺文件能清楚提示。使用已有结果验证，无需重新训练。
+**已验证范围**：正式 Research v2 索引中的一个主结果包含两折、两个 Signal 和三个策略账户，页面指标与所属模块保存值一致；读取不执行训练或回测。小型回归覆盖重试保存、发布失败保留旧结果、缺件隔离和账户阻断状态。组合信号（Derived）的自动发现仍未支持，构建能力保持可用，登记会明确标记 BLOCKED。
+**后续覆盖**：多个 idea、多版本及组合信号仍按实际验证逐项补齐；本次页面案例不代表所有规模和组合已验证。
+
+### 最小操作
+
+首次将根目录配置保存为本地 JSON，例如 `/private/axiom-roots.json`。以下为示例路径，请替换为本机目录；两项都是目录，`research_root` 内须有 `index.json`。私有配置留在本地。
+
+```json
+{
+  "research_root": "/private/research-results",
+  "engine_root": "/private/engine-results"
+}
+```
+
+启动前使用 [Research PR19](https://github.com/sinnergarden/axiom-research/pull/19)（合并版本 [7a0bc4f](https://github.com/sinnergarden/axiom-research/commit/7a0bc4f2f3f664c964e0e8f36ac4817e7e1f206d)）与 [UI PR13](https://github.com/sinnergarden/axiom-ui/pull/13)（合并版本 [9888f0b](https://github.com/sinnergarden/axiom-ui/commit/9888f0be632a7d0a71d58548f4b13965c6448891)）对应的源码及其兼容依赖。历史版本清单中的条目仅记录各自证据，不能证明本机已安装这个新入口。将下面的源码路径替换为本机路径后启动：
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/path/axiom-ui/src:/path/axiom-research/src:/path/axiom-engine/src python3 -m axiom_ui --serve-results --workspace-config /private/axiom-roots.json
+```
+
+打开命令打印的 `127.0.0.1` 地址，点“刷新保存索引”再选择结果；按 Ctrl-C 停止。
+
 ## 实际入口与运行顺序
 配置字段和完整用例见[研究用例说明](design/m2-one-year-executable-case.md)；源代码入口为 Research 的 `examples/a01_one_year.py`。准备好引用独立配置文件的 `options.json` 后，在已安装对应 Data、Engine、Research 版本的环境中运行：
 ```sh
@@ -75,7 +95,7 @@ python examples/a01_one_year.py --options /absolute/path/options.json --stage fe
 python examples/a01_one_year.py --options /absolute/path/options.json --stage train
 python examples/a01_one_year.py --options /absolute/path/options.json --stage evaluate
 ```
-首次 `features` 保存母矩阵和 `feature-result.json`。后续改模型或入模特征子集时，保留同一个 `feature_result`，从 `train` 开始。训练保存 `experiment-result.json`、`batch.json` 和 `prediction-bindings.json`；最后一项供策略回测读取。复用原始标签时，`reuse_raw_from_batch` 指向原来的 `batch.json`。
+首次 `features` 保存母矩阵和 `feature-result.json`。后续改模型或入模特征子集时，保留同一个 `feature_result`，从 `train` 开始。训练将 `experiment-result.json`、`batch.json`、`prediction-bindings.json` 保存到新的不可变回执目录，现有实验索引定位当前版本；评价阶段从该索引读取已登记回执。`prediction-bindings.json` 供策略回测读取，`reuse_raw_from_batch` 指向原回执目录的 `batch.json`。
 策略使用 Engine 的 `stock_strategy_spec` 与 `stock_portfolio_policy` 入口；具体参数见[策略说明](design/engine-strategy-protocol-v1.md)。本地验收命令另保留实际数据路径及绑定，不把私人数据路径写入通用配置。
 当前特征存储支持已保存母矩阵的子集读取。新增列、扩日期的自动补缺口仍在开发，不能把它与选已有列混为一谈。
 ## 人和agent共用的操作约定
