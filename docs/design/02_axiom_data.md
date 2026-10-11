@@ -167,6 +167,23 @@ build 的代码来源须可恢复：保存已提交源码的 Git 历史、依赖
 
 正常单行分红的完整实施行同时包含原公告日与实施公告日时，以较晚日期作为整行best-effort可见性的下界：股票按下一交易日09:30，ETF按当日20:00；只查询现金字段也遵循此边界。严格政策仍使用实际receipt或精确版本证据，不把该日期假设当作历史公开版本证明。歧义整组的有限值资格与缺失范围提示另按 [§6.1](#event-ambiguity) 分开检查，不能用较晚候选时钟遮蔽已可见缺失范围。
 
+显式采用股票分红合同 `local.corporate_actions.tushare.v3` 时，保留原生公告键 `(security_id, report_period, announcement_date, process_status)` 和原始修订，增加以下原生字段；省略 `corporate_action_rules` 仍采用 v2，旧域、Raw、Snapshot 和 Native 引用不改写。
+
+| 字段 | 来源与语义 |
+|---|---|
+| `stock_distribution_shares_per_share` | `stk_div`，每股送转总量，保留来源 shares/share，不除以10、不以分项 null 补零 |
+| `payment_date` | `pay_date`，派息日；未知不以 EX 日替代 |
+| `stock_listing_date` | `div_listdate`，红股上市日；不冒称账户到账时刻 |
+| `economic_event_id` | 优先使用已留存 Raw 中显式声明的稳定来源经济键；否则使用冻结的 `(security_id, report_period, distribution_round)` 规则生成，不含金额或可修订日期 |
+
+`declared_distribution_round_v1` 显式绑定完整原生实施键到稳定轮次，不自动合并同报告期公告，也不请求未公开的来源 ID 字段。`identical_complete_terms_v1` 仅在全部数量、现金和日期条款严格一致，且当前行动需要的日期已知时把公告视为别名；0 与 null 不相等。数量总量为显式0时不要求上市日，但保留上市日的来源 null。有稳定来源键而条款冲突时保留身份并标记条款不可应用；未解决轮次/别名冲突保留各候选及来源信息。
+
+`EventQuery.time_field` 为 `record_date / ex_date / payment_date / stock_listing_date` 时分别投影 RECORD、EX、PAY、LISTING：先按当前 policy/cutoff 选每个原生键的修订，再核对当次可见别名，最后过滤阶段日期与其他条件。同一响应中的晚公告不能污染早 cutoff；完整匹配的可见别名只输出一个阶段事件，保留全部可见公告 provenance。未知阶段日返回缺失标记及 `unavailable_event_scope`，不静默消失或前填。 当前可见修订即使缺失经济 ID，仍按冻结轮次关联传播 UNKNOWN；未来不可见成员不参与。对候选日期范围的缺失标记，以当前范围内可见候选重算 usable_from，保留原实际 receipt。直接 Reader 与 Native 导出保留相同缺失语义及精确 to_json 字节。
+
+公开 `Data.rebuild` 可在显式 dividend v3 域使用 `canonical_event_keys` 冻结完整原生键范围，字段必须恰为 `security_id/report_period/announcement_date/process_status`，日期为规范 ISO。选中键的全部候选均保留；不按 cutoff、账户或条款值裁剪。该派生范围随新域保存，后续默认 rebuild 继承；原 Raw 请求、payload、实际 receipt 不变。 原请求未含 `canonical_symbols` 时，仅显式 dividend v3、原 `params.ts_code` 已绑定冻结 identity_map 的单证券 Raw 可通过完整证券与原生键 override 重建；整份响应、cap 与稳定身份校验保留。完整范围先校验并保存，再按原固定证券缩小每份派生请求，避免在批量覆盖记录中重复复制全键清单。解释记录引用原 batch/hash 和实际 receipt，不冒称新供应商观测。
+
+新增观测或离线重解释生成新域/Snapshot 与新 Native 身份，保留原供应商实际 receipt 和可核查的 Raw lineage；重解释时间不冒称新的供应商 receipt。终态实施条款的 next-open 假设标识为 `tushare.current_implemented_terms_from_later_notice_next_open.v1`，严格政策不借该假设回填早年信息集。Engine 使用同一经济 ID 与阶段合同，账户登记权益决定 PAY/LISTING 是否相关；来源非整数比例保持原值，不为绕过整数股份规则而舍入。复用原价格/模型引用仍须冻结新的执行数据引用与 run identity。
+
 加入 usable_from 晚于 T 的数据不能改变 T 前 safe 输出。合法新证据证明更早公开时，新 Snapshot 可以改变历史解释，需说明影响；旧 Snapshot 不变。PIT 证据不足与单位错、日期错、错配证券等处理缺陷不是一回事，后者必须修复。
 
 ## 6. 范围、状态与派生的必要边界
