@@ -60,7 +60,8 @@
   },
   "actual_action_report": "reports/ml-engineering-notebook-actions-20261011.json",
   "limits": "This record covers read mode/static checks only. Actual tiny synthetic actions and the real short-scope combination/Runtime/public read are recorded separately. The original 47-second acceptance and 255-fold outputs were not rerun.",
-  "current_notebook_sha256": "e26c2edfaff20a986e5cea3e0429153a0e598bd2a7e99b5c63f6c63caccbda09",
+  "current_notebook_sha256": "1e13a0e45af212d5aeaeaecee194ab1a6de38cdcb586ccd9103c24c4380e0c17",
   "notebook_code_sha256": "eccf85fe73b15c9716db5726da3974e41358669f58deb890fe4eb7cf1d6fe179",
-  "additional_verification_report": "reports/ml-engineering-saved-combination-integration-20261011.json"
+  "additional_verification_report": "reports/ml-engineering-saved-combination-integration-20261011.json",
+  "final_engine_migration_report": "reports/ml-engineering-final-engine-migration-20261011.json"
 }

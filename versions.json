@@ -769,7 +769,15 @@
       "real_combination_account": "PASS matching real six-day Query/profile/rules; 5 NAV/5 orders/5 fills; public saved projection load PASS; full fiveyear pending",
       "local_path_configuration": "prepared privately; default read; six roles; bounded saved account wired; full account/evaluation pending",
       "native_strategy_wiring": "original exported StockNativeViewSource; file/native tiny synthetic save/load PASS",
-      "implementation_migration": "fixed c890 acceptance; final Engine needs Derived regeneration from saved raw predictions without retraining"
+      "implementation_migration": "completed: same saved raw predictions rederived; scores exact; final Engine admitted new Derived; no retraining/account replay",
+      "final_engine_migration": {
+        "report": "reports/ml-engineering-final-engine-migration-20261011.json",
+        "Engine_source": "a7073aa2ef37ffe8c63b9e8938b6d7dd4370328f",
+        "Engine_merge": "4e65af8462949f674fa66d3f5f17ce06dc932568",
+        "implementation_ref": "sha256:72498f3dec45e717e03787f75d718e013ddd80b96d6b9cd80ab49ed819b4194f",
+        "status": "PASS Derived regeneration/old rejection/new admission; no new account",
+        "historical_c890_account": "preserved; public read under final Engine PASS"
+      }
     }
   },
   "bulk": {
