@@ -49,9 +49,9 @@ Alpha表达式的18个算子依赖单列：Abs,Corr,Greater,IdxMax,IdxMin,Less,L
 
 ## Source候选与验证边界
 
-Source候选固定为[Data 9aa6a78](https://github.com/sinnergarden/axiom-data/tree/9aa6a784753ab5d31f5397245f37704f719f8d39)，尚待评审与合并。[stock_input_sources.py](https://github.com/sinnergarden/axiom-data/blob/9aa6a784753ab5d31f5397245f37704f719f8d39/src/axiom_data/stock_input_sources.py)提供无I/O的`stock_input_source_spec`以及一次显式请求的`collect_stock_input_response`；后者只写Raw，不自动发布或调度。旧默认字段和collector不变。
+Source候选固定为[Data 3a8d514](https://github.com/sinnergarden/axiom-data/tree/3a8d514c3416b6fbd84d815f7b141636ae6ff674)，最终生产改动、测试及缺值状态修复已完成审查并获批准合并；[Data PR49](https://github.com/sinnergarden/axiom-data/pull/49)尚未合并。[stock_input_sources.py](https://github.com/sinnergarden/axiom-data/blob/3a8d514c3416b6fbd84d815f7b141636ae6ff674/src/axiom_data/stock_input_sources.py)提供无I/O的`stock_input_source_spec`以及一次显式请求的`collect_stock_input_response`；后者只写Raw，不自动发布或调度。旧默认字段和collector不变。
 
-2026-10-11在临时合成根运行10个新增consumer检查及12个既有金融/event回归，22个通过。测试覆盖单位、全市场筛选、字段/日期/cap拒绝、权限失败、完整扩展字段冲突、旧Raw缺列、late→early cutoff、供应商新行空值不由旧行填充、旧Snapshot bytes与非选定域不变、历史行业Y/N、资金流原生净值和预告当前公告日期。这不是真实范围、额度或供应商返回字段验收。
+2026-10-11在临时合成根运行11个新增Source/consumer检查及12个既有金融/event回归，23个通过。测试覆盖单位、全市场筛选、字段/日期/cap拒绝、权限失败、完整扩展字段冲突、旧Raw缺列、late→early cutoff、供应商新行空值不由旧行填充、旧Snapshot bytes与非选定域不变、历史行业Y/N、资金流原生净值和预告当前公告日期。这不是真实范围、额度或供应商返回字段验收。
 
 两融next-open 08:30为明确的供应商假设，仅通过`Data.events(..., time_field="session")`使用；普通daily Reader的same-day best-effort路径明确拒绝，防止提前可见。`rqmcl`原生数量单独保留；没有显式稳定证券shares绑定时，shares列为not_provided。行业interval可按真实receipt进行operational查询，缺历史公开时间或逐行taxonomy证据时，historical best-effort不支持，不用今天的静态分类模拟历史。实际首小批、分页/权限确认、真实补采与publish尚未执行。
 
