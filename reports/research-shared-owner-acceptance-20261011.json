@@ -1,0 +1,94 @@
+{
+  "kind": "bounded_saved_model_owner_reuse",
+  "status": "PASS",
+  "date_utc": "2026-10-11",
+  "sources": {
+    "research": "8881882bc594f4bf99572c876d15eef008f95ebf",
+    "data": "e457372950f30ab36cce743dbdb6633f0147e033",
+    "engine": "1fa97878fda28769bbf1fea4ca37e7bdfbaa4524"
+  },
+  "notebook_cell_id": "research-onefold-reuse-call",
+  "notebook_cell_sha256": "41554adc717ec6054a580d5f8606932083a3e89a29973c6db9c084ffae5c2366",
+  "scope": "Existing saved one-fold three-feature model; a single Data/Feature/Batch session and two model/HIT plus OOS-freeze calls. No new model fit.",
+  "exact_returned_identity": true,
+  "original_model_prediction_identity_unchanged": true,
+  "public_owner_loads": {
+    "data": 1,
+    "feature": 1,
+    "batch": 1
+  },
+  "calls": {
+    "data_open_column_source": 1,
+    "data_select": 0,
+    "data_adjust": 0,
+    "fit_predict_backend": 0
+  },
+  "costs": [
+    {
+      "iteration": 0,
+      "seconds": 20.67233125003986,
+      "model_metrics": {
+        "data_read_calls": 0,
+        "supplier_calls": 0,
+        "feature_core_calls": 0,
+        "label_core_calls": 0,
+        "core_calls": 0,
+        "account_calls": 0,
+        "train_calls": 0,
+        "predict_calls": 0,
+        "cache_hit": true,
+        "total_seconds": 20.36291008302942
+      }
+    },
+    {
+      "iteration": 1,
+      "seconds": 1.5855996659956872,
+      "model_metrics": {
+        "data_read_calls": 0,
+        "supplier_calls": 0,
+        "feature_core_calls": 0,
+        "label_core_calls": 0,
+        "core_calls": 0,
+        "account_calls": 0,
+        "train_calls": 0,
+        "predict_calls": 0,
+        "cache_hit": true,
+        "total_seconds": 0.982861417112872
+      }
+    }
+  ],
+  "owner_open_seconds": 25.026417459128425,
+  "session_seconds": 47.315625209128484,
+  "guardian": {
+    "exit_code": 0,
+    "stop_reason": null,
+    "wall_seconds": 47.83782716700807,
+    "sampled_peak_tree_rss_bytes": 5458231296,
+    "sampled_peak_new_path_bytes": 8114830,
+    "monitor": "tree RSS every1s/disk every5s; no OS hard quota",
+    "child_exited": true
+  },
+  "original_frozen_files_unchanged": 23363,
+  "prior_saved_files_unchanged": 362,
+  "second_iteration_owned_reads": {
+    "saved_feature_bytes": 0,
+    "prepared_labels_controls_bytes": 0,
+    "fold_outputs_bytes": 4091378
+  },
+  "read_counter_limits": "Successful OwnedStore returned/hash byte counters only; writer-side verification and Data physical parquet IO are outside these counters.",
+  "source_admission_counters": {
+    "fold_window_admissions": 1,
+    "fold_window_borrows": 1,
+    "evaluation_projection_calls": 2,
+    "training_block_gathers": 0
+  },
+  "remaining": "Two real cohorts common-sample comparison and real 300-column acceptance not run; source integration and independent PR15 review pending.",
+  "private_inputs_and_result_refs": "local only",
+  "global_profiler": false,
+  "limits": {
+    "wall_seconds": 300,
+    "rss_bytes": 10737418240,
+    "new_disk_bytes": 2147483648
+  },
+  "batch_ingress": "Public loader receives the original sealed COMPLETE manifest dictionary; receipt embeds that exact document. Cold checkpoint-to-COMPLETE publication was not rerun."
+}

@@ -1,0 +1,130 @@
+{
+  "status": "PASS",
+  "kind": "SYNTHETIC_ACTUAL_NOTEBOOK_ACTION_EXECUTION",
+  "notebook_code_sha256": "f343f7a11b5543bbee334411cbc7f68500077d50655070b85ac7e6969c835f3a",
+  "fixture": {
+    "existing_research_fixture": "test_stock_shared_execution.real_configuration",
+    "existing_engine_fixture": "test_stock_signal_inputs.v3_request/derived_request",
+    "securities": 3,
+    "feature_columns": 6,
+    "selected_columns": 3,
+    "folds": 2,
+    "prediction_sessions": 6,
+    "training_label_horizon": 5,
+    "evaluation_label_horizon": 3,
+    "model_trees": [
+      100,
+      50
+    ],
+    "backend": "actual installed LightGBM4.7.0, unmodified original fit/predict",
+    "Data": "actual public Data ColumnSource over artificial saved parquet facts",
+    "Feature": "existing synthetic producer fixture with nonconstant member features",
+    "Core_Runtime": "original exported functions; no fake statistics/account"
+  },
+  "actions": {
+    "selection": {
+      "status": "PASS",
+      "seconds": 1.9515539999119937,
+      "counters": {
+        "Data_owner_open": 1,
+        "Data_select": 8,
+        "fit_predict_backend": 2,
+        "Data_owner_closed": 1
+      },
+      "output": "real public producer saved folds/OOS; JSON written by Notebook action"
+    },
+    "models": {
+      "status": "PASS",
+      "seconds": 0.40613575000315905,
+      "counters": {
+        "Data_owner_open": 1,
+        "fit_predict_backend": 4,
+        "Data_owner_closed": 1,
+        "Data_select": 0
+      },
+      "output": "real public producer saved folds/OOS; JSON written by Notebook action"
+    },
+    "models-default": {
+      "status": "PASS",
+      "seconds": 0.22047820803709328,
+      "counters": {
+        "Data_owner_open": 1,
+        "fit_predict_backend": 2,
+        "Data_owner_closed": 1,
+        "Data_select": 0
+      },
+      "output": "real public producer saved folds/OOS; JSON written by Notebook action"
+    },
+    "evaluation": {
+      "status": "PASS",
+      "seconds": 0.954738707980141,
+      "counters": {
+        "Data_owner_open": 1,
+        "Data_select": 2,
+        "Data_owner_closed": 1,
+        "fit_predict_backend": 0
+      },
+      "reports": {
+        "model_1": {
+          "contract_version": "stock_signal_evidence_v7",
+          "status": "NO_VALID_SESSIONS"
+        },
+        "model_2": {
+          "contract_version": "stock_signal_evidence_v7",
+          "status": "NO_VALID_SESSIONS"
+        },
+        "combination": {
+          "contract_version": "stock_signal_evidence_v7",
+          "status": "NO_VALID_SESSIONS"
+        }
+      },
+      "output": "independent3D Label + two originals + fixed-weight Derived; all/year reports and original Engine bindings saved",
+      "minimum_pairs": 20,
+      "valid_pairs_per_session": 3,
+      "statistical_limit": "NO_VALID_SESSIONS/INSUFFICIENT_PAIRS is expected at 3 below 20; non-null IC/RankIC/IR branch is not covered"
+    },
+    "strategy": {
+      "status": "PASS",
+      "seconds": 0.1769367498345673,
+      "counters": {
+        "Data_owner_open": 0,
+        "Data_owner_closed": 0,
+        "Data_select": 0,
+        "fit_predict_backend": 0
+      },
+      "account_projection_read": "PASS",
+      "account_calls": 1,
+      "input_kind": "existing Engine synthetic v3/Derived saved parents",
+      "output": "original Runtime saved run; public projection loader read passed"
+    }
+  },
+  "original_real_Data_models_accounts_rerun": 0,
+  "original_255_and47second_acceptance_rerun": false,
+  "related_fixes": [
+    "iterate actual parsed variants including no-list default",
+    "model session scope is actual owner canonical saved scope",
+    "independent Label uses existing explicit owner_batches/prediction_owner_refs API"
+  ],
+  "source_bindings": {
+    "Research_source": "63d54181063a54b2a84754b288a50568867e5406",
+    "Research_merge": "730c211e44c44b9dd92225bdf1b67f8e376d893a",
+    "Research_tree": "f36e54345aa8f8f7e84cdd2fc916e671c541497f",
+    "Data": "e457372950f30ab36cce743dbdb6633f0147e033",
+    "Engine": "c890160c648824f89284a2a6363279f3930e4b32"
+  },
+  "uncovered": [
+    "non-null IC/RankIC/IR with 20+ valid pairs",
+    "Research combination vs its actual corresponding Engine market",
+    "fresh full long-cycle execution of this Notebook",
+    "real two-owner comparison and real 300-column performance",
+    "full physical IO measurements",
+    "fiveyear account owner result awaiting handoff"
+  ],
+  "limits": "Small synthetic contract/control-flow execution; no investment, real performance or long-cycle account acceptance is claimed.",
+  "executed_notebook_sha256": "4244c3c3f4c2aff443e63b728700e2b2424ee8d43e41933f3baab6b264cf50fa",
+  "current_notebook_sha256": "e26c2edfaff20a986e5cea3e0429153a0e598bd2a7e99b5c63f6c63caccbda09",
+  "current_code_matches_executed_code": false,
+  "post_execution_changes": "Strategy now also borrows existing Native handles via the public adapter; original-file and Native branches were exercised separately. Other action code cells are unchanged. See the additional saved-combination report.",
+  "current_notebook_code_sha256": "eccf85fe73b15c9716db5726da3974e41358669f58deb890fe4eb7cf1d6fe179",
+  "additional_verification_report": "reports/ml-engineering-saved-combination-integration-20261011.json"
+}

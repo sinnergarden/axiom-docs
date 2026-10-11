@@ -1503,6 +1503,104 @@ Data 的版本化 vendor 规则确认新增字段也一致时才能归并；另�
 入场顺序打破平局，每个保存成交的金额及费用守恒。上市不是新 BUY，也不增加成本；
 仍有待上市权益或待 EX 归属的段不进入合格闭合段收益统计。
 
+### 6.8 历史赠股的显式整数分配（2026-10-11，源码已合并，完整账户执行中）
+
+本次影响记录对应 Engine 已审源码
+[`a7073aa2ef37ffe8c63b9e8938b6d7dd4370328f`](https://github.com/sinnergarden/axiom-engine/pull/29)。
+floor 基线 `dfdb96ba3dc7cff6e50286b68541772f40ac3715` 与最终窄来源声明增量
+均已通过父读及独立复审，PR29 合并为
+`4e65af8462949f674fa66d3f5f17ce06dc932568`。合并树与已审源码完全一致，
+首父增量为 12 个文件、462 行新增和 44 行删除。最终 Data 输入在该合并版本上
+通过独立纯 factory 重放及 Engine v1 联检；父已放行一次完整五年账户，执行中。
+完整账户保存、公共 load 和 v3 评价仍待实际结果，源码合并不代替这些验收。
+此前严格模式会在登记整数股乘总赠股比例产生小数时停止。单账户真实到账不能仅由比例
+确定：[爱尔眼科 2021-046 实施公告第 2 页](https://static.cninfo.com.cn/finalpage/2021-06-18/1210269491.PDF)
+规定尾数参与排序分配整股，同尾数随机排序。此公告说明该事件的实际分配方法，不能
+用它证明全市场所有事件都采用相同规则。用户已授权历史研究回放作合理近似；本增量
+明确采用账户／事件层面的 floor 假设，并保留严格模式。
+
+公开 factory 为
+`equity_profile(*, execution_rules, fee_schedule, unknown_status_policy="block", share_allocation_policy="reject_non_integer")`。
+默认参数继续生成原 `stock_daily_open_profile_v3` 和 `stock_equity_simulation_v1`，原内容与
+严格拒绝语义保持一致。显式选择 `historical_replay_floor` 生成
+`stock_daily_open_profile_v4` 和 `stock_equity_simulation_v2`，其中
+`fractional_shares="historical_replay_floor"`、
+`attribution="record_origin_fifo_settled_grant_v2"` 及限制说明参与 profile 身份。
+`equity_request` 和公开执行／保存入口保持 §6.7 的签名及 request/run v8 结构。新 profile、
+implementation、request、run 身份独立保存；取整算法本身不改写原 Data 或预测事实。
+
+权益事实仍为 `stock_action_facts_v1`，沿原 `action_facts_artifact` 入口消费。
+除原 `declared_vendor_assumption`，准入允许父批准的历史混合来源声明
+`mixed_reviewed_sources_v1`。Data 在新冻结事实中给出适用普通二级市场持有人的
+现金和总授股标量，并通过现有 `source_refs` 绑定版本化、内容寻址的解释产物；
+原供应商 null、发行人总转增比例和旧 artifact 保留。明确无授股为零，资格或准确率
+仍未知时为 null。Engine 只消费已选标量并检查 artifact、scope、refs 和别名闭合，
+不解释重整公告，也不凭总转增比自行推导普通股东权益。解释产物的原修订依赖、
+公告证据与适用性由 Data 验证；digest 绑定本身不证明解释真实。
+Data 的 `available_at` 为所有必要来源可用时点的最大值，只有日期的公告采用已冻结
+下一 A 股 session 09:30 规则；实际 2026 接收时点保留。混合声明是本实验的历史
+模拟假设，不是完整历史版本证据。此增量只扩展一个声明枚举，不新增 v2 事实格式
+或通用 patch 机制；未知事实及迟到条款仍沿原 gap 规则阻断实际持有账户。
+
+同一纯分配入口为
+`settle_stock_share_allocation(*, registered_quantity, shares_per_share, policy="reject_non_integer", actual_quantity=None, evidence_refs=())`。
+登记量和实际到账量为拒绝 bool 的非负整数，比例为精确十进制字符串。历史模式先用
+Data 已给出的总赠股比例计算 `T=N×r`，再整体分配 `G=floor(T)`，不按送股／转增分项
+或各 episode 分别取整。持股、可卖股和待上市股均保持整数。纯入口的
+`confirmed_integer_credit` 模式要求实际整数及非空、无重复的证据 digest，直接采用
+实际量，不再次取整；到账证据的账户归属与实际可见时钟仍由 shadow 调用方绑定。
+本增量没有券商集成，缺实际证据也不会自动降级为历史 floor。
+
+floor 账户在 `EQUITY_EX.share_allocation` 和最终同事件 entitlement 中保存：
+
+| 精确字段 | 含义 |
+|---|---|
+| `contract_version="stock_share_allocation_v1"`、`allocation_basis` | 分配版本及严格／历史 floor／实际整数依据 |
+| `registered_quantity`、`shares_per_share`、`theoretical_grant`、`allocated_grant` | 登记整数、原十进制比例、理论量十进制字符串、已分配整数 |
+| `fractional_remainder`、`theoretical_minus_allocated` | 理论量相对 floor 的尾数，以及相对本次已分配量的差额；均为十进制字符串 |
+| `possible_additional_share`、`evidence_refs` | 历史模式有尾数时记录一个未决整股，否则为零；实际模式记录到账凭证引用 |
+
+理论尾数仅供披露，不成为仓位、应收或现金补偿，也不跨事件积累兑换整股。现金分红
+仍按登记整数股确认并在 PAY 划转，保持税前限制；EX／上市不是成交，不新增买入成本
+或费用。下一次登记使用当时账本中的整数持股；卖出继续服从同一整股／零股清仓规则、
+T+1 和费用。原未复权价格和成交不变，NAV 只计已分配整数权益。身份未决、现金金额
+未知、必要日期缺失等原缺口没有因 floor 获得默认值。
+
+保存 loader 以相同 profile 重放登记和分配，核对股份、现金、成本及 NAV。评价读取
+已分配的账户整数总量，再按登记来源以精确有理数分摊到 episode；这些归因份额不进入
+可交易账户。这样既保留登记来源 FIFO，也避免逐 episode floor 丢失已分配股数。
+
+v2/v3 报告在 `episode_metrics.share_allocation_summary` 中保存
+`stock_share_allocation_summary_v1`：`profile_ref`、`policy`、`event_count`、
+`rounded_event_count`、`by_security`、`local_remainder_mark_value_minor`、
+`missing_local_mark_count`、`events`、`limitations`。每证券汇总事件次数、发生取整次数、
+`theoretical_fraction_sum` 和 `maximum_additional_shares`；事件明细绑定原经济事件、
+revision、来源 refs、流水 sequence 和原 `allocation`，并保存当日原价的局部尾数价值
+及一股敏感性。有非零尾数而没有当日保存持仓价格时，相应值为 null 并保留原因；零尾数
+价值仍为零，不重开大数据补算。
+不同证券的股数不混成一个经济数量，跨事件局部估值之和也不作为账户损益修正或全程
+收益误差上界。后续决策可能改变，因此不声称 floor 的策略收益必然保守。
+
+floor 基线通过 145 项唯一相关合成测试；其中七项可选 Native 测试另用固定 Data SDK 补验
+通过。小验收覆盖总量取整、实际整数输入、整数 EX/PAY/LISTING、重复应用、未知事实
+仍阻断、零尾数经济流水一致、保存分配篡改拒绝，以及 v2/v3 报告保存读取。旧严格保存
+前缀另经只读加载核验，未执行账户或重新读取大来源。本轮没有全五年完成证据，也未
+加入持久市场缓存或 checkpoint：准入 Owner 仍绑定创建进程并在退出时关闭匿名文件；
+现执行入口仍要求空初仓及新 sink。后续完整运行须把冷准入代价、资源和实际停止／完成
+状态一起记录，不能把源码或合成通过当成完整账户验收。
+
+SignalPlan 算法没有因本次账户维护而改变，但当前 Derived 组合绑定全局
+`IMPLEMENTATION_REF`，准入要求它等于当前 Engine 实现；因此账户源码变更也会
+拒绝旧实现保存的 Derived 组合。这一实现身份范围过宽的限制必须披露。本轮允许在
+最终 Engine 版本复用原保存 raw predictions 轻量重新派生组合、另存新身份，并报告
+迁移时间与资源；不能保留假旧 SHA、放宽校验、重训或重建 Feature。原始 raw binding
+不经过该 Derived 专属相等门禁，旧账户仍可只读加载。组件语义身份的拆分列为后续
+维护，不包装成 SignalPlan 正确性变化，也不引入本轮兼容框架。
+
+最终候选另通过 60 项相关小测试，其中五项新增检查覆盖混合声明的保存读取、真实
+接收时间保留、非法声明的账户前拒绝、未知和迟到条款仍阻断，以及 raw 准入通过而
+旧 Derived 实现身份被拒绝的边界。这些合成检查不替代 Data 最终来源联检或完整运行。
+
 ## 7. 账户与 Ledger 数据模型
 
 账户权威分两层：Trade ledger 是系统内部流水与状态；RealBroker 是外部订单/成交/账户的对账依据。差异产生显式记录和调整事件，不用券商快照直接覆盖旧账。

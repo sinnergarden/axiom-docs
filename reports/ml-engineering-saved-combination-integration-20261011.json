@@ -1,0 +1,154 @@
+{
+  "status": "PASS_REAL_SHORT_SCOPE_COMBINATION_TO_RUNTIME",
+  "kind": "EXISTING_REAL_SAVED_TWO_MODEL_ONE_WEEK_INTEGRATION",
+  "signal_statistics": {
+    "status": "PASS",
+    "original_model_count": 2,
+    "sessions": 5,
+    "securities": 569,
+    "valid_pairs_per_session": 296,
+    "minimum_pairs": 20,
+    "all_original_and_combination_daily_IC_RankIC_and_IR": "FINITE",
+    "training_or_prediction_repeated": false,
+    "Native_membership_ref_and_usable_from": "ORIGINAL_SAVED_VALUES"
+  },
+  "adapter_regression": {
+    "original-files": {
+      "status": "PASS",
+      "seconds": 0.17358637508004904,
+      "public_saved_account_projection_load": "PASS"
+    },
+    "native-carrier": {
+      "status": "PASS",
+      "seconds": 0.13126649986952543,
+      "public_saved_account_projection_load": "PASS"
+    }
+  },
+  "adapter_regression_scope": "existing Engine small synthetic v3/Derived fixture; separate from real saved combination account proof",
+  "local_configuration": {
+    "six_readable_roles": true,
+    "default": "read",
+    "explicit_execute_required": true,
+    "full_saved_case_trade_range": [
+      "2019-07-01",
+      "2024-06-28"
+    ],
+    "original_full_folds": 255,
+    "saved_signal_reports": 7,
+    "paths_and_refs": "prepared privately from owner originals; no user-built receipts",
+    "account_reports": "short saved account available through public projection; final fiveyear account/evaluation pending Engine owner",
+    "bounded_strategy": "prepared from verified short controls and saved handoff; explicit execute only"
+  },
+  "source_bindings": {
+    "Research": "63d54181063a54b2a84754b288a50568867e5406",
+    "Data": "e457372950f30ab36cce743dbdb6633f0147e033",
+    "Engine": "c890160c648824f89284a2a6363279f3930e4b32"
+  },
+  "private_values": "model/signal/account/result identities, NAV/PnL, metrics and paths retained locally",
+  "fiveyear_account": "not changed or replayed",
+  "original47second_acceptance": "not rerun",
+  "initial_full_scope_reference_attempt": {
+    "status": "BLOCKED",
+    "input": "actual new combined-prediction-handoff.json read by actual Notebook strategy cell",
+    "native_adapter": "existing public StockNativeViewSource and open_native_view",
+    "error": "Stock profile/rules scope mismatch",
+    "account_calls": 0,
+    "public_real_account_load": "NOT_REACHED",
+    "Data_root_opens": 0,
+    "fit_predict": 0,
+    "peak_self_rss_bytes": 333594624,
+    "seconds": 130.18869437486865,
+    "scope_dependency": "saved profile/rules and Native queries bind the original full historical range; a short request needs matching owner-frozen controls"
+  },
+  "direct_strategy": {
+    "status": "PASS",
+    "input": "actual new scope-bound combined-prediction-handoff.json read by actual Notebook strategy cell",
+    "scope": {
+      "calendar": [
+        "2020-12-31",
+        "2021-01-04",
+        "2021-01-05",
+        "2021-01-06",
+        "2021-01-07",
+        "2021-01-08"
+      ],
+      "warmup_sessions": [
+        "2020-12-30"
+      ],
+      "universe_count": 569,
+      "nav_sessions": 5
+    },
+    "run_status": "COMPLETE",
+    "account_calls": 1,
+    "orders": 5,
+    "fills": 5,
+    "committed_sequence": 15,
+    "public_saved_account_projection_load": "PASS",
+    "Data_root_opens": 0,
+    "fit_predict": 0,
+    "peak_self_rss_bytes": 181649408,
+    "seconds": 112.83016245788895,
+    "input_identity": "new short Query/profile/rules/Derived identities; original parents, scores, validity and membership clocks preserved",
+    "full_fiveyear_account": "awaiting Engine owner; not executed here"
+  },
+  "short_input_preparation": {
+    "status": "PASS",
+    "APIs": [
+      "Data.export_native_view",
+      "stock_execution_rules",
+      "stock_daily_open_profile_v2",
+      "csi300_stock_portfolio_policy"
+    ],
+    "Data_root_opens": 1,
+    "snapshot": "original fixed Snapshot",
+    "native_saved_bytes": 341007809,
+    "seconds": 53.14996724994853,
+    "peak_self_rss_bytes": 5868142592,
+    "source_symbol_block": 256,
+    "reader_cache_bytes": 268435456,
+    "native_saved_budget_bytes": 536870912,
+    "canonical_profile": "Engine canonical formatter; logical factory result unchanged",
+    "prediction_row_budget": 8535,
+    "row_budget_basis": "two original raw parents plus Derived; five dates times 569 rows times three artifacts"
+  },
+  "earlier_bounded_failures": [
+    {
+      "step": "short Native export",
+      "reason": "128 MiB saved budget insufficient",
+      "account_calls": 0
+    },
+    {
+      "step": "short Native event export",
+      "reason": "32 MiB Reader cache insufficient; existing API requested larger cache/source group",
+      "account_calls": 0
+    },
+    {
+      "step": "short profile file parsing",
+      "reason": "pretty JSON rejected by Engine canonical input reader",
+      "account_calls": 0
+    },
+    {
+      "step": "Signal admission",
+      "reason": "row budget counted two original parents but omitted Derived",
+      "account_calls": 0
+    }
+  ],
+  "real_scope_identity_and_statistics": {
+    "status": "PASS",
+    "original_parent_refs": "UNCHANGED",
+    "original_scores_validity_membership_and_available_at": "EXACT",
+    "new_membership_Query_ref_and_Derived_identity": true,
+    "minimum_pairs": 20,
+    "valid_pairs_per_session": [
+      296,
+      296,
+      296,
+      296,
+      296
+    ],
+    "original_and_combination_daily_IC_RankIC_and_IR": "FINITE",
+    "statistics_seconds": 1.1547028329223394,
+    "combination_build_seconds": 20.05242570792325
+  },
+  "implementation_migration": "This acceptance fixes Engine c890160. A later global implementation_ref requires a new Derived from saved raw predictions; no retraining. Final Engine/source configuration remains coordinator-owned."
+}
