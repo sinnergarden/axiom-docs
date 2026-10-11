@@ -1,10 +1,10 @@
 # 增量特征库：今晚实施方案
 
-`draft`，2026-10-11，供协调方审定，尚未实现。阅读基线：Engine `0d5a4f8`、Research 候选 `c70afc8`、Data `6298fc5`、Docs `ababb83`。Research 最终 head 与协调方放行后才开始跨模块实现；22:55 上海前只做独立工作树和轻量阅读。目标是次日09:40上海前交可用机制及小规模复用证据，全历史完成时间按实测吞吐另报。
+`draft`，2026-10-11。协调方已审 Engine `9a796740433fb7353745bddeddb5d31555fd94dd` 与 Research `6e4a7b5aff80f1c9e2d161aeffe5c83bb7910c90`，实现分别位于 [Engine PR34](https://github.com/sinnergarden/axiom-engine/pull/34) 与 [Research PR18](https://github.com/sinnergarden/axiom-research/pull/18)。真实小例已通过 Feature 子集复用、增列增日和 Core 对照；标签、训练、策略及评价尚未完成，当前阻塞在旧 Data Snapshot 的内存准入。全历史完成时间仍需按实际吞吐测量。
 
 **Owner 与接口。** Data 管事实、成员和 PIT；Core 保留唯一数学；Research 管定义、Release、独立可读配置及实验记录。Engine 新 `feature_library` 外围包管覆盖查询、缺口执行、保存和矩阵投影，Core 仍无 I/O。这是[总纲边界](01_axiom_overview.md#module-boundaries)的待审增量：从现 storage/`VerifiedMatrixStore` 抽取共享 buffer/hash/mmap 与文件生命周期实现；Research 保留 label/fold 准入和公共入口，薄调用 Engine，不整库搬 reader。
 
-接口拟为 `plan_coverage(request) → hits/gaps/dependencies`、`ensure_features(request, source_adapter, budget) → view_ref + stats`、`open_feature_view(ref).project(keys, features)`。请求分开声明 `sample_universe` 与 `feature_reference_universe`、日期/cutoff、特征及 stage；source adapter 交付 Data 公共选择结果和原证据。Engine 不反向 import Research。
+Engine 的 `FeatureLibrary` 在构造时接受读取、工作区和列块预算，提供 `plan_coverage(request, source_adapter)`、`ensure_features(request, source_adapter)` 及 `open_feature_view(descriptor).project(keys, columns)`。`FeatureRequest` 独立声明样本证券；参考成员来自已冻结 plan。Research 的 `SavedColumnFeatureSource` 准入原 source，`CatalogFeatureLibrary.ensure` 将登记定义和 raw/CS 请求薄接入 Engine。`build_feature_library_training_view` 生成显式新布局，再由 `load_feature_library_training_view` 准入为既有 `StockFeatureView`；调用方将该 handle 显式传给训练和 batch loader。Engine 不反向 import Research。
 
 **身份与复用。** 单列 `semantic_ref` 绑定 DAG 闭包、算子语义版本、参数、单位/dtype、缺失、历史/时钟与复权口径。覆盖项局部绑定字段/逻辑键/所选 revision、availability/来源资格及每日原 anchor/cutoff；使用 Data 公开 provenance，不能只用物理行序号。CS 闭包再绑定实际每日参考成员/行业，fitted 层再绑定 fit state。完整 catalog、selection、实验总时间、source manifest、commit 不作为唯一缓存键；真实 commit、原 plan/result refs 保留履历。值相同而来源/时钟改变，只复用物理值文件，逻辑产物更新。
 
@@ -26,3 +26,17 @@
 可控 fixture 验证 A–D；真实小例拟用≤24样本证券、6–10输出日、3–6列及完整历史，CS仍用原完整每日参考池。小测一次，记录来源、Core准入/数值与来源传播、写入/准入、RSS、bytes、命中和计算cell，再决定是否优化逐证券Python调度及放大。协调方已有测量为120日×569×88共957秒、RSS0.923GiB，Core约2.4秒/日、保存准入约5.5秒/日，来源另计；本文未重新执行，writer优化不能推出全量12小时。
 
 现 source 仅证明 CSI300/`best_effort_vendor_v1`。CSI1800需实际历史成员输出及profile小例；其他PIT政策需逐cutoff选版验证；未支持的登记特征明确列缺口。126GiB空余扣除Data预留30GiB后，现18bytes/cell的全raw层下限约67.91GiB；raw+normalized约135.82GiB装不下。默认保留特征raw，normalized按实际池/选列缓存；原因/来源按块字典或稀疏结构精确保存，source、索引、元数据及临时峰值实测计预算。既不删除Data Raw，也不承诺今晚全历史预计算完成。
+
+
+**已执行的小例与边界。** 以下数字来自 2026-10-11 的一次真实 Feature 小例，使用固定 Snapshot、原 CSI300 参考成员、569 只证券和 `best_effort_vendor_v1`，初始选列为 ALP001、ALP002、ALP003、ALP008，日期为 2022-12-23 至 2023-01-03 的七个交易日。读取原 source 和 Data 数据均为只读，新产物保存在独立目录。旧 source 准入另计 32.41 秒，校验约 1.88GiB 实际文件；该成本不能归入数值执行，也不能从热复用数字中省略。
+
+| 真实请求 | raw / CS 实际计算 | 耗时与证据 |
+|---|---|---|
+| 首次七日四列 | 每层 15,932 单元，各 7 次 Core 调用 | 15.87 秒；训练兼容投影另计 4.63 秒 |
+| 同日期选 ALP001、ALP003 | 每层 0 单元，0 次 Core 调用 | 4.15 秒，仍有身份、覆盖和实际文件准入工作 |
+| 加 ALP022，并加 2023-01-04 | 每层 6,828 单元，各 8 次缺口 Core 调用 | 19.72 秒；旧 28 个日期×列分区引用保持不变 |
+| 原 Core 小矩形对照 | 八日五列一次性定义 | 八日的值、validity、时钟和缺值原因逐项完全一致 |
+
+Feature 进程峰值 RSS 为 0.79GiB。含失败准备回执的全部新增小例产物约 11.87MiB，低于 256MiB 预算。六个有针对性的合成用例还证明了改参考池、修订输入、一次中断恢复和新 raw 字段补历史时的局部复用；这些合成证据不能冒充真实修订或通用新字段适配。
+
+真实纵向随后在既有 `Data.open_column_source` 的旧 Snapshot 准入处停止，尚无 fit、保存模型信号、新账户或新评价结果。仅打开 Data、尚未准入 saved Feature source 时，进程峰值也达到 4.41GiB，触发已声明的 4GiB RSS 保护。原 64MiB ColumnSource 缓存另曾在年度物理分区借用处拒绝；增加缓存并没有解决 Snapshot 的瞬时加载峰值。下一步须由协调方提供兼容且可容纳该 Snapshot 的 Data owner 或调整进程预算，再从已保存的 Feature view 接续标签/训练/信号/策略/评价；不重复 Feature 生产。当前仍未接入旧 88 列 normalized 母矩阵，尚未证明 CSI1800 历史并集，亦未测量全历史索引和预计算吞吐。

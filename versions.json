@@ -86,6 +86,15 @@
       }
     },
     "axiom-research": {
+      "incremental_feature_library_candidate": {
+        "integration_status": "draft_pr_parent_reviewed_fixed_source_heads_real_feature_reuse_passed_vertical_blocked",
+        "real_feature_case": "7 sessions x 569 securities x 4 columns; subset raw/CS compute zero; add one column/day computes gaps only; original Core exact eight-day comparison",
+        "real_vertical_status": "Data Snapshot admission exceeded 4GiB process guard before label/fit; strategy/evaluation not completed",
+        "full_history_completion_claim": false,
+        "source_commit": "6e4a7b5aff80f1c9e2d161aeffe5c83bb7910c90",
+        "pull_request": "https://github.com/sinnergarden/axiom-research/pull/18",
+        "installed_package_changed": false
+      },
       "commit": "730c211e44c44b9dd92225bdf1b67f8e376d893a",
       "version": "0.2.6",
       "branch": "main",
@@ -302,6 +311,15 @@
       }
     },
     "axiom-engine": {
+      "incremental_feature_library_candidate": {
+        "integration_status": "draft_pr_parent_reviewed_fixed_source_heads_real_feature_reuse_passed_vertical_blocked",
+        "real_feature_case": "7 sessions x 569 securities x 4 columns; subset raw/CS compute zero; add one column/day computes gaps only; original Core exact eight-day comparison",
+        "real_vertical_status": "Data Snapshot admission exceeded 4GiB process guard before label/fit; strategy/evaluation not completed",
+        "full_history_completion_claim": false,
+        "source_commit": "9a796740433fb7353745bddeddb5d31555fd94dd",
+        "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/34",
+        "installed_package_changed": false
+      },
       "latest_share_allocation_candidate": {
         "source_commit": "a7073aa2ef37ffe8c63b9e8938b6d7dd4370328f",
         "source_tree": "c9a5388229900de877ecb56153292983f93fa3e4",
