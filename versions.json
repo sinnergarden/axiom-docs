@@ -6,6 +6,17 @@
   },
   "implementations": {
     "axiom-data": {
+      "reviewed_corporate_actions_v3_source": {
+        "source_commit": "e4109ad00be5b79dfc66176ad4200b599ae627c7",
+        "reviewed_base": "e457372950f30ab36cce743dbdb6633f0147e033",
+        "branch": "codex/data-corporate-actions-v3-20261009",
+        "scope": "Explicit local.corporate_actions.tushare.v3 native fields, stable economic identity, cutoff-visible RECORD/EX/PAY/LISTING projection and public scoped rebuild; existing default v2 retained",
+        "parent_source_review": "passed_for_fixed_e457_to_e410_delta",
+        "independent_review": "passed_for_fixed_e457_to_e410_delta",
+        "integration_status": "reviewed_source_branch_not_merged_to_main; parent decides unified Data integration",
+        "execution_status": "saved public Data rebuild and Reader/Native checks complete; Engine five-year account acceptance remains separate",
+        "package_status": "existing installed package and builder identities retained; no new wheel or installation claim"
+      },
       "commit": "f6b8fad9684caad7e25abfb7fa695785258e0a5c",
       "version": "0.3.5",
       "wheel_sha256": "1773c1e588b1802d976c7766e80854060875e767bbb869bd5eae93bdae9bb75f",
