@@ -64,4 +64,4 @@ with SavedColumnFeatureSource(source_descriptor) as source:
 
 磁盘计划默认保留 raw 库，normalized 按实际参考池和选列需求缓存；容量估算须计入来源证据、分区元数据、索引及临时峰值。全历史预计算耗时与总磁盘用量尚未验收。
 
-已保存的真实小例完成首次 Feature→训练→信号→两个独立 Top5 账户→评价，证明子集/换模型时 Feature 计算为0、增列增日保留旧分区引用。另以合成引用检查2242日×88列元数据，root/view 最大约0.89MB/7.71MB，低于原64MiB父件限制，日期覆盖写量随范围线性增长；这不代表全期真实吞吐或总磁盘。实现与验证记录见 [Engine PR34](https://github.com/sinnergarden/axiom-engine/pull/34)、[Research PR18](https://github.com/sinnergarden/axiom-research/pull/18) 和 [Docs PR68](https://github.com/sinnergarden/axiom-docs/pull/68)，候选状态见 [versions.json](../../versions.json)。
+已保存的真实小例完成首次 Feature→训练→信号→两个独立 Top5 账户→评价，证明子集/换模型时 Feature 计算为0、增列增日保留旧分区引用。另以合成引用检查2242日×88列元数据，root/view 最大约0.89MB/7.71MB，低于原64MiB父件限制，日期覆盖写量随范围线性增长；这不代表全期真实吞吐或总磁盘。实现与验证记录见 [Engine PR34](https://github.com/sinnergarden/axiom-engine/pull/34)、[Research PR18](https://github.com/sinnergarden/axiom-research/pull/18) 和 [Docs PR68](https://github.com/sinnergarden/axiom-docs/pull/68)，实现状态见 [versions.json](../../versions.json)。
