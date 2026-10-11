@@ -1,13 +1,10 @@
-# 两种阅读路线
+# 当前教程与历史归档
 
-[ML 工程 Notebook](ml_engineering_tutorial.ipynb)及[生成 HTML](ml_engineering_tutorial.html)：
-先看整体 owner 图、固定真实短样本、registry、成熟 label/Dataset/model、保存 Signal、
-Engine 唯一账户、UI 与缓存边界。真实65-session滑动两折已通过；旧固定配置/成熟控制保留历史；Notebook 默认只读本地保存回执，
-第3/6节展示公共catalog及真实滑动builder用法，Markdown代码默认不执行；全年/多年 ML 暂停。
-[`weekly_ml_pilot.py`](../examples/weekly_ml_pilot.py)仅为原Nov1—Jan31固定窗历史控制，新入口是
-`axiom_research.build_stock_ml_fold_from_saved_inputs`。详细合同仍链接统一设计正文，HTML 从 Notebook 生成，不独立编辑。
+[ML 工程当前操作页](ml_engineering_tutorial.ipynb)及[生成 HTML](ml_engineering_tutorial.html)按 8 节组织：当前可用范围、六份配置、共享会话、模型与选列迭代、独立评价与组合、Engine 保存预测消费、冷开与复用实测、固定长周期入口与预算。默认阅读模式只展示说明和已有工程摘要；执行模式由本地路径配置与显式动作开启。模型参数迭代在同一 Data/Feature/Batch 会话内进行，使用已有 typed 配置和公共入口，不手工生成 receipt 或结果身份。
 
-第 14 节是 CaseA/B/C 教学规划草案，每项列目的、当前能力、差距、输入与输出，完整流程尚未接通或执行。先用固定 5D/LightGBM 做 CaseC 的 3–4 个周度 fold 与 Top5，再沿同一实现进行多年正确性和性能验收；CaseA 的窄 TrainSpec、CaseB 的保存组合和共同标签随后逐项小例补齐。Feature 表复用正式 catalog 入口，评价沿已审 frozen-input 路径，中断重用限于 Research 已完成 fold。该节只保留操作步骤和结果要求，没有新增代码单元或输出，既有 HTML 保留此前内容。
+[历史 Notebook](ml_engineering_history_20261011.ipynb)及[历史 HTML](ml_engineering_history_20261011.html)完整保存此前 28 个单元、输出和执行次数，包括两折教学、旧接口限制及失败成本。当前页按现行流程组织操作。255 折预测和 7 份信号评价已有保存证据，五年账户结果待 Engine owner 回填。薄编排已实际执行现有极小合成 fixture，原真实业务没有重跑。
+
+接口定义继续以[Research 主章](../docs/design/05_axiom_research.md)和[Trade 主章](../docs/design/04_axiom_trade.md)为准。当前页沿既有配置解析、准备、训练、保存评价和 Runtime owner；HTML 由 Notebook 生成。旧 [`weekly_ml_pilot.py`](../examples/weekly_ml_pilot.py)保留固定窗历史控制。
 
 Data两种路线的唯一编辑源是 [Researcher notebook](researcher_tutorial.ipynb) 和 [Developer notebook](developer_tutorial.ipynb)。生成的 [Researcher HTML](researcher_tutorial.html) 与 [Developer HTML](developer_tutorial.html) 可直接阅读代码与表格。HTML 不独立修改，原工作区 `design/notebooks` 与 Data 旧入口仅保留导航。
 
@@ -76,11 +73,10 @@ python examples/build_library_tutorials.py --source-ref <已提交的教程版�
 上述关键章节已用现有 Mac Chrome 实际查看折叠前后展示，记录见 [Chrome 抽查](../reports/tutorial-chrome-review.json)。宽表会提示横向滚动，也可聚焦后用方向键浏览完整列。
 
 
-ML工程页默认四代码单元只读取冻结教学回执与新fold交付回执。
-设置 `AXIOM_ML_TEACHING_RECEIPT` / `AXIOM_ML_TEACHING_RECEIPT_REF`，以及
-`AXIOM_ML_FOLD_DELIVERY` / `AXIOM_ML_FOLD_DELIVERY_REF` 为owner指定路径和完整字节sha256。
-显式函数仅定义，默认不调用业务，也不为展示重复解析大proof；已保存结果由owner和独立reader核验。
-新两fold是65session真实滑动；旧January v1 Top3/Top5账户另列，新v2仅中立验证、账户拒绝。
-执行输出只在本地副本保存。256周warm约42.72min要求父件全准备且proof规模相近；
-每cutoffLabel/norm、冷准备、证明扩张、账户与展示另计，总上界未知。历史固定窗66min不当最终滑窗估计。
-详见 [ML工程§12](ml_engineering_tutorial.html#section-12)，无全年/五年实跑。
+## ML 工程已有实测
+
+固定保存模型的共享会话实测为：冷打开 25.03 秒、首次核验与冻结 20.67 秒、同 owner 第二次调用 1.59 秒；整进程 47.84 秒、RSS 5.08 GiB、新增 7.74 MiB。两次 fit/predict 均为 0，完整输出身份相同。这条 HIT 证据固定于原实现，不能代替新模型训练、换选列准备或五年账户成本。
+
+[有界工程摘要](../reports/research-shared-owner-acceptance-20261011.json)保留原测量，[当前页检查记录](../reports/ml-engineering-operational-page-20261011.json)记录默认阅读、接线与归档检查；[动作执行记录](../reports/ml-engineering-notebook-actions-20261011.json)另列四个实际合成动作与未覆盖范围。合成评价每日 3 个有效配对未达到原门槛 20，这个极小合成 case 没有覆盖非空 IC、RankIC 和 IR。83.79 秒重开 owner HIT、605 秒失败观察器及旧五年估计仍在历史归档，私人模型与数据留在本地。
+
+[追加保存组合集成](../reports/ml-engineering-saved-combination-integration-20261011.json)：追加的保存模型小集成复用同一周两份真实模型，5 日各有 296 个有效配对，门槛保留 20，原信号与组合的 IC、RankIC、IR 均有限。首个请求沿用五年控制件被 scope 校验拒绝；随后沿公开 Data.export_native_view、stock_execution_rules、stock_daily_open_profile_v2 生成匹配六日的 Query/profile/rules，组合绑定新 membership 引用，原模型、分数、有效性和可用时钟不变。实际 Notebook strategy 读取同一份新交接，Runtime 保存 COMPLETE 账户（5 NAV、5 orders、5 fills），公共 projection 读回通过，训练与预测为 0。本地六类导航、短策略路径和保存账户已接好，默认阅读；完整五年账户与评价仍待 Engine owner。本次固定 c890，最终 Engine 实现身份改变后只复用保存预测重生成组合，记录新耗时与身份，不重训。私人结果留在本地。

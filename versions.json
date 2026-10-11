@@ -68,10 +68,10 @@
       }
     },
     "axiom-research": {
-      "commit": "e96483cf320a4c40b5b78668be405258bb09208d",
-      "version": "0.2.2",
+      "commit": "730c211e44c44b9dd92225bdf1b67f8e376d893a",
+      "version": "0.2.6",
       "branch": "main",
-      "status": "merged_via_parent_reviewed_pr",
+      "status": "merged_via_parent_and_independent_review",
       "wheel_status": "no_new_wheel_evidence",
       "previous_verified_package": {
         "commit": "eb6ae3a596d46627c8d52470b595d015cf659711",
@@ -87,25 +87,26 @@
         "version": "0.1.3",
         "full_suite_passed": 32
       },
-      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/5",
-      "source_commit": "4e2e0e1a5d382fc33f30ccec658976ff649141b1",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/16",
+      "source_commit": "63d54181063a54b2a84754b288a50568867e5406",
       "source_tree_unchanged_after_merge": true,
-      "remote_ci": "no_check_runs",
+      "remote_ci": "no_check_runs; not claimed CI PASS",
       "previous_saved_run_source": {
         "commit": "e612430b53fcb4c0beeaed9a1b5c6fd977a31d63",
         "version": "0.1.4",
         "source_commit": "59c45a18ec5e1b4d69e7ccffd13b750d450463ea",
         "pull_request": "https://github.com/sinnergarden/axiom-research/pull/1"
       },
-      "source_tree": "94a6e3991085faa4d1242dac907ab8f104552b3b",
+      "source_tree": "f36e54345aa8f8f7e84cdd2fc916e671c541497f",
       "pull_requests": [
         "https://github.com/sinnergarden/axiom-research/pull/1",
         "https://github.com/sinnergarden/axiom-research/pull/2",
         "https://github.com/sinnergarden/axiom-research/pull/3",
         "https://github.com/sinnergarden/axiom-research/pull/4",
-        "https://github.com/sinnergarden/axiom-research/pull/5"
+        "https://github.com/sinnergarden/axiom-research/pull/5",
+        "https://github.com/sinnergarden/axiom-research/pull/16"
       ],
-      "scope": "public bounded saved-input sliding fold, immutable model/prediction v2 and pure saved loader; two real65-session folds accepted; v2 account unsupported",
+      "scope": "configured shared-owner folds, saved models/predictions, independent labels, multi-owner and Derived evaluation; existing 255-fold evidence remains on d5 source",
       "previous_stock_model_source": {
         "commit": "091189e9d2bf9e666d9083ea63568e2238264cfa",
         "merge_commit": "fec92704dc334bd3c8e3ab2ba24a5060bb9f10cd",
@@ -118,6 +119,168 @@
         "source_commit": "90b378a6e7d8283b0b021c537a95c5468b9161bc",
         "source_tree": "8ae4a69269594c99e42289c5757cffda6aae8ad9",
         "pull_request": "https://github.com/sinnergarden/axiom-research/pull/4"
+      },
+      "reusable_evaluation_candidate": {
+        "source_commit": "4c462948d7fe622a71fbb74623db5c2ada47246a",
+        "branch": "codex/research-reusable-evaluation-20261008",
+        "version": "0.2.6",
+        "status": "feature_pushed_source_review_passed_real_onefold_partial_budget_blocked",
+        "commits": [
+          "975075074bab0091ff71e1da1bb8f62732babc72",
+          "78fe119c3959a5a7ad8a59ce76376b19e0090301",
+          "192ec630354a69c7d0beb3c551556a3106e889bc",
+          "4c462948d7fe622a71fbb74623db5c2ada47246a"
+        ],
+        "scope": "Independent saved evaluation Labels, explicit multi-owner frozen evaluation, short weekly configuration; bounded first-ingress audit and incremental admission repair; original single-batch route retained",
+        "validation": {
+          "targeted_tests": 28,
+          "weekly_compilation": "255 original folds and 1213 prediction sessions exactly equal; controls only",
+          "tiny_Data_Core_case": "Historical three synthetic Label cells through public Data ColumnSource and original Engine Core remain evidence of the then-current producer; not rerun or relabeled for 4c46294",
+          "multi_owner": "Two 24-security fake-backend owners, 3D/5D training Labels and 3/6 model columns; different natural coverage, same common mask, non-null Core statistics and saved fixed Core combination",
+          "targeted_status": "PASS",
+          "cache_compatibility": "300-column warm/cold checks remain the separate prior 192ec63 evidence; not rerun for this repair",
+          "notebook": "Only the previous one added synthetic pure-compile cell was executed; current change is prose/metadata plus HTML render without execution; all five code cells, outputs and counts unchanged",
+          "prior_targeted_tests": 32,
+          "prior_targeted_source": "192ec630354a69c7d0beb3c551556a3106e889bc",
+          "targeted_source": "4c462948d7fe622a71fbb74623db5c2ada47246a",
+          "targeted_seconds": 7.136,
+          "review_fix_scope": "First root source/matrix/parent before decode; live root and earlier owner deductions; incremental piece accounting and one operation/index per owner; source mutation rejected; Raw publication validated once; old compact path included",
+          "real_onefold": {
+            "status": "PARTIAL",
+            "completed_train_calls": 2,
+            "completed_predict_calls": 2,
+            "Feature_rebuild_calls": 0,
+            "account_calls": 0,
+            "passed": "Fixed onefold independent5D outcome equality and100-tree prediction equality; label and model HIT;3D evaluation without fit/predict; two real six-column models common-mask comparison",
+            "remaining": "Three-column COMPLETE owner/model and real two-owner comparison",
+            "joint_matrix_limit_bytes": 6442450944,
+            "rejected_live_total_bytes": 6754184217,
+            "children_exited": true,
+            "private_results": "local_only_not_in_this_repository"
+          }
+        },
+        "review_status": "4c46294_parent_and_independent_rereview_passed",
+        "publication_status": "feature_branch_pushed_no_merge_no_new_wheel",
+        "data_source": "e457372950f30ab36cce743dbdb6633f0147e033",
+        "engine_source": "1fa97878fda28769bbf1fea4ca37e7bdfbaa4524",
+        "frozen_previous_run_source": "d5cfbe30c84ec108e8ba3b32eadfbd5f82167769",
+        "real_acceptance_status": "PARTIAL: independent5D exact outcome and baseline prediction comparison, 5D/3D evaluation, six100/six50 shared Dataset and model/report HIT passed; three-column normalization rejected before allocation by combined6GiB; two real owners pending",
+        "source_tree": "18385b9851a1d046c3e4c99c87472ae5e663c208"
+      },
+      "feature_fact_lifecycle_candidate": {
+        "source_commit": "3a69a44c80a933f46488b9bffb1dcac23e61b500",
+        "version": "0.2.6",
+        "pull_request": "https://github.com/sinnergarden/axiom-research/pull/14",
+        "status": "HISTORICAL_PR14_P2_FIXED_AND_REVIEWED_IN_MERGED_PR16",
+        "prior_targeted_tests": 21,
+        "prior_targeted_seconds": 121.352,
+        "real_onefold": {
+          "first_seconds": 106.211355375126,
+          "hit_seconds": 83.78973779198714,
+          "first_fit_calls": 1,
+          "first_predict_calls": 1,
+          "hit_fit_calls": 0,
+          "hit_predict_calls": 0,
+          "first_Data_select_calls": 4,
+          "hit_Data_select_calls": 0,
+          "first_Data_adjust_calls": 2,
+          "hit_Data_adjust_calls": 0,
+          "first_raw_cache_hits": 9,
+          "first_raw_math_calls": 0,
+          "first_normalization_calls": 1,
+          "Feature_rebuild_calls": 0,
+          "supplier_calls": 0,
+          "account_calls": 0,
+          "model_and_Signal_handoff_identity": "equal",
+          "frozen_evaluation_input_identity": "different definition.json versus batch.json receipt source",
+          "end_to_end_seconds": 192.535249292,
+          "sampled_peak_tree_RSS_bytes": 5615108096,
+          "new_path_bytes": 51783707,
+          "private_results": "local_only",
+          "physical_parquet_read_bytes": "NOT_MEASURED"
+        },
+        "aborted_observer": {
+          "seconds": 605.1854948749999,
+          "actual_Data_open_calls": 1,
+          "fit_predict_Raw_Feature_account_calls": 0,
+          "reason": "global profiler covered Snapshot graph sizing; stopped own child; retained actual cost"
+        },
+        "notebook": "Original 28 cells/outputs archived unchanged; main Notebook is current 8-section operation page, default read mode, explicit execution",
+        "oos_root_fix_candidate": {
+          "source_commit": "8881882bc594f4bf99572c876d15eef008f95ebf",
+          "status": "PARENT_AND_INDEPENDENT_REVIEW_PASS_SAVED_OWNER_REUSE_PASS",
+          "files": 3,
+          "targeted_tests": 12,
+          "targeted_seconds": 12.878,
+          "affected_post_dedup_tests": 2,
+          "affected_post_dedup_seconds": 2.692,
+          "public_wire_fields": "unchanged",
+          "pull_request": "https://github.com/sinnergarden/axiom-research/pull/15",
+          "source_tree": "a532a2985e32d18f8d5b1243427b7340276e40ff",
+          "real_saved_owner_reuse": {
+            "status": "PASS",
+            "report": "reports/research-shared-owner-acceptance-20261011.json",
+            "cold_owner_seconds": 25.026417459128425,
+            "first_saved_model_seconds": 20.67233125003986,
+            "same_owner_iteration_seconds": 1.5855996659956872,
+            "end_to_end_seconds": 47.83782716700807,
+            "sampled_peak_tree_RSS_bytes": 5458231296,
+            "new_path_bytes": 8114830,
+            "same_returned_identity": true,
+            "fit_predict_calls": 0,
+            "private_results": "local only"
+          }
+        },
+        "integration": "PR16 normal merge730c211 with exact63d5418 tree; parent plus independent review PASS; no protected-main bypass, no old real rerun/new wheel",
+        "final_integration_candidate": {
+          "source_commit": "63d54181063a54b2a84754b288a50568867e5406",
+          "source_tree": "f36e54345aa8f8f7e84cdd2fc916e671c541497f",
+          "base_main": "3ef34fea99473716cd03c217a8a0af1629ad67d0",
+          "reviewed_production_base": "d5cfbe30c84ec108e8ba3b32eadfbd5f82167769",
+          "reviewed_reuse_base": "4c462948d7fe622a71fbb74623db5c2ada47246a",
+          "receipt_files": 57,
+          "receipt_final_equal_files": 53,
+          "changed_production_files_after4c": [
+            "stock_compact_store.py",
+            "stock_matrix_reader.py",
+            "stock_signal_evaluation_build.py",
+            "stock_signal_evaluation_compact.py"
+          ],
+          "production_files_changed_afterd5": 14,
+          "extra_unreviewed_code_outside_pr14_15": 0,
+          "status": "MERGED_AFTER_PARENT_AND_INDEPENDENT_REVIEW",
+          "old_tests_rerun": false,
+          "pull_request": "https://github.com/sinnergarden/axiom-research/pull/16",
+          "commits_after_reviewed_d5": 7,
+          "eager_failure_fix": {
+            "source_commit": "63d54181063a54b2a84754b288a50568867e5406",
+            "production_files": 1,
+            "test_files": 1,
+            "tests": 2,
+            "test_seconds": 25.145,
+            "retained_traceback_full_subset": "PASS",
+            "exact_before_fix": "EXPECTED_FAIL",
+            "engine_source": "c890160c648824f89284a2a6363279f3930e4b32",
+            "real_saved_owner_acceptance_rerun": false,
+            "independent_review": {
+              "status": "PASS",
+              "tests": 3,
+              "retained_traceback": "old full/subset fail; new both release",
+              "eager_sequential_outputs_and_definition_digests": "EXACT_EQUAL"
+            }
+          },
+          "merge_commit": "730c211e44c44b9dd92225bdf1b67f8e376d893a",
+          "merge_tree": "f36e54345aa8f8f7e84cdd2fc916e671c541497f",
+          "merge_first_parent": "3ef34fea99473716cd03c217a8a0af1629ad67d0",
+          "remote_ci": "no_check_runs"
+        }
+      },
+      "previous_stock_sliding_merge": {
+        "commit": "e96483cf320a4c40b5b78668be405258bb09208d",
+        "source_commit": "4e2e0e1a5d382fc33f30ccec658976ff649141b1",
+        "source_tree": "94a6e3991085faa4d1242dac907ab8f104552b3b",
+        "version": "0.2.2",
+        "pull_request": "https://github.com/sinnergarden/axiom-research/pull/5"
       }
     },
     "axiom-engine": {
@@ -576,7 +739,8 @@
         "source_tree_equal_after_merge": true,
         "private_outputs": "local only"
       },
-      "Notebook_finalization": "four read-only code cells; outputs committed empty; generated HTML; no business execution during finalization"
+      "Notebook_finalization": "four read-only code cells; outputs committed empty; generated HTML; no business execution during finalization",
+      "archive": "notebooks/ml_engineering_history_20261011.ipynb; historical evidence retained unchanged"
     },
     "neutral_stock_prediction_v2_round": {
       "source": "ac20e0860daa464c2793c4656f45abdf55421d24",
@@ -586,6 +750,26 @@
       "planner_Runtime": "UNSUPPORTED_V2",
       "old_v1": "preserved",
       "account_calls": 0
+    },
+    "ml_engineering_current_operation_page": {
+      "notebook": "notebooks/ml_engineering_tutorial.ipynb",
+      "html": "notebooks/ml_engineering_tutorial.html",
+      "sections": 8,
+      "default_mode": "read",
+      "execution": "four actions plus default model path actually executed with tiny synthetic fixtures; default read mode retained",
+      "history_archive": "notebooks/ml_engineering_history_20261011.ipynb",
+      "business_rerun": false,
+      "fiveyear_account": "awaiting_engine_owner_saved_result",
+      "report": "reports/ml-engineering-operational-page-20261011.json",
+      "action_report": "reports/ml-engineering-notebook-actions-20261011.json",
+      "real_original_business_rerun": false,
+      "synthetic_execution": true,
+      "saved_combination_report": "reports/ml-engineering-saved-combination-integration-20261011.json",
+      "real_saved_signal_statistics": "two original models and Derived; five dates,296 pairs/date,min20; all IC/RankIC/IR finite",
+      "real_combination_account": "PASS matching real six-day Query/profile/rules; 5 NAV/5 orders/5 fills; public saved projection load PASS; full fiveyear pending",
+      "local_path_configuration": "prepared privately; default read; six roles; bounded saved account wired; full account/evaluation pending",
+      "native_strategy_wiring": "original exported StockNativeViewSource; file/native tiny synthetic save/load PASS",
+      "implementation_migration": "fixed c890 acceptance; final Engine needs Derived regeneration from saved raw predictions without retraining"
     }
   },
   "bulk": {
