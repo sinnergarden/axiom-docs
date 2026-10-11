@@ -1506,7 +1506,9 @@ Data 的版本化 vendor 规则确认新增字段也一致时才能归并；另�
 ### 6.8 历史赠股的显式整数分配（2026-10-11，源码候选，完整账户待放行）
 
 本次影响记录对应 Engine 候选
-[`dfdb96ba3dc7cff6e50286b68541772f40ac3715`](https://github.com/sinnergarden/axiom-engine/pull/29)。
+[`a7073aa2ef37ffe8c63b9e8938b6d7dd4370328f`](https://github.com/sinnergarden/axiom-engine/pull/29)。
+其中 floor 基线 `dfdb96ba3dc7cff6e50286b68541772f40ac3715` 已经父读与独立复审；
+最终候选增加下述窄来源声明，仍等待 Data 最终输入联检和父合并。
 此前严格模式会在登记整数股乘总赠股比例产生小数时停止。单账户真实到账不能仅由比例
 确定：[爱尔眼科 2021-046 实施公告第 2 页](https://static.cninfo.com.cn/finalpage/2021-06-18/1210269491.PDF)
 规定尾数参与排序分配整股，同尾数随机排序。此公告说明该事件的实际分配方法，不能
@@ -1522,6 +1524,19 @@ Data 的版本化 vendor 规则确认新增字段也一致时才能归并；另�
 `attribution="record_origin_fifo_settled_grant_v2"` 及限制说明参与 profile 身份。
 `equity_request` 和公开执行／保存入口保持 §6.7 的签名及 request/run v8 结构。新 profile、
 implementation、request、run 身份独立保存；取整算法本身不改写原 Data 或预测事实。
+
+权益事实仍为 `stock_action_facts_v1`，沿原 `action_facts_artifact` 入口消费。
+除原 `declared_vendor_assumption`，准入允许父批准的历史混合来源声明
+`mixed_reviewed_sources_v1`。Data 在新冻结事实中给出适用普通二级市场持有人的
+现金和总授股标量，并通过现有 `source_refs` 绑定版本化、内容寻址的解释产物；
+原供应商 null、发行人总转增比例和旧 artifact 保留。明确无授股为零，资格或准确率
+仍未知时为 null。Engine 只消费已选标量并检查 artifact、scope、refs 和别名闭合，
+不解释重整公告，也不凭总转增比自行推导普通股东权益。解释产物的原修订依赖、
+公告证据与适用性由 Data 验证；digest 绑定本身不证明解释真实。
+Data 的 `available_at` 为所有必要来源可用时点的最大值，只有日期的公告采用已冻结
+下一 A 股 session 09:30 规则；实际 2026 接收时点保留。混合声明是本实验的历史
+模拟假设，不是完整历史版本证据。此增量只扩展一个声明枚举，不新增 v2 事实格式
+或通用 patch 机制；未知事实及迟到条款仍沿原 gap 规则阻断实际持有账户。
 
 同一纯分配入口为
 `settle_stock_share_allocation(*, registered_quantity, shares_per_share, policy="reject_non_integer", actual_quantity=None, evidence_refs=())`。
@@ -1562,13 +1577,25 @@ revision、来源 refs、流水 sequence 和原 `allocation`，并保存当日�
 不同证券的股数不混成一个经济数量，跨事件局部估值之和也不作为账户损益修正或全程
 收益误差上界。后续决策可能改变，因此不声称 floor 的策略收益必然保守。
 
-候选通过 145 项唯一相关合成测试；其中七项可选 Native 测试另用固定 Data SDK 补验
+floor 基线通过 145 项唯一相关合成测试；其中七项可选 Native 测试另用固定 Data SDK 补验
 通过。小验收覆盖总量取整、实际整数输入、整数 EX/PAY/LISTING、重复应用、未知事实
 仍阻断、零尾数经济流水一致、保存分配篡改拒绝，以及 v2/v3 报告保存读取。旧严格保存
 前缀另经只读加载核验，未执行账户或重新读取大来源。本轮没有全五年完成证据，也未
 加入持久市场缓存或 checkpoint：准入 Owner 仍绑定创建进程并在退出时关闭匿名文件；
 现执行入口仍要求空初仓及新 sink。后续完整运行须把冷准入代价、资源和实际停止／完成
 状态一起记录，不能把源码或合成通过当成完整账户验收。
+
+SignalPlan 算法没有因本次账户维护而改变，但当前 Derived 组合绑定全局
+`IMPLEMENTATION_REF`，准入要求它等于当前 Engine 实现；因此账户源码变更也会
+拒绝旧实现保存的 Derived 组合。这一实现身份范围过宽的限制必须披露。本轮允许在
+最终 Engine 版本复用原保存 raw predictions 轻量重新派生组合、另存新身份，并报告
+迁移时间与资源；不能保留假旧 SHA、放宽校验、重训或重建 Feature。原始 raw binding
+不经过该 Derived 专属相等门禁，旧账户仍可只读加载。组件语义身份的拆分列为后续
+维护，不包装成 SignalPlan 正确性变化，也不引入本轮兼容框架。
+
+最终候选另通过 60 项相关小测试，其中五项新增检查覆盖混合声明的保存读取、真实
+接收时间保留、非法声明的账户前拒绝、未知和迟到条款仍阻断，以及 raw 准入通过而
+旧 Derived 实现身份被拒绝的边界。这些合成检查不替代 Data 最终来源联检或完整运行。
 
 ## 7. 账户与 Ledger 数据模型
 
