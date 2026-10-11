@@ -1,6 +1,6 @@
 """Replay three independent accounts from the same saved stock predictions.
 
-Requires axiom-engine 0d5a4f8 and axiom-data b743b70 (or compatible descendants).
+Requires axiom-engine 8d91726 and axiom-data b743b70 (or compatible descendants).
 Supply an original bounded v8 request, its native Data delivery and all referenced
 saved artifacts. This file contains no market data, local paths or credentials.
 No supplier, Feature, fit or predict entrypoint is called. Daily predictions are
