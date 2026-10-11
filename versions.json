@@ -1,5 +1,19 @@
 {
   "schema_version": "axiom_docs_versions_v1",
+  "incremental_feature_library_candidate": {
+    "status": "draft_pr_fixed_heads_pending_parent_review",
+    "design": "docs/design/incremental-feature-library-v1.md",
+    "engine": {
+      "source_commit": "df9d56a38230f3af488f7abee5b080ba5f19f3b2",
+      "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/34"
+    },
+    "research": {
+      "source_commit": "0fa5b62d60964db3b16b8124c2f77ac03999406b",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/18"
+    },
+    "evidence": "real small end-to-end and reuse; synthetic metadata scale; full-history acceptance not claimed",
+    "installed_package_changed": false
+  },
   "source_migration": {
     "repository": "axiom-data",
     "commit": "cb19c8e7661bf6bb86caa19aaf5be5c4b71ae6b0"
@@ -86,37 +100,6 @@
       }
     },
     "axiom-research": {
-      "incremental_feature_library_candidate": {
-        "integration_status": "draft_pr_real_two_accounts_passed_compact_metadata_v2_awaiting_parent_review",
-        "real_feature_case": "7 sessions x 569 securities x 4 columns; subset raw/CS compute zero; add one column/day computes gaps only; original Core exact eight-day comparison",
-        "real_vertical_status": "H1 labels, two actual LightGBM models/new prediction sets and independent Top5 accounts/evaluations complete; second basis reuse; account-stage Feature/fit/predict calls zero",
-        "full_history_completion_claim": false,
-        "source_commit": "0fa5b62d60964db3b16b8124c2f77ac03999406b",
-        "pull_request": "https://github.com/sinnergarden/axiom-research/pull/18",
-        "installed_package_changed": false,
-        "real_execution_heads": {
-          "axiom-engine": "9a796740433fb7353745bddeddb5d31555fd94dd",
-          "axiom-research": "6e4a7b5aff80f1c9e2d161aeffe5c83bb7910c90",
-          "axiom-data": "6298fc520cccabc772678a98f936533eb4eb57c2"
-        },
-        "metadata_layout_check": {
-          "dates": 2242,
-          "columns": 88,
-          "securities": 3497,
-          "maximum_root_bytes": 885737,
-          "maximum_view_bytes": 7705413,
-          "maximum_date_parent_bytes": 18727,
-          "retained_transport_metadata_bytes": 54669514,
-          "transport_bytes_written": 55112456,
-          "date_writes": 2242,
-          "checkpoint_root_writes": 2,
-          "checkpoint_view_writes": 2,
-          "parent_budget_bytes": 67108864,
-          "scope": "actual 88 A01 normalized DAG definitions; synthetic profiles/partition refs; excludes immutable Core headers/buffers; no Data or numerical execution"
-        },
-        "saved_real_v1_v2_exact_projection_cases": 3,
-        "training_owner": "existing full-period owner shared by sequential folds"
-      },
       "commit": "730c211e44c44b9dd92225bdf1b67f8e376d893a",
       "version": "0.2.6",
       "branch": "main",
@@ -333,37 +316,6 @@
       }
     },
     "axiom-engine": {
-      "incremental_feature_library_candidate": {
-        "integration_status": "draft_pr_real_two_accounts_passed_compact_metadata_v2_awaiting_parent_review",
-        "real_feature_case": "7 sessions x 569 securities x 4 columns; subset raw/CS compute zero; add one column/day computes gaps only; original Core exact eight-day comparison",
-        "real_vertical_status": "H1 labels, two actual LightGBM models/new prediction sets and independent Top5 accounts/evaluations complete; second basis reuse; account-stage Feature/fit/predict calls zero",
-        "full_history_completion_claim": false,
-        "source_commit": "df9d56a38230f3af488f7abee5b080ba5f19f3b2",
-        "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/34",
-        "installed_package_changed": false,
-        "real_execution_heads": {
-          "axiom-engine": "9a796740433fb7353745bddeddb5d31555fd94dd",
-          "axiom-research": "6e4a7b5aff80f1c9e2d161aeffe5c83bb7910c90",
-          "axiom-data": "6298fc520cccabc772678a98f936533eb4eb57c2"
-        },
-        "metadata_layout_check": {
-          "dates": 2242,
-          "columns": 88,
-          "securities": 3497,
-          "maximum_root_bytes": 885737,
-          "maximum_view_bytes": 7705413,
-          "maximum_date_parent_bytes": 18727,
-          "retained_transport_metadata_bytes": 54669514,
-          "transport_bytes_written": 55112456,
-          "date_writes": 2242,
-          "checkpoint_root_writes": 2,
-          "checkpoint_view_writes": 2,
-          "parent_budget_bytes": 67108864,
-          "scope": "actual 88 A01 normalized DAG definitions; synthetic profiles/partition refs; excludes immutable Core headers/buffers; no Data or numerical execution"
-        },
-        "saved_real_v1_v2_exact_projection_cases": 3,
-        "training_owner": "existing full-period owner shared by sequential folds"
-      },
       "latest_share_allocation_candidate": {
         "source_commit": "a7073aa2ef37ffe8c63b9e8938b6d7dd4370328f",
         "source_tree": "c9a5388229900de877ecb56153292983f93fa3e4",

@@ -1,58 +1,67 @@
-# 增量特征库：今晚实施方案
+# 增量特征库
 
-`draft`，2026-10-11。协调方已审 Engine `9a796740433fb7353745bddeddb5d31555fd94dd` 与 Research `6e4a7b5aff80f1c9e2d161aeffe5c83bb7910c90`，实现分别位于 [Engine PR34](https://github.com/sinnergarden/axiom-engine/pull/34) 与 [Research PR18](https://github.com/sinnergarden/axiom-research/pull/18)。真实小例已通过 Feature 子集复用、增列增日和 Core 对照，并完成 H1 标签、两次不同模型训练、新预测以及两个独立 Top5 账户和评价。协调方随后批准本文的紧凑 view 与日期覆盖索引改造；布局修正固定 Engine `df9d56a38230f3af488f7abee5b080ba5f19f3b2` 与 Research `0fa5b62d60964db3b16b8124c2f77ac03999406b`，待集中 review，完整七年 Feature 尚未执行。全历史完成时间仍需按实际吞吐测量。
+增量特征库把已登记特征的计算结果保存为可复用的矩形，供研究按日期、证券和特征列选取。扩列或延长日期时，执行器查询覆盖并只补缺口；例如88列一年扩为100列两年，需要计算旧日期的12个新增列，以及新增日期的100列。训练子集、模型、标签和策略由实验配置分别选择，已有 Feature 可供后续实验继续使用。
 
-**Owner 与接口。** Data 管事实、成员和 PIT；Core 保留唯一数学；Research 管定义、Release、独立可读配置及实验记录。Engine 新 `feature_library` 外围包管覆盖查询、缺口执行、保存和矩阵投影，Core 仍无 I/O。这是[总纲边界](01_axiom_overview.md#module-boundaries)的待审增量：从现 storage/`VerifiedMatrixStore` 抽取共享 buffer/hash/mmap 与文件生命周期实现；Research 保留 label/fold 准入和公共入口，薄调用 Engine，不整库搬 reader。
+## 职责与适用范围
 
-Engine 的 `FeatureLibrary` 在构造时接受读取、工作区和列块预算，提供 `plan_coverage(request, source_adapter)`、`ensure_features(request, source_adapter)` 及 `open_feature_view(descriptor).project(keys, columns)`。`FeatureRequest` 独立声明样本证券；参考成员来自已冻结 plan。Research 的 `SavedColumnFeatureSource` 准入原 source，`CatalogFeatureLibrary.ensure` 将登记定义和 raw/CS 请求薄接入 Engine。`build_feature_library_training_view` 生成显式新布局，再由 `load_feature_library_training_view` 准入为既有 `StockFeatureView`；调用方将该 handle 显式传给训练和 batch loader。Engine 不反向 import Research。
+[总纲](01_axiom_overview.md#module-boundaries)规定：Data 提供事实、历史成员及 PIT 口径；Core 是唯一数学执行器；Engine 负责稳定身份、覆盖查询、缺口执行、保存和投影；Research 保留登记定义、配置和实验入口，通过薄适配调用 Engine。特征库复用现有内容寻址 buffers 与 `VerifiedMatrixStore`，不承担模型拟合或策略执行。
 
-**身份与复用。** 单列 `semantic_ref` 绑定 DAG 闭包、算子语义版本、参数、单位/dtype、缺失、历史/时钟与复权口径。覆盖项局部绑定字段/逻辑键/所选 revision、availability/来源资格及每日原 anchor/cutoff；使用 Data 公开 provenance，不能只用物理行序号。CS 闭包再绑定实际每日参考成员/行业，fitted 层再绑定 fit state。完整 catalog、selection、实验总时间、source manifest、commit 不作为唯一缓存键；真实 commit、原 plan/result refs 保留履历。值相同而来源/时钟改变，只复用物理值文件，逻辑产物更新。
+样本证券 `sample_universe` 与特征参考池分开。固定参考池时，筛选训练或交易行只需投影；改变截面参考成员或行业时，相关截面层需要重算。默认用 `normalized=False` 保存 raw/base，使用时再按明确参考池缓存 CS 结果。raw DAG 自身含截面算子时同样绑定参考池；fitted 处理还须绑定 fit state。现有 normalized 矩阵保留其原始语义，不能作为池无关 raw 使用。
 
-用现 `normalized=False` 默认准备 raw/base；raw DAG 含 CS 时仍绑定池。固定参考池下筛训练/交易行只做投影，改池只重算相关 CS 闭包。现88列可用于相同参考池的 normalized 扩展；首次 raw 准备属于另一个 stage，不能从旧 zscore 反推。性能变化须证明等价；语义修复只失效受影响闭包，保留旧件审计。
+## 身份与复用规则
 
-**保存与迁移。** 延用内容寻址 buffers、原子分区，增加可重建的小型列覆盖索引。分区有局部日期/证券轴和列语义身份，view 显式投影到请求轴/schema。88列一年扩到100列两年时，只算 `旧日期×12新增列 ∪ 新日期×100列` 及所需输入历史，旧 buffer/分区 refs 不变。无覆盖项表示未计算，已发布 validity/reason 表示计算后缺值。每个输出日封存分区和日期覆盖件，请求结束后一次原子发布小根索引。中断后核验已封存分区及实际 buffers 再恢复，临时半成品不能进入覆盖。旧 loader/refs 保留；新布局显式启用，旧矩阵仅在原准入通过后作为带原轴/身份的只读叶子接入，不重签旧件。
+每列 `semantic_ref` 绑定其 DAG 闭包、算子语义版本、参数、单位与精度、缺失处理、时钟及复权口径。覆盖记录进一步绑定实际选中的输入 revision、来源资格和每日 anchor/cutoff；CS 依赖还包括实际参考成员。实验的总时间、完整 catalog、选列列表、整份 source manifest 或代码 commit 不单独决定缓存是否有效，commit 用于追溯实现。
 
-**结构性提速。** [producer](https://github.com/sinnergarden/axiom-research/blob/c70afc8acfe26b3d8a6b18beaf68432a17ae1a94/src/axiom_research/stock_feature_column_producer.py) 将 packed 数组展开再打包，[准入](https://github.com/sinnergarden/axiom-research/blob/c70afc8acfe26b3d8a6b18beaf68432a17ae1a94/src/axiom_research/stock_matrix_feature_column_metadata.py) 逐 cell 切片 hash。优先让 Core 数组直达有界日期/列块，冻结连续 bytes 后 hash/写入，按同一物理块验证，只在取行时展开。新 proof 按块绑定，整列块拼接不能冒充旧逐行哈希顺序。source 改成有界只读块，物理输入块解码与编译/调度复用；历史需求复用 `required_history`/`_needed`。保留连续日历与每输出日 anchor/cutoff，不以月末 anchor 替代含绝对常量的 KMID2/RSV 输入。
+改变一个输入会按 DAG 历史依赖影响相应列和输出日，无关结果继续复用。纯性能修改须保持数学和保存语义等价；语义修复只失效受影响闭包。每个输出日使用自己的原 anchor/cutoff，历史输入需求由 DAG 推导；含绝对常量的公式不能换成统一月末 anchor。
 
-**顺序与验收。** 放行后：① Engine 身份/覆盖及 packed store；② Research 薄接入与配置、raw 默认及 CS/fitted 按需；③ A–D和一次中断恢复；④ 一次真实小例和吞吐报告。代码及公共文档分别走 Draft PR，协调方亲审后合并。
+## 保存、读取与恢复
 
-| 用例 | 必交证据 |
+每个分区保存局部日期/证券轴、schema、语义及依赖身份、原 Core 回执和来源凭证。连续 packed 数组直接写入内容寻址 buffers，validity 和缺值原因分别保留；没有覆盖记录表示尚未计算，已保存的 invalid 单元表示计算后缺值。
+
+v2 view 每个选中分区只保存一次 descriptor，并记录日期和选列。不可变日期覆盖件保存局部摘要，小根索引仅引用日期件；一次 `ensure` 完成后原子发布一次根索引。读取父件前先检查大小，再核验实际 bytes 和内容引用，随后按请求组装矩阵。新增列或日期保留旧 buffer/partition refs。
+
+中断后核验已封存分区及实际 buffers，再恢复覆盖并补剩余缺口；临时半成品不进入可读覆盖。旧 v1 view 继续由同一公开 reader 读取，旧小索引可转换为日期覆盖件，原产物身份保持不变。
+
+## 公开使用接口
+
+Research 用户通过 `SavedColumnFeatureSource` 打开已保存来源，再由 `CatalogFeatureLibrary.ensure` 提交登记选列、输出日期和样本证券。构造 library 时可设置 `maximum_source_bytes`、`maximum_working_bytes` 和 `column_block`，分别限制来源准入、计算/投影工作区和保存列块。以下变量由调用方从已准备的来源和研究配置提供；示例选择 raw/base。
+
+```python
+from axiom_engine.feature_library import FeatureLibrary
+from axiom_research import (
+    SavedColumnFeatureSource, CatalogFeatureLibrary, load_a01_feature_catalog,
+)
+
+library = FeatureLibrary(feature_root)
+catalog = load_a01_feature_catalog()
+with SavedColumnFeatureSource(source_descriptor) as source:
+    descriptor, stats = CatalogFeatureLibrary(library, source, catalog).ensure(
+        selection=feature_selection,
+        output_sessions=feature_sessions,
+        sample_universe=sample_security_ids,
+        normalized=False,
+    )
+    with library.open_feature_view(descriptor) as view:
+        packed = view.project(keys=sample_keys, columns=selected_columns)
+```
+
+`selection` 使用登记的特征 id 和语义版本；`sample_keys` 是 `(security_id, session)` 键。需要截面标准化时显式设置 `normalized=True`，并使用已声明的参考池。返回的 `stats` 区分命中与实际补算。
+
+| 接口 | 用途 |
 |---|---|
-| A 首次闭环 | Feature→实际训练→保存信号→现 Engine 策略→评估 refs/计数 |
-| B 子集/换模型 | 固定数据/参考池，Feature计算0 |
-| C 增列/日期 | 旧区域 refs 不变，仅缺口计算；与一次性小对照核对值/键/validity/原因/时钟 |
-| D 改池/修订 | 相关闭包失效；修订按 DAG 历史依赖传播，无关列/日期命中 |
+| `FeatureLibrary.plan_coverage(request, source_adapter)` | 只查询覆盖及依赖，返回命中和缺口 |
+| `FeatureLibrary.ensure_features(request, source_adapter)` | 执行缺口并保存固定 view |
+| `FeatureLibrary.open_feature_view(descriptor)` | 打开已保存 view，读取不触发 Core |
+| `FeatureView.describe()` | 查看固定日期、物理/样本证券、列及语义能力 |
+| `FeatureView.project(keys, columns)` | 返回指定行列的只读 packed 数组 |
+| `FeatureView.column_receipts(session, columns)` | 核验并读取原分区的语义、依赖及来源凭证 |
 
-可控 fixture 验证 A–D；真实小例拟用≤24样本证券、6–10输出日、3–6列及完整历史，CS仍用原完整每日参考池。小测一次，记录来源、Core准入/数值与来源传播、写入/准入、RSS、bytes、命中和计算cell，再决定是否优化逐证券Python调度及放大。协调方已有测量为120日×569×88共957秒、RSS0.923GiB，Core约2.4秒/日、保存准入约5.5秒/日，来源另计；本文未重新执行，writer优化不能推出全量12小时。
+训练使用 `build_feature_library_training_view` 生成一次全期兼容投影，由 `load_feature_library_training_view` 准入为既有 `StockFeatureView`，再显式传入训练或 batch loader。各 sequential fold 共享该全期 owner，按行列选择自己的窗口；换模型或选取已有列不重新计算 Feature。
 
-现 source 仅证明 CSI300/`best_effort_vendor_v1`。CSI1800需实际历史成员输出及profile小例；其他PIT政策需逐cutoff选版验证；未支持的登记特征明确列缺口。126GiB空余扣除Data预留30GiB后，现18bytes/cell的全raw层下限约67.91GiB；raw+normalized约135.82GiB装不下。默认保留特征raw，normalized按实际池/选列缓存；原因/来源按块字典或稀疏结构精确保存，source、索引、元数据及临时峰值实测计预算。既不删除Data Raw，也不承诺今晚全历史预计算完成。
+## 当前能力边界
 
+当前来源适配已验证 CSI300 与 `best_effort_vendor_v1`，支持登记 A01 特征使用的价格、成交额及复权事实。CSI1800 历史成员并集、其他 PIT 政策及新事实字段需要相应 Data 来源与适配验证。旧88列 normalized 母矩阵接入尚未完成。全历史准备应先核实实际证券/日期覆盖及所需输入历史，再按测得吞吐安排执行。
 
-**已执行的小例与边界。** 以下数字来自 2026-10-11 的一次真实 Feature 小例，使用固定 Snapshot、原 CSI300 参考成员、569 只证券和 `best_effort_vendor_v1`，初始选列为 ALP001、ALP002、ALP003、ALP008，日期为 2022-12-23 至 2023-01-03 的七个交易日。读取原 source 和 Data 数据均为只读，新产物保存在独立目录。旧 source 准入另计 32.41 秒，校验约 1.88GiB 实际文件；该成本不能归入数值执行，也不能从热复用数字中省略。
+磁盘计划默认保留 raw 库，normalized 按实际参考池和选列需求缓存；容量估算须计入来源证据、分区元数据、索引及临时峰值。全历史预计算耗时与总磁盘用量尚未验收。
 
-| 真实请求 | raw / CS 实际计算 | 耗时与证据 |
-|---|---|---|
-| 首次七日四列 | 每层 15,932 单元，各 7 次 Core 调用 | 15.87 秒；训练兼容投影另计 4.63 秒 |
-| 同日期选 ALP001、ALP003 | 每层 0 单元，0 次 Core 调用 | 4.15 秒，仍有身份、覆盖和实际文件准入工作 |
-| 加 ALP022，并加 2023-01-04 | 每层 6,828 单元，各 8 次缺口 Core 调用 | 19.72 秒；旧 28 个日期×列分区引用保持不变 |
-| 原 Core 小矩形对照 | 八日五列一次性定义 | 八日的值、validity、时钟和缺值原因逐项完全一致 |
-
-Feature 进程峰值 RSS 为 0.79GiB。含失败准备回执的全部新增小例产物约 11.87MiB，低于 256MiB 预算。六个有针对性的合成用例还证明了改参考池、修订输入、一次中断恢复和新 raw 字段补历史时的局部复用；这些合成证据不能冒充真实修订或通用新字段适配。
-
-真实纵向曾在既有 `Data.open_column_source` 的旧 Snapshot 准入处触发 4GiB 保护。协调方随后将同一小例的进程上限改为 12GiB、目标常态不超过 8GiB；未改 Data 格式，未重新生产 Feature。接续执行的 Data Snapshot 打开耗时 29.78 秒，saved source 冷准入另计 34.26 秒，进程峰值为 3.40GiB。实际物理输入最高占用约 211MiB，因此 ColumnSource 使用 512MiB 缓存；原 64MiB 缓存不够借用年度物理块。
-
-四列、10 棵树和两列、5 棵树各训练一次，均保存了真实 LightGBM booster、模型和新预测；各用五个成熟日期、1,500 行训练数据，输出 1,138 行完整预测网格，其中两日共 600 行有效。两次的 Feature Core 调用均为 0。四列的 view 准入及标签准备耗时 5.59 秒，随后 fit/predict/保存信号合计 2.31 秒；两列对应为 3.79 和 0.54 秒。既有组合入口未单独保留 backend fit 与 predict 的计时，不能将这些合计数字冒充独立 backend 耗时。
-
-协调方随后把 native 导出预算改为 1GiB、新增总产物预算改为 2GiB，同一小例继续使用已保存 Feature、模型和预测。原生市场输入按三个交易日的精确 scope 导出，产物约 320.24MiB，耗时 68.41 秒。原较长窗口的 Native 文件不能直接冒充这个短 scope，因为正式 reader 核验成员、市场、复权、涨跌停范围及事件 cutoff。private runner 曾因 JSON 保存形式不符合正式 reader 的 canonical 要求失败；修正保存形式后复用同一 Native delivery 接续，没有重导出或修改平台数学。
-
-两个独立 Top5 账户均已完成，且已保存最小评价。市场冷打开和 Engine 准入合计 149.06 秒，其中 Engine 来源审计 3.16 秒、capture 1.93 秒，其余主要属于 Native 实际文件核验与重放。四列模型的预测准入、账户和评价分别为 0.68、0.12、0.56 秒；两列模型分别为 0.60、0.11、0.56 秒，市场 owner 记录了一次 basis 复用。账户阶段 Feature、fit 和 predict 调用均为 0。所有重进程已退出，完整小例累计新增产物约 344.52MiB，最高进程 RSS 为 4.36GiB。
-
-**七年元数据布局修正。** 旧 v1 view 对每个日期×列复制整个块摘要，16 列块内重复 16 次；2242日×88列仅两类哈希字符串就至少 427,881,216 bytes，已经超过默认64MiB父件限制。旧覆盖索引每个输出日全量重写；按等量增长，2242日累计写量是最终单层索引的1121.5倍。不能通过扩大父件限制掩盖这个成本。
-
-新 v2 view 对每个选中块只保存一次原分区 descriptor 和日期、列选择。语义、依赖和完整来源凭证留在原分区；日期覆盖件只保存局部覆盖摘要，根只引用不可变日期件。`FeatureView.column_receipts(session, columns)` 从实际分区核验并返回来源凭证，Research 的 CS 与训练兼容性适配通过这个公开方法读取。规划尚未投影的日期使用短期 metadata owner，避免把全年父件积累到一个 owner 后反复核验所有旧日期。数学、日 anchor/cutoff、原 buffer/partition refs 和 Source/PIT 验证保持原口径。新 transport refs 明确属于 v2，旧 v1 view 仍可读取，旧产物不重签。
-
-元数据级检查采用全部88个登记 A01 normalized DAG 定义、2242日、3497证券和16列块，分区引用及来源 profile 为合成输入；没有读取 Data 或执行 Feature。半期1121日的 root/view 为442,942 / 4,092,430 bytes，全期为885,737 / 7,705,413 bytes，最大日期父件18,727 bytes，均低于原64MiB上限。两次检查点共写2242个日期件、2个root、2个view；保留的覆盖/view元数据54,669,514 bytes，总写入55,112,456 bytes。两者均不包含既有不可变 Core 分区 headers/buffers，不能当作全历史库的总磁盘用量；这次检查证明新增 transport 随日期线性增长，并不证明全期真实吞吐。
-
-另以原三个真实小例的已保存 v1 件，只读生成独立 v2 视图，五类数组、原因/来源字典与分区 refs 均完全一致，未调用 Data、Core 或训练。八个针对性用例覆盖原六项复用/身份检查、旧 v1 冷读取及元数据迁移、规模与读前大小限制；同一中断用例确认完整分区可恢复、临时 JSON 不可见。训练仍沿用既有一次导出并打开全期 Feature owner、各 sequential fold 共享的机制，不新增逐 fold 导出路径。
-
-当前仍未接入旧 88 列 normalized 母矩阵，尚未证明 CSI1800 历史并集，亦未测量真实全历史预计算吞吐和总磁盘用量。
+已保存的真实小例完成首次 Feature→训练→信号→两个独立 Top5 账户→评价，证明子集/换模型时 Feature 计算为0、增列增日保留旧分区引用。另以合成引用检查2242日×88列元数据，root/view 最大约0.89MB/7.71MB，低于原64MiB父件限制，日期覆盖写量随范围线性增长；这不代表全期真实吞吐或总磁盘。实现与验证记录见 [Engine PR34](https://github.com/sinnergarden/axiom-engine/pull/34)、[Research PR18](https://github.com/sinnergarden/axiom-research/pull/18) 和 [Docs PR68](https://github.com/sinnergarden/axiom-docs/pull/68)，候选状态见 [versions.json](../../versions.json)。
