@@ -311,11 +311,7 @@
         "status": "parent_and_independent_review_passed_source_merged_final_data_joint_check_passed",
         "merge_commit": "4e65af8462949f674fa66d3f5f17ce06dc932568",
         "source_tree_unchanged_after_merge": true,
-        "first_parent_delta": {
-          "files": 12,
-          "insertions": 462,
-          "deletions": 44
-        },
+        "first_parent_delta": {"files": 12, "insertions": 462, "deletions": 44},
         "scope": "explicit historical integer floor and mixed_reviewed_sources_v1 declaration; saved accounting and episode attribution; Derived global implementation migration disclosed",
         "floor_baseline_source_commit": "dfdb96ba3dc7cff6e50286b68541772f40ac3715",
         "floor_baseline_unique_related_tests_passed": 145,
@@ -335,7 +331,7 @@
           "cold_market_admission_seconds": 1159.684,
           "prediction_binding_account_execution_and_save_seconds": 277.123,
           "saved_projection_dividend_v2_v3_evaluation_seconds": 22.471,
-          "guardian_wall_seconds": 1591.16,
+          "guardian_wall_seconds": 1591.160,
           "sampled_tree_rss_peak_bytes": 846790656,
           "visible_new_artifact_bytes": 102727172,
           "prior_costs_and_failed_attempts_preserved": true,
