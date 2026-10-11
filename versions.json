@@ -215,7 +215,27 @@
             "private_results": "local only"
           }
         },
-        "integration": "Remote main3ef34fe; PR13/14/15 open draft;4c46294 baseline79 commits/105files still requires integration review; fixed parent source review and prior28/32 test scopes separately documented; no merge/new wheel"
+        "integration": "One final draft PR from main to exact8881882; d5 FULL parent production review+independent PASS and4c review reused;53/57 receipt files exact, four production deltas onlyPR14/15; oldPR13 producerP1 prevents independent merge; no new tests/main push/merge/wheel",
+        "final_integration_candidate": {
+          "source_commit": "8881882bc594f4bf99572c876d15eef008f95ebf",
+          "source_tree": "a532a2985e32d18f8d5b1243427b7340276e40ff",
+          "base_main": "3ef34fea99473716cd03c217a8a0af1629ad67d0",
+          "reviewed_production_base": "d5cfbe30c84ec108e8ba3b32eadfbd5f82167769",
+          "reviewed_reuse_base": "4c462948d7fe622a71fbb74623db5c2ada47246a",
+          "receipt_files": 57,
+          "receipt_final_equal_files": 53,
+          "changed_production_files_after4c": [
+            "stock_compact_store.py",
+            "stock_matrix_reader.py",
+            "stock_signal_evaluation_build.py",
+            "stock_signal_evaluation_compact.py"
+          ],
+          "production_files_changed_afterd5": 14,
+          "extra_unreviewed_code_outside_pr14_15": 0,
+          "status": "DRAFT_CONCENTRATED_REVIEW_PENDING_SMALL_DELTA_INDEPENDENT_PASS",
+          "old_tests_rerun": false,
+          "pull_request": "https://github.com/sinnergarden/axiom-research/pull/16"
+        }
       }
     },
     "axiom-engine": {
