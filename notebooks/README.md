@@ -1,8 +1,8 @@
 # 当前教程与历史归档
 
-[ML 工程当前操作页](ml_engineering_tutorial.ipynb)及[生成 HTML](ml_engineering_tutorial.html)按 8 节组织：当前可用范围、六份配置、共享会话、模型与选列迭代、独立评价与组合、Engine 保存预测消费、冷开与复用实测、运行边界。默认阅读模式只展示说明和已有工程摘要；执行模式由本地路径配置与显式动作开启。模型参数迭代在同一 Data/Feature/Batch 会话内进行，使用已有 typed 配置和公共入口，不手工生成 receipt 或结果身份。
+[ML 工程当前操作页](ml_engineering_tutorial.ipynb)及[生成 HTML](ml_engineering_tutorial.html)按 8 节组织：当前可用范围、六份配置、共享会话、模型与选列迭代、独立评价与组合、Engine 保存预测消费、冷开与复用实测、固定长周期入口与预算。默认阅读模式只展示说明和已有工程摘要；执行模式由本地路径配置与显式动作开启。模型参数迭代在同一 Data/Feature/Batch 会话内进行，使用已有 typed 配置和公共入口，不手工生成 receipt 或结果身份。
 
-[历史 Notebook](ml_engineering_history_20261011.ipynb)及[历史 HTML](ml_engineering_history_20261011.html)完整保存此前 28 个单元、输出和执行次数，包括两折教学、旧接口限制及失败成本。当前页不再沿这些历史版本组织操作。255 折预测和 7 份信号评价已有保存证据，五年账户结果待 Engine owner 回填；本次教学重组没有重跑业务。
+[历史 Notebook](ml_engineering_history_20261011.ipynb)及[历史 HTML](ml_engineering_history_20261011.html)完整保存此前 28 个单元、输出和执行次数，包括两折教学、旧接口限制及失败成本。当前页按现行流程组织操作。255 折预测和 7 份信号评价已有保存证据，五年账户结果待 Engine owner 回填。薄编排已实际执行现有极小合成 fixture，原真实业务没有重跑。
 
 接口定义继续以[Research 主章](../docs/design/05_axiom_research.md)和[Trade 主章](../docs/design/04_axiom_trade.md)为准。当前页沿既有配置解析、准备、训练、保存评价和 Runtime owner；HTML 由 Notebook 生成。旧 [`weekly_ml_pilot.py`](../examples/weekly_ml_pilot.py)保留固定窗历史控制。
 
@@ -77,4 +77,4 @@ python examples/build_library_tutorials.py --source-ref <已提交的教程版�
 
 固定保存模型的共享会话实测为：冷打开 25.03 秒、首次核验与冻结 20.67 秒、同 owner 第二次调用 1.59 秒；整进程 47.84 秒、RSS 5.08 GiB、新增 7.74 MiB。两次 fit/predict 均为 0，完整输出身份相同。这条 HIT 证据固定于原实现，不能代替新模型训练、换选列准备或五年账户成本。
 
-[有界工程摘要](../reports/research-shared-owner-acceptance-20261011.json)保留原测量，[当前页检查记录](../reports/ml-engineering-operational-page-20261011.json)只记录默认阅读、接线与归档检查。83.79 秒重开 owner HIT、605 秒失败观察器及旧五年估计仍在历史归档，私人模型与数据留在本地。
+[有界工程摘要](../reports/research-shared-owner-acceptance-20261011.json)保留原测量，[当前页检查记录](../reports/ml-engineering-operational-page-20261011.json)记录默认阅读、接线与归档检查；[动作执行记录](../reports/ml-engineering-notebook-actions-20261011.json)另列四个实际合成动作与未覆盖范围。合成评价每日 3 个有效配对未达到原门槛 20，非空 IC、RankIC 和 IR 尚未验收。83.79 秒重开 owner HIT、605 秒失败观察器及旧五年估计仍在历史归档，私人模型与数据留在本地。
