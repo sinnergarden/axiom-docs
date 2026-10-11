@@ -276,6 +276,18 @@
     }
   },
   "validation": {
+    "stable_foundation_validity_design_round": {
+      "status": "design_policy_and_readonly_source_review; pending_parent_review",
+      "scope": "stable Data/Core/Runtime changes, propagation to new reads versus saved values, explicit old-artifact validity and minimal migration; no automatic invalidation implementation claim",
+      "source_reads": {
+        "axiom-data": "e4109ad00be5b79dfc66176ad4200b599ae627c7",
+        "axiom-research": "58f807b8b6a51c31acf3c5ec1503f53de84d44c4",
+        "axiom-engine": "1fa97878fda28769bbf1fea4ca37e7bdfbaa4524"
+      },
+      "changes": "prose and links only; existing identity fields and implementation bindings retained",
+      "execution": "no data query, rebuild, test or account rerun; existing small receipts and source differences inspected",
+      "automatic_semantic_validity_gate": "not_confirmed; change owner records impact, coordinator reviews, execution owner checks before use"
+    },
     "previous_data_and_joint_tutorial_round": {
       "data_scoped_tests": 16,
       "research_scoped_tests": 15,

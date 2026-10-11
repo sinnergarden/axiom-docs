@@ -5,6 +5,8 @@
 > 上位边界：[总纲](01_axiom_overview.md)、[补丁 A](07_重要补丁_A.md)、[补丁 B](07_重要补丁_B.md)。本次个人版约定已同步相关文档；四仓分工与 Engine/Core、Runtime 的逻辑边界不变。\
 > 阅读示例：[For Quant Researcher](../../notebooks/researcher_tutorial.html) · [For Quant Dev](../../notebooks/developer_tutorial.html) · [Notebook 与复运行说明](../../notebooks/README.md)。两种视角使用同一套设计。教程只证明其实际运行范围，不构成全部供应商能力或生产回测验收。
 
+稳定底座升级与旧研究结论的有效性遵循[总纲 §11.2.1](01_axiom_overview.md#foundation-validity)；实际实现差距和受影响产物须在变更记录中明确。
+
 ## 0. 本文与两份 Notebook 的关系
 
 本文件是 Data 的存储、时间与公共读取合同。总纲及已同步补丁约束四个物理仓库和五个逻辑域；Core、Research、Runtime、UI 各自拥有计算 ABI、研究产物、运行/账户与组合展示协议。Researcher Notebook 讲研究使用，Dev Notebook 展开实现审核，二者用同一批留存的真实市场数据及当前产品 API 解释本文，不另行定义一套跨仓 schema。HTML 从同名 `.ipynb` 生成。

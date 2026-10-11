@@ -18,6 +18,8 @@ Research/UI 不另建账户路径。§6.1 的显式 TopK 已由
 账户状态各属自己的账本；要展示真实 Top3/Top5 账户结果须分别保存身份，
 不能以变更初始资金冒充策略变化。
 
+稳定底座升级与旧研究结论的有效性遵循[总纲 §11.2.1](01_axiom_overview.md#foundation-validity)；实际实现差距和受影响产物须在变更记录中明确。
+
 ## 1. 定位：策略运行与执行系统，不只是实盘下单
 
 Trade 内包含 runtime、唯一正式回测、shadow/real、行情/Broker adapter、统一账户核算、SQLite ledger、恢复/对账与账户评估。Runtime 不再单拆 repo。
