@@ -749,6 +749,10 @@ close，不造OHLC、量额、严格历史vintage或美国收盘时刻日历。
 
 下表是本设计的唯一接口时序表。时间为 Asia/Shanghai；官方说明是请求计划依据，不是某条 revision 在模拟 cutoff 前可知的证据。详情和总表不一致时保留双方来源；没有固定时刻就明确未承诺，不能从成功一次请求推导通用保证。接入列只表示已有 adapter 能力，不代表所有 Snapshot 有完整范围或字段，依据 [Data 0.3.8 固定源码](https://github.com/sinnergarden/axiom-data/tree/54e98c62cb594da2e4bd83d71b1167d4ba1877bf/src/axiom_data)核对。
 
+QSYS既有feature的长期输入按[领域覆盖与补采设计](../qsys-input-coverage.md)聚合，完整表达式/字段/算子依赖单列，字段可绑定不等于已实现或历史范围完整。新增来源先复用所选Raw，再按交易日或公告月全市场批量补残余；实际权限、字段、单位及截断须经首小批确认，不购买积分或修改账户权限。
+
+财务扩展保留供应商原行和真实receipt；只通过显式新contract与所选Raw完整closure重建三个受影响财务域，不拼接不同修订，不修改旧Snapshot，不重拉原OHLCV/factor。价格/成员/现金流/top10等其它域复用。历史公开版本缺失明确报告，不能以今天补拉或接口更新时间推造过去的PIT证据。
+
 | Endpoint | 业务日或期间 | 官方刷新说明 | 当前接入 | 就绪检查 | 来源与核对日期 |
 |---|---|---|---|---|---|
 | daily | 行情日 T | 详情 15–16；总表 15–17，计划保留较宽窗口 | 是 | 目标日证券/字段与缺失原因，不只看请求成功 | [27](https://tushare.pro/document/2?doc_id=27)、[总表108](https://tushare.pro/document/1?doc_id=108) · 2026-10-04 |
