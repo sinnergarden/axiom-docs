@@ -46,4 +46,25 @@ Engine策略统一职责为`frozen prediction + as-of account + previous complet
 
 本轮新增显式`matrix_v3`路径：`build_stock_feature_inputs(...,storage_options={layout:'matrix_v3',...},column_source=<saved source.json>)`，一次准备共享Data列；每个输出日只保留必要的独立复权锚点数组视图，复用同一编译Core图。保存件版本为`stock_feature_inputs_v4`，由现公共loader验证，保留来源证据和真实Core packed结果身份。新输入遵循统一[Core列式合同](core-feature-columns-v1.md)，不会冒称旧FactBatch/FeatureFrame字节身份。首次来源读取/准入、Feature数值计算、保存及后续模型/subset/标签/策略迭代分别计时，必要逐日锚点计算成本明确披露。
 
+## 可运行入口
+
+Research公开入口为`examples/a01_one_year.py`，参数文件由`options.json`引用独立的experiment/dataset/model/label YAML及冻结Feature轴JSON。安装已审定的Research/Core/Data源码后，在Research目录运行：
+
+```sh
+python examples/a01_one_year.py --options /absolute/path/options.json --stage validate
+python examples/a01_one_year.py --options /absolute/path/options.json --stage features
+python examples/a01_one_year.py --options /absolute/path/options.json --stage train
+python examples/a01_one_year.py --options /absolute/path/options.json --stage evaluate
+```
+
+首次Feature准备保存`feature-result.json`；后续train从该文件读取同一母矩阵，不重复运行features。train保存`experiment-result.json`、`batch.json`及原始`prediction-bindings.json`，最后一项直接交Engine。evaluate只读保存的配对样本，调用现Core统计及分组入口。subset用另一个dataset YAML显式列出`model_feature_selection`的精确id/semantic_version，options仍引用原`feature_result`，并以`reuse_raw_from_batch`引用原`batch.json`；变更模型参数也保留这些原输入。重型阶段按同一进程窗口顺序执行。私有目录、Data路径和实际保存身份不写入公开范例。
+
+## 增量缓存后续设计边界（未实现）
+
+物理行情输入应按冻结Data选择、revision、价格基准和可用时钟登记，与Feature库选择分开。时间序列列或共享节点按算子版本、公式参数、依赖窗口和独立anchor登记；截面列另绑定当日目标成员、行业输入及rank/标准化政策。历史CSI1800并集可以作为Raw准备范围，但CSI300和其他目标池的截面结果必须各自计算。
+
+88列一年扩到100列两年的验收应证明旧日期/旧列保存摘要不变，只补12列的原区间和全部列的新增日期，以及它们实际需要的暖机依赖。公式/参数变化只失效对应节点及下游；Raw revision变化按实际滚动依赖传播。共同复权anchor仍是价格列的真实依赖，含固定epsilon的公式不能靠假定anchor抵消来复用。成员或行业变更使相关当日截面下游失效，不能只投影另一池的已归一化结果。
+
+未来保存件须保留values、validity、reason、availability和来源闭包；公开owner读取和模型subset投影继续复用这些原值。新增列/日期的缺口、实际Data/Core调用数、原件摘要/mtime不变及目标池区别须用有界扩展用例证明。当前producer仍要求物理源与目标catalog/selection一致，按完整plan/scope缓存；本轮只验收母矩阵、模型subset和Raw复用，不声称上述增量生产已经具备。
+
 先选关键定向检查：未来revision与成员、Label成熟、键/时钟对齐、subset与配置失效、收盘触发次日执行；再做一次小输入正确性/性能检查，最后留时间给真实一年及少量复用。公开Draft PR只含代码、测试与通用配置，私人结果保持本地；不自动merge或接实盘。
