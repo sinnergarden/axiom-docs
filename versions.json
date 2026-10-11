@@ -1,5 +1,21 @@
 {
   "schema_version": "axiom_docs_versions_v1",
+  "incremental_feature_library_candidate": {
+    "status": "implementation_prs_merged_full_period_acceptance_in_progress",
+    "design": "docs/design/incremental-feature-library-v1.md",
+    "engine": {
+      "source_commit": "df9d56a38230f3af488f7abee5b080ba5f19f3b2",
+      "merge_commit": "0f5196e4c4a609ade30eca72669ea87dacb2ab85",
+      "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/34"
+    },
+    "research": {
+      "source_commit": "0fa5b62d60964db3b16b8124c2f77ac03999406b",
+      "merge_commit": "547d1033c5e04d05e66bde3acf8cca25b493f169",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/18"
+    },
+    "evidence": "real small end-to-end and reuse; synthetic metadata scale; full-history acceptance not claimed",
+    "installed_package_changed": false
+  },
   "source_migration": {
     "repository": "axiom-data",
     "commit": "cb19c8e7661bf6bb86caa19aaf5be5c4b71ae6b0"
