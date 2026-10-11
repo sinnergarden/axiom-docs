@@ -109,4 +109,4 @@ python examples/a01_one_year.py --options /absolute/path/options.json --stage ev
 
 未来保存件须保留values、validity、reason、availability和来源闭包；公开owner读取和模型subset投影继续复用这些原值。新增列/日期的缺口、实际Data/Core调用数、原件摘要/mtime不变及目标池区别须用有界扩展用例证明。当前producer仍要求物理源与目标catalog/selection一致，按完整plan/scope缓存；本轮只验收母矩阵、模型subset和Raw复用，不声称上述增量生产已经具备。
 
-先选关键定向检查：未来revision与成员、Label成熟、键/时钟对齐、subset与配置失效、收盘触发次日执行；再做一次小输入正确性/性能检查，最后留时间给真实一年及少量复用。公开Draft PR只含代码、测试与通用配置，私人结果保持本地；不自动merge或接实盘。
+验证范围及复用用例按上文“一个完整case与失效规则”执行。公开 Draft PR 只含代码、测试与通用配置，私人结果保持本地。
