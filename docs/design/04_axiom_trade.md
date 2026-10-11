@@ -20,6 +20,8 @@ Research/UI 不另建账户路径。§6.1 的显式 TopK 已由
 
 稳定底座升级与旧研究结论的有效性遵循[总纲 §11.2.1](01_axiom_overview.md#foundation-validity)；实际实现差距和受影响产物须在变更记录中明确。
 
+2026-10-11 的最小策略层及影响记录见[组合策略接口](engine-strategy-protocol-v1.md)。父已批准以可保存配置组合 TopK、排名缓冲和 weekly-close 止盈止损，继续使用唯一 Runtime 账户；源码候选实施中，合成验证和真实一年研究结果须分别报告。
+
 ## 1. 定位：策略运行与执行系统，不只是实盘下单
 
 Trade 内包含 runtime、唯一正式回测、shadow/real、行情/Broker adapter、统一账户核算、SQLite ledger、恢复/对账与账户评估。Runtime 不再单拆 repo。

@@ -423,7 +423,28 @@
           "merge": "27d0cf8991e3cca8c566528aef08254dd3db1ebd",
           "scope": "retrospective SSE benchmark and cumulative-return projection"
         }
-      ]
+      ],
+      "minimal_strategy_protocol_candidate": {
+        "status": "parent_approved_design_source_candidate_synthetic_pass_review_pending_no_true_account_run",
+        "design": "docs/design/engine-strategy-protocol-v1.md",
+        "baseline_commit": "4e65af8462949f674fa66d3f5f17ce06dc932568",
+        "source_commit": "de25ac6c1922a16368718407f537ff0fd2744ace",
+        "source_tree": "db3732a0de708efea8863459ffd29dbaf34c9144",
+        "source_branch": "codex/engine-strategy-config-20261011",
+        "implementation_ref": "sha256:8c8d777996a439e2e425364614a2d07dfc861230fc006ebae719665fb445b751",
+        "initial_validation": {"source_commit": "bb001fecb5a584f1132b552b3dff6c7f66859969", "new_synthetic_scenarios": 8, "key_legacy_checks": 11, "source_identity_check": 1, "passed": 20, "seconds": 1.677},
+        "validation": {"synthetic_scenarios": 10, "source_identity_check": 1, "passed": 11, "seconds": 0.546, "scope": "current review-fix candidate; initial key legacy evidence retained separately"},
+        "review_corrections": ["preserve-only pending/registered rights explicitly retain zero targets without buys", "exact allocation ratios retain K3 lot boundary; no epsilon or upward quantity rounding"],
+        "source_pull_request": "https://github.com/sinnergarden/axiom-engine/pull/31",
+        "real_case": "Research-owned 2023 historical CSI300 full cross-section with 88 features; not run by Engine",
+        "examples": [
+          "top_k_equal_weight",
+          "rank_buffer",
+          "top_k_with_weekly_close_exit_overlay"
+        ],
+        "deadline_utc": "2026-10-11T14:55:00Z",
+        "validation_owner": "Engine synthetic/source checks; Research sole one-year real account owner"
+      }
     },
     "axiom-ui": {
       "repository": "sinnergarden/axiom-ui",
