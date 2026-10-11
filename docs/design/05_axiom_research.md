@@ -154,7 +154,7 @@ Research producer 在 owner 保存与公共校验后写入新的不可变 manife
 
 公开入口增量为 `ExperimentStore.publish_result(manifest, roots=...)` 和 `ExperimentReader(index_path).result(result_id, roots=...)`；后者只验证 head、manifest 与相对引用，不打开大型训练/账户原件。`index()` 仍只读小索引。Research 为 A01 的 `experiment-result.json`、`batch.json` 和 prediction bindings 提供可按需读取的固定公共投影/loader，UI 不把私有 JSON 当新业务合同。旧单记录 API 与 v1 Reader 行为保持。
 
-UI 一次配置 `research_root`（含固定 `index.json`）及 `engine_root`，映射到 `root_id=research|engine`；不把本地路径写进公开 Docs 或静态页面。列表只读索引 head 与问题/版本元数据；详情先经 Research 公共 Reader 验证 manifest、相对定位和引用闭包，再按固定 artifact_type→owner 公共 loader 读取所选原件并核对身份与 digest。缺失、失配或不可读显示明确原因，不执行 manifest 中的代码，不调用 Data、训练、评价或回测。首版使用显式刷新，从同一索引重建本地页面；静态页标明生成时间、`store_revision` 与索引 digest，不宣称保存后无需刷新即实时更新。无需为每个新 idea、Signal、评价或账户手填文件路径。准确 UI 消费边界见 [只读约定](../ui-workbench-read-contract.md)。
+UI 一次配置 `research_root`（含固定 `index.json`）及 `engine_root`，映射到 `root_id=research|engine`；不把本地路径写进公开 Docs 或静态页面。列表只读索引 head 与问题/版本元数据；点选一个详情才经 Research 公共 Reader 验证其 manifest、相对定位和引用闭包，再按固定 artifact_type→owner 公共 loader 读取所选原件并核对身份与 digest。缺失、失配或不可读显示明确原因，不执行 manifest 中的代码，不调用 Data、训练、评价或回测。首版可启动短时、仅绑定 `127.0.0.1` 的只读本地页面；页面按钮显式刷新同一索引，无后台轮询，点击某结果才读取该结果。不能启用本地服务时保留 CLI 先导出轻量列表、再单个导出详情的降级入口；静态页标明生成时间、`store_revision` 与索引 digest，不宣称保存后无需刷新即实时更新。无需为每个新 idea、Signal、评价或账户手填文件路径。准确 UI 消费边界见 [只读约定](../ui-workbench-read-contract.md)。
 
 ## 4. Dataset、Label 与时序
 
