@@ -36,16 +36,17 @@ Research 的正式入口仍是 `examples/a01_one_year.py`。名称不限制配�
 
 ```sh
 python examples/a01_one_year.py --options /absolute/path/options.json --stage validate
-python examples/a01_one_year.py --options /absolute/path/options.json --stage features
 python examples/a01_one_year.py --options /absolute/path/options.json --stage train
 python examples/a01_one_year.py --options /absolute/path/options.json --stage evaluate
 ```
 
-这些是原入口的命令形式，不表示七年命令已经运行。公开模板的 `<...>` 必须替换成正式 Data 保存件和真实本地路径。时间与评价片段的对象分别复制到 dataset/options；CLI 不会自动读取片段。评价固定 `frequency: daily`，保留每天原生预测与成熟标签配对，不用周采样或前向填充增加观察。
+这些是原入口的命令形式，不表示七年训练和评价已经运行。公开模板的 `<...>` 必须替换成正式 Data 保存件、Feature 库 projection 引用和真实本地路径。`dataset.yaml` 的 `weekly_schedule` 是唯一可执行时间配置，`options.json` 的 `evaluation` 是唯一可执行评价配置；直接修改这些对象，无需人手同步另一份片段。评价固定 `frequency: daily`，保留每天原生预测与成熟标签配对，不用周采样或前向填充增加观察。
 
 全期 Feature 只准备一次。使用已合并 Feature 库保存件时，训练 projection 只导出一次、对应 genuine `StockFeatureView` 只打开一次，再传入 `build_configured_stock_sequential_experiment`。原 sequential owner 在 359 折中借用同一句柄，保留重叠 Feature 日期并投影当前训练和预测窗口，逐折释放工作数组；Data ColumnSource 也由调用方一次打开并共享。Research PR20 为原 CLI 添加显式 `feature_library_training_view` 配置，调用正式库适配器，仍待审查合并；该配置只使用 validate/train/evaluate，projection 由自己的公开 owner 准备。
 
 库适配器的冷准入会逐日比对全部 projection 与库中的原始值、时钟、成员和来源，然后释放日 payload；训练滑窗随后读取这些保存件。这是一次冷校验和一次递进工作窗读取，不能声称全部 Feature 字节只读一次。RawLabel 也按每个 fit 的实际共同 anchor 和 cutoff 准备；数值缓存要求端点、anchor 和依赖一致，周训练的 anchor 变化会阻止对应 Raw 数值命中。逐折成熟度、截面 cohort、归一化绑定及矩阵生成仍需计入预算，现 owner 不是只重复 fit/predict。
+
+RawLabel 共用同一 Data Reader/Snapshot 与分区 LRU，每个价格域的批量数组只取得一次，再按 8 日块生成 H40。Data 的 `previous` 只提示差异轴，各 cutoff 仍重新选择版本与计算共同 anchor 复权数组；Research 经公开 API 取得有明确寿命的只读副本。没有逐折重新打开全源，但被 LRU 淘汰的分区仍可能再次解码，不能把共享 owner 宣称为全链零拷贝。
 
 LightGBM 固定 100 树、31 叶、深度 5、学习率 0.05、seed 42，不加消融或参数搜索。50 万元主账户使用 rank-buffer Top5、keep_rank=10；对照使用同一保存预测的 Top5 等权。两账户沿 `stock_request_with_saved_predictions`、`run_saved_stock_strategy` 和 `evaluate_saved_stock_strategy`，共用冻结市场准入，独立保存账本与评价，并关联同一结果登记。359 折所需的读取限额须显式配置；短示例中的 64 折上限和三策略列表不自动代表新范围。
 
