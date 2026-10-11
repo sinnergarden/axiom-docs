@@ -68,13 +68,26 @@ Research公开入口为`examples/a01_one_year.py`，参数文件由`options.json
 例如在填好universe/features片段后，按原对象拼合并登记实际文件摘要；这只是配置准备，不是新的执行器：
 
 ```python
+import json
+from pathlib import Path
+import yaml
+from axiom_research.stock_artifacts import write_json, file_digest
+
+# 在复制、填好占位值的模板目录中运行。
 axes = {**json.loads(Path("universe.json").read_text()),
         **json.loads(Path("features.json").read_text())}
-write_json("axes.json", axes)  # axiom_research.stock_artifacts.write_json
-dataset["axes_input"] = {"path": str(Path("axes.json").resolve()),
-                         "file_digest": file_digest("axes.json")}
-dataset["periodic_schedule"] = yaml.safe_load(Path("time.yaml").read_text())
-options["evaluation"] = json.loads(Path("evaluation.json").read_text())
+write_json("axes.json", axes)
+for name in ("dataset.yaml", "subset-dataset.yaml"):
+    dataset = yaml.safe_load(Path(name).read_text())
+    dataset["axes_input"] = {"path": str(Path("axes.json").resolve()),
+                             "file_digest": file_digest("axes.json")}
+    dataset["periodic_schedule"] = yaml.safe_load(Path("time.yaml").read_text())
+    Path(name).write_text(yaml.safe_dump(dataset, sort_keys=False))
+for name in ("options.json", "subset-options.json"):
+    options = json.loads(Path(name).read_text())
+    options["feature_spec"] = str(Path("axes.json").resolve())
+    options["evaluation"] = json.loads(Path("evaluation.json").read_text())
+    write_json(name, options)
 ```
 
 将更新后的dataset/options保存后再validate；相应subset-dataset须登记同一轴摘要和时间对象。不能用工作日猜交易日，不能拿旧范围摘要代替新文件摘要。
