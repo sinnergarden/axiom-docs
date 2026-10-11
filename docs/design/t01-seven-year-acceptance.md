@@ -24,6 +24,8 @@ evaluation_cutoff: '2026-03-09T20:30:00+08:00'
 
 543 个声明训练 Feature 日期来自 504+40−1。504 是名义成熟日期计划，实际训练只接纳 fit 当时已经成熟的标签。每日 H40 统一从信号日后第一个交易日 open 到第 40 个交易日 close，使用共同 anchor 复权价格收益；训练沿现支持的截面 z-score，评价读取原始收益。H40 观察重叠，汇总不能把每日观察当作独立样本。
 
+原始 LabelSpec 的 `normalization_policy: none` 只描述原始收益；dataset 的 `preparation_options.normalization_backend: core_cs_batch_v1` 接入既有 `forward_label_cs_zscore_v1`。sequential owner 对每个成熟日期截面进行 z-score，并将归一化 target 传入 fit，评价保存原始收益。历史成员和数据可见性沿实际 `best_effort_vendor_v1` 与 `declared_vendor_assumption`，未证实历史真实收件时间。
+
 对保存交易日历的轻量核查得到 1,699 个 OOS 交易日和 359 个真实交易周。首周交易日为 2019-01-02/03/04，fit 在 2018-12-28。母 Feature 需要覆盖 2016-10-13 至 2025-12-30，物理价量回看从 2015-09-28 开始；最后预测 Feature 日期的 H40 终点为 2026-03-06。上述日期是计划证据，正式 Data scope 与逐行标签准入仍需验证。
 
 ## 从配置到保存结果
@@ -44,6 +46,8 @@ python examples/a01_one_year.py --options /absolute/path/options.json --stage ev
 全期 Feature 只准备一次。若使用已验收的 Feature 库保存件，训练 projection 只导出一次、对应 genuine `StockFeatureView` 只打开一次，再传入 `build_configured_stock_sequential_experiment`。原 sequential owner 在 359 折中借用同一句柄，投影当前训练和预测窗口，逐折释放工作数组；Data ColumnSource 也由调用方一次打开并共享。不得每折重新导出母视图或冷加载同一大来源。现 CLI 对候选新库 projection 的自动识别仍待通用 owner 接线，不伪装为旧格式。
 
 LightGBM 固定 100 树、31 叶、深度 5、学习率 0.05、seed 42，不加消融或参数搜索。50 万元主账户使用 rank-buffer Top5、keep_rank=10；对照使用同一保存预测的 Top5 等权。两账户沿 `stock_request_with_saved_predictions`、`run_saved_stock_strategy` 和 `evaluate_saved_stock_strategy`，共用冻结市场准入，独立保存账本与评价，并关联同一结果登记。359 折所需的读取限额须显式配置；短示例中的 64 折上限和三策略列表不自动代表新范围。
+
+已检查的旧 profile 声明佣金 0.0003、每笔最低 5 元、滑点 0 bps、每日成交量参与率 10%。保存费用表的卖出印花税在 2023-08-28 前为 0.001、之后为 0.0005；双边过户费在 2022-04-29 前为 0.00002、之后为 0.00001。旧 profile 的规则日历仅覆盖短案例，费用证实窗口为 2019-06-28 至 2024-06-28；七年账户须由 Engine 准备匹配完整范围的正式 profile。两份本地结果和用户说明均展示实际准入 profile 身份、佣金、税费、滑点及毛股息未计个人红利税的约定。
 
 ## 成本、缺口与完成判据
 
