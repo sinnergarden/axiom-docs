@@ -121,6 +121,17 @@
       }
     },
     "axiom-engine": {
+      "latest_share_allocation_candidate": {
+        "source_commit": "dfdb96ba3dc7cff6e50286b68541772f40ac3715",
+        "source_tree": "31bcc15fe350ff941f9cf906d3b00397ce0fbef5",
+        "implementation_ref": "sha256:beb9f7244a5740fba7f29d6a033e5d97dfdecc0953d03c2bf306eb63e31b27b3",
+        "package_version": "0.3.1",
+        "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/29",
+        "status": "draft_candidate_parent_source_review_pending",
+        "scope": "explicit historical integer floor, confirmed-credit pure seam, saved accounting replay and record-origin episode allocation",
+        "unique_related_tests_passed": 145,
+        "full_fiveyear_account_status": "not_started_for_candidate"
+      },
       "commit": "330903c62b5f42f7e25b81b889045c267fc4528c",
       "version": "0.2.1",
       "branch": "main",
