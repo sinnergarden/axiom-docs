@@ -921,7 +921,16 @@ effective_to=null不允许在未核实未来继续计费。费率为非负 Decim
 | 2022-04-29至2023-08-28以前 | 0.001 | 0.00001 |
 | 自2023-08-28起的已核实区间 | 0.0005 | 0.00001 |
 
-卖出印花税原费率见
+2019–2024 已核实窗口固定为 `2019-06-28` 至 `2024-06-28`，覆盖初始 anchor
+和 1213 个账户 session。卖出印花税的历史起点由
+[财政部 2008-09-19 原公告](https://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/200809/t20080919_76432.htm)
+确认：出让方按成交金额 0.001 缴纳，受让方不征。过户费的历史起点由
+[沪深交易所及中国结算 2015 年联合问答](https://www.sse.com.cn/aboutus/mediacenter/hotandd/c/c_20150912_3988866.shtml)
+确认：自 2015-08-01 起沪深 A 股统一按成交金额 0.00002 双向收取。该问答正文日期
+是 2015-07-01，URL 日期不能替代起效日。费用配置的首段从支持的实验起点
+2019-01-01 开始，这个配置边界不表示当天发生一次税费制度变更。
+
+卖出印花税原费率另见
 [上交所收费说明](https://www.sse.com.cn/services/investors/questions/pay/c/c_20220421_5701222.shtml)，
 2023-08-28变更见
 [上交所实施通知](https://www.sse.com.cn/aboutus/mediacenter/hotandd/c/c_20230827_5725662.shtml)。
@@ -929,12 +938,34 @@ effective_to=null不允许在未核实未来继续计费。费率为非负 Decim
 [湘财证券收费实施通知](https://www.xcsc.com/main/a/20220429/1022871784.shtml)，其中同时列出
 变更前后费率和2022-04-29生效日。已取得正文的
 [HKSCC当日通告](https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/HKSCC/2022/ce_HKSCC_SET_017_2022_.pdf)
-在互联互通北向范围印证同一变更，其适用范围须保留。中国结算原通知及可冻结的境内
-参与券商正文收据尚待补齐；前者旧链接当前返回首页，后者正文读取遇到TLS兼容错误。
-这些响应不能列为已取得原文，也不能以北向通告替代境内结算原文。首个2024短账户
-采用参与券商通知作为收费依据前须取得正文，在 sources 明确发布主体及此证据限制；
-多年正式账户另补历史原文及替代链，不把当前
-费率外推到早年，也不把某家券商收费通知称为全部真实账户的最终结算依据。
+在互联互通北向范围印证同一变更，其适用范围须保留。湘财证券境内客户通知正文已
+取得并冻结字节摘要；这份已使用的券商原文与上述官方历史起点闭合三段实验费率。
+中国结算旧链接返回首页的响应仍不能列为该通知原件，北向通告也不能替代境内原文。
+sources 保留湘财证券发布主体与适用范围，不将其称为所有真实券商账户的最终结算依据。
+
+数量规则按实际条款和起效日保存以下区间，`effective_to` 为不含末日的边界；开放区间
+仍只核实到 2024-06-28。沪深普通股票的买入最小量和增量均为 100 股；普通卖出
+100 股格仍是本实验的保守政策，全可卖尾仓例外保留。科创板买卖最小量 200 股、
+增量 1 股。日级成交代理采用限价与市价上限的较小值，价格最小变动均为 0.01 元。
+
+| 板块 | 生效区间 | 限价／市价单笔上限（股） | 已冻结条文依据 |
+|---|---|---|---|
+| 沪主板 | 2018-08-20 至 2020-03-13 前；2020-03-13 至 2023-04-10 前；2023-04-10 起 | 1000000／1000000 | 2018 与 2020 第 3.4.7、3.4.9、3.4.11 条；2023 第 3.3.8、3.3.9 条 |
+| 深主板 | 2013-08-05 至 2023-04-10 前；2023-04-10 起 | 1000000／1000000 | 已保存旧第 3.3.8、3.3.10、3.3.13 条；2023 第 3.3.8、3.3.9 条 |
+| 创业板 | 2013-08-05 至 2020-08-24 前 | 1000000／1000000 | 深市旧股票数量条款 |
+| 创业板 | 2020-08-24 至 2023-04-10 前；2023-04-10 起 | 300000／150000 | 2020 特别规定第 2.8 条及起效问答；2023 第 3.3.9 条 |
+| 科创板 | 2019-03-01 至 2023-04-10 前；2023-04-10 起 | 100000／50000 | 2019 特别规定第 20 条；2023 第 6.1.7 条 |
+
+沪市旧正文与起效日分别见
+[2018 修订通知](https://www.sse.com.cn/lawandrules/sselawsrules2025/repeal/rules/c/c_20180806_10784917.shtml)
+及[2020 第二次修订通知](https://www.sse.com.cn/lawandrules/sselawsrules2025/repeal/rules/c/c_20200313_10785127.shtml)。
+[深市已保存旧规则 PDF](https://docs.static.szse.cn/www/disclosure/notice/W020180328432928783546.pdf)
+正文是 2013 修订版，末条明确 2013-08-05 施行，不能将 URL 的 2018 日期写成新修订起点。
+[创业板 2020 特别规定](https://docs.static.szse.cn/www/disclosure/notice/general/W020200612831351578076.pdf)
+发布在六月，其实际起效日由[深交所 2020-08-21 问答](https://www.szse.cn/aboutus/trends/news/t20200821_580924.html)
+明确为 2020-08-24，并明确最小量和增量不变。
+[科创板 2019 发布通知](https://www.sse.com.cn/lawandrules/sselawsrules2025/repeal/rules/c/c_20190301_10785118.shtml)
+明确自 2019-03-01 发布日起施行。以上是实验使用的数量与费用范围，未扩大交易机制。
 
 新 profile 保存精确字段
 `{contract_version:"stock_daily_open_profile_v2",stock_execution_rules_ref,
@@ -2058,3 +2089,83 @@ src/axiom_trade/
 - [E3] SQLite Online Backup API：`https://www.sqlite.org/backup.html`。
 
 待确认：Broker client_order_id/query 能力；准确费用/税务/交易规则与公司行动范围；最小执行窗口和量限制近似；现金四舍五入；真实账户启动/迁移基准。未完成前只交付相应级别，不以示例参数直接实盘。
+
+
+## 16. M1：raw／derived 保存输入与同一账户路径（2026-10-08）
+
+适用候选：Engine 合并接线候选 [`a8378e845eda3659c382847719de7f8aab225a29`](https://github.com/sinnergarden/axiom-engine/commit/a8378e845eda3659c382847719de7f8aab225a29)，基于已审 A `a59f3b4`，包含前一 `defc3dd` 的批量收益 API、typed LabelSpec v2 与保存 clock 降级修复。前一候选 28 项定向测试（1.85 秒）通过；本增量 13 项定向检查（4.27 秒）通过，并以 Research `dc8c592` 真正保存的合成 model／prediction／fold 原件完成无账户准入。这个小样本含 180 条训练行与 18 条预测行，使用测试 backend，供应商、Feature 执行器与账户调用为零；没有执行真实长窗口、Data native 大段生产或多年账户。
+
+### 16.1 小型引用输入
+
+现有 `BacktestRequest` 的 `backtest_request_v7` 继续使用同一 Core planner、SimBroker、费用、现金、股份整手、T+1、corporate-action 处理和账户 ledger。新增内层 `stock_prediction_input_refs_v2`，精确字段仍为 `contract_version/prediction_ref/frames`，每个 frame 显式声明 kind。旧 `stock_prediction_input_refs_v1` 原路径保留。
+
+raw frame 精确字段：
+
+```text
+kind="raw" fold_ref fold_spec_ref model_ref feature_ref signal_run_ref
+fold_spec_artifact model_metadata_artifact prediction_artifact
+```
+
+derived frame 精确字段：
+
+```text
+kind="derived" signal_run_ref signal_plan_ref score_ref implementation_ref
+signal_stage signal_artifact parent_inputs
+```
+
+`parent_inputs` 是 alias → 上述完整 raw frame binding，绑定真实 model／fold／prediction 原件；本增量没有递归 Derived 执行框架。Derived 的小型绑定同时冻结 plan／score／implementation refs 和输出 stage，供保存结果 loader 不重开大 Signal 文件也能核对实际 trace。`prediction_ref` 和 request_ref 的 logical identity 仅排除这些已知 ArtifactRef 位置的 manifest_uri，包括真实父 raw artifacts；业务字段和 refs 全部保留。
+
+真实 Research typed 配置保存为 `stock_ml_fold_v4`、`stock_ml_fold_manifest_v2` 与
+`stock_ml_fold_spec_v3`。v7 保留这个原包装及其 spec／model／prediction refs，核对
+原 descriptor 文件字节 hash、definition_ref、fold_ref 和阶段引用。扫描只在原
+`fold.json#definition/fold_spec` 的配置路径允许 Research 的 `LabelSpec`、
+`MaturitySpec`、`TrainingSpec`、`SessionRange`、`ResourceSpec`；这些是原件的
+配置来源，Runtime 不将其解释成新的 Engine 合同或执行策略。其他位置仍执行
+原 reserved Unknown 检查。
+
+v3 窗口的 `length` 必须是拒绝 bool 的正整数，`end` 固定
+`previous_fit_session`。`feature_sessions` 仅有 `unit/length/end`；
+`calendar_years` 另固定 `start="fit_date_minus_years_inclusive"`、
+`leap_day="clamp_feb_28"`，年边界须在日期域内。Research 用完整冻结 Feature
+日历准入训练范围；Engine 读取原保存预测，账户日历仅含 anchor 和 OOS，因而不
+重建训练窗口。此账户 profile 继续限定拟合日 20:30、模型模拟可用 20:45、严格前一
+session 推理 21:00 和交易日决策 08:55；评价 cutoff 必须晚于全部推理 cutoff。
+Research 可表达的其他 v3 时钟不自动成为此账户 profile 的执行时钟。旧 fold v1/v2
+及旧输入 refs v1 保持原路径。
+
+公开 Runtime 入口保持原签名：
+
+```python
+admit_stock_market_inputs(spec, *, source, block_sessions, limits, max_market_bytes)
+bind_stock_prediction_inputs(market, request, *, source, limits, max_signal_bytes)
+run_stock_backtest(manifest, *, source, sink, block_sessions, limits)
+load_stock_backtest_projection(path, *, artifact_reader, limits)
+```
+
+Research 负责已保存预测及 SignalPlan 生成和保存；Runtime 校验完整 raw/derived 原件 SHA256、model／fold／LabelSpec／训练归一化链接、原始 session grid 和真实父 refs。派生分数、validity、来源与最大依赖 clock 在准入时逐 session 用同一 Core 数学核验后，账户直接消费保存分数。对多个 portfolio/资金配置，已准入 market／Signal owner 只保留一份 invocation-local 私有数据；每账户独立执行和保存。禁用 supplier、feature build、fit、predict 均不影响此路径。
+
+### 16.2 时钟、Data 成员与预算
+
+v7 此增量仍使用明确 `stock_prediction_clock_policy_v1`：Feature cutoff 当地 20:30、inference cutoff 21:00、下一 exchange session 08:55 决策、open 执行，declared_simulation。中立 Core 的一般 aware 时点不等于 Runtime 支持其他账户时钟；其他政策未实现时拒绝，旧 v2 不放宽。
+
+每个 Derived context reference 的 member 和 `available_at` 必须与准入的 Data membership／原 `usable_from` 完全一致；`source_refs=[该原 membership native_ref]`。缺原 availability、猜测 membership 时间或伪造 source 均在账户启动前拒绝。完整参考截面包含 excluded 成员，不能为省预算删掉依赖。
+
+所有真实父 fold／model／prediction、派生 output artifacts 和原 descriptor 均纳入 inventory/read/row 限额。`max_prediction_rows` 包含去重的原父 rows 和 Derived rows，`max_folds` 包含去重后真实 raw bindings。新引用 envelope 不含可信 OOS 行数时，预扫 `declared_rows.prediction_rows=null` 表示待原有有界扫描确定；不是零行，也不按每个 fold 乘全日历。准入以原 fold OOS scope 限制索引增长，扫描同一原文件一次后填入实际计数；两个不重叠 fold 共 18 行可在 18 行限额下准入，不因虚构 36 行上界拒绝。此修正不增加全量读取或提升 caller 限额。
+
+完整 Derived header／context 的 decoded quota 在原件准入时计入，深不可变的逐日 reference/member 索引另在构建前计费。普通 source 的全 context 校验一次，逐日仅校验原行与相应索引，首次消费各日用既有 Core 数学校验真实父分数；同次 source 后续消费保留文件不变和当日 span 检查，不再重建全范围 context。market+bind 与 combined admit 也走该准入逻辑：私有文件仅保存一条完整原 Derived 元数据记录，账户的 offset 列表不包含它；小 globals 保存 SignalRef→小 header，逐日块只保存 `{session, signal_ref, rows}`。账户按 ref 找小 header，不解码完整 context，不再逐日复制它。byte／decoded／index 限额和 source 关闭、PID、exclusive lease、borrow 保护继续生效。所有 h、Feature 宽度、TopK、weights 和既有 CS 参数均由明确输入决定，示例规模不成为生产配置。
+
+### 16.3 Trace 与保存读取
+
+股票数量 planner 仍是 `axiom.stock_portfolio/3`，该增量只扩展输入和 trace。旧 v2 的 prediction_clock 字段保持原样。v3/derived trace 为 `stock_signal_clock_v2`：
+
+| 公共字段 | 每种输入的真实绑定 |
+|---|---|
+| `contract_version/kind/clock_basis/feature_knowledge_cutoff/inference_cutoff/signal_stage` | raw／derived 明确区分；原账户 clock 与 stage |
+| raw 附加字段 | `model_ref/fold_spec_ref/simulated_model_available_at/label_spec_ref` |
+| derived 附加字段 | `parent_signal_refs/signal_plan_ref/score_ref/implementation_ref`；不添加虚构单 model ref |
+
+新输入合同保存 `stock_input_audit_v2`：原 audit 的 `contract_version/request_ref/market_ref/prediction_ref/profile_ref/implementation_ref/counts/limitations` 加上 `prediction_targets`。该小型 map 为真实原 raw `signal_run_ref → label_spec_ref`，包含去重 Derived 父；原 raw v2 无显式目标时存 null。map 在原件准入时冻结，key 必须与 request 中完整 raw bindings 一致。旧 input refs v1 继续保存和读取原 `stock_input_audit_v1` 字段。
+
+保存 loader 将 trace refs 与 request 的小型 frame binding 核对。已准入 `prediction_targets[signal_ref]` 非 null 时，强制 raw 决策声明 `stock_signal_clock_v2`，并将其 `label_spec_ref` 与该真实目标相等比较；不能由待验 trace 的版本自行选择是否核验目标。错误目标重新签名后再删除、替换或降级 clock version 仍拒绝；只检查 SHA256 格式不足以通过。它继续核对决策 → intent → order → fill／实际费用／cash 和 position ledger。只读取已保存 run、结果 parts 和小型 profile；不重开 Research 训练、预测、大 native Data，不重新执行账户。删除原 Signal／model／fold 文件后该核验仍有效。公共结果目录保持账户独立，旧保存账户与结果不改写。
+
+合成验收包括非五日 h、不同 Feature 宽度、原 typed plan 语义身份、key 乱序、inner/outer join、missing/constant、excluded clock 的微秒边界、错误 units/stage/weights、真实父 ref 绑定、伪造 Derived score／membership 拒绝、同一 Signal 的 Top3/Top5 以及 source／owner 路径精确结果一致。真实预测接入和长窗口证据由 Research 与资源窗口另行记录，不能以这些合成回归替代。
