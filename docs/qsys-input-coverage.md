@@ -30,7 +30,7 @@
 
 先检查所选Raw的实际fields头及完整closure；已经保存的新列优先离线映射，取消对应补采selector。旧字段不单独重采；残余金融请求一次返回所需字段并集及原core，保留一致的供应商修订行，不拼接不同receipt成供应商从未返回的行。旧Raw、真实receipt和旧Snapshot不变。
 
-## 正式代码的最小边界（本次未编码）
+## Source实现边界
 
 1. **Source适配**：只扩展现有endpoint请求、SourceProfile、units/date/identity/shape校验和领域contract；继续使用现有Raw-first/typed Parquet/bounded chunk/retry/checkpoint。保留旧默认request-fields与normalizer语义不变，新增显式输入field-set版本。provider_local现有select_source_rows按endpoint FIELDS校验，不能只把新endpoint塞给records_v1然后跳过范围校验。不动bulk/CLI/verification文件，不建新服务、registry或全局缓存。
 2. **金融三域**：新contract/profile只在显式请求启用；Data.rebuild的domain_overrides，仅替换financial_events、balance_sheet_events、financial_indicator_events，输入所选旧Raw完整closure和新原生Raw，保留原observed_at；旧Raw新列明确missing status。市场/成员/现金流/top10/权益事实等其它域原样复用。普通update不能静默修改旧contract。
@@ -46,6 +46,14 @@
 Alpha表达式的18个算子依赖单列：Abs,Corr,Greater,IdxMax,IdxMin,Less,Log,Max,Mean,Min,Quantile,Rank,Ref,Resi,Rsquare,Slope,Std,Sum。这里是需求集合，**没有完成与Core现有算子的逐项实现盘点**，所以缺算子数仍未认证。跨截面rank、财务期间对齐、公告事件前次及行业聚合属于语义/组合层；按共用算子一次实现，不按feature建采集任务。后续组合启动前用冻结表达式closure做preflight，已impl、export、数据范围、单位、PIT和warmup均明确才进入重case。
 
 官方依据：[daily_basic](https://tushare.pro/document/2?doc_id=32)、[income](https://tushare.pro/document/2?doc_id=33)、[balancesheet](https://tushare.pro/document/2?doc_id=36)、[fina_indicator](https://tushare.pro/document/2?doc_id=79)、[moneyflow](https://tushare.pro/document/2?doc_id=170)、[margin_detail](https://tushare.pro/document/2?doc_id=59)、[stk_holdernumber](https://tushare.pro/document/2?doc_id=166)、[forecast](https://tushare.pro/document/2?doc_id=45)、[index_member_all](https://tushare.pro/document/2?doc_id=335)。
+
+## Source候选与验证边界
+
+Source候选固定为[Data 9aa6a78](https://github.com/sinnergarden/axiom-data/tree/9aa6a784753ab5d31f5397245f37704f719f8d39)，尚待评审与合并。[stock_input_sources.py](https://github.com/sinnergarden/axiom-data/blob/9aa6a784753ab5d31f5397245f37704f719f8d39/src/axiom_data/stock_input_sources.py)提供无I/O的`stock_input_source_spec`以及一次显式请求的`collect_stock_input_response`；后者只写Raw，不自动发布或调度。旧默认字段和collector不变。
+
+2026-10-11在临时合成根运行10个新增consumer检查及12个既有金融/event回归，22个通过。测试覆盖单位、全市场筛选、字段/日期/cap拒绝、权限失败、完整扩展字段冲突、旧Raw缺列、late→early cutoff、供应商新行空值不由旧行填充、旧Snapshot bytes与非选定域不变、历史行业Y/N、资金流原生净值和预告当前公告日期。这不是真实范围、额度或供应商返回字段验收。
+
+两融next-open 08:30为明确的供应商假设，仅通过`Data.events(..., time_field="session")`使用；普通daily Reader的same-day best-effort路径明确拒绝，防止提前可见。`rqmcl`原生数量单独保留；没有显式稳定证券shares绑定时，shares列为not_provided。行业interval可按真实receipt进行operational查询，缺历史公开时间或逐行taxonomy证据时，historical best-effort不支持，不用今天的静态分类模拟历史。实际首小批、分页/权限确认、真实补采与publish尚未执行。
 
 
 ## 静态清单证据
