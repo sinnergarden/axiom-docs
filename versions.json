@@ -13,7 +13,11 @@
         "scope": "Explicit local.corporate_actions.tushare.v3 native fields, stable economic identity, cutoff-visible RECORD/EX/PAY/LISTING projection and public scoped rebuild; existing default v2 retained",
         "parent_source_review": "passed_for_fixed_e457_to_e410_delta",
         "independent_review": "passed_for_fixed_e457_to_e410_delta",
-        "integration_status": "reviewed_source_branch_not_merged_to_main; parent decides unified Data integration",
+        "integration_status": "merged_to_main_via_parent_reviewed_pr",
+        "merge_commit": "718f8a89c43198c12de81995ad241728c4b6d627",
+        "pull_request": "https://github.com/sinnergarden/axiom-data/pull/47",
+        "source_tree": "1cfa5070c6445898e1c3da575ca5e6d60c23fa2f",
+        "source_tree_unchanged_after_merge": true,
         "execution_status": "saved public Data rebuild and Reader/Native checks complete; Engine five-year account acceptance remains separate",
         "package_status": "existing installed package and builder identities retained; no new wheel or installation claim"
       },
@@ -287,6 +291,18 @@
     }
   },
   "validation": {
+    "stable_foundation_validity_design_round": {
+      "status": "design_policy_and_readonly_source_review; pending_parent_review",
+      "scope": "stable Data/Core/Runtime changes, propagation to new reads versus saved values, explicit old-artifact validity and minimal migration; no automatic invalidation implementation claim",
+      "source_reads": {
+        "axiom-data": "e4109ad00be5b79dfc66176ad4200b599ae627c7",
+        "axiom-research": "58f807b8b6a51c31acf3c5ec1503f53de84d44c4",
+        "axiom-engine": "1fa97878fda28769bbf1fea4ca37e7bdfbaa4524"
+      },
+      "changes": "prose, specialist links and AGENTS navigation only; existing identity fields and implementation bindings retained",
+      "execution": "no data query, rebuild, test or account rerun; existing small receipts and source differences inspected",
+      "automatic_semantic_validity_gate": "not_confirmed; change owner records impact, coordinator reviews, execution owner checks before use"
+    },
     "previous_data_and_joint_tutorial_round": {
       "data_scoped_tests": 16,
       "research_scoped_tests": 15,
