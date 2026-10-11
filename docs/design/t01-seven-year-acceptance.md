@@ -43,7 +43,9 @@ python examples/a01_one_year.py --options /absolute/path/options.json --stage ev
 
 这些是原入口的命令形式，不表示七年命令已经运行。公开模板的 `<...>` 必须替换成正式 Data 保存件和真实本地路径。时间与评价片段的对象分别复制到 dataset/options；CLI 不会自动读取片段。评价固定 `frequency: daily`，保留每天原生预测与成熟标签配对，不用周采样或前向填充增加观察。
 
-全期 Feature 只准备一次。若使用已验收的 Feature 库保存件，训练 projection 只导出一次、对应 genuine `StockFeatureView` 只打开一次，再传入 `build_configured_stock_sequential_experiment`。原 sequential owner 在 359 折中借用同一句柄，投影当前训练和预测窗口，逐折释放工作数组；Data ColumnSource 也由调用方一次打开并共享。不得每折重新导出母视图或冷加载同一大来源。现 CLI 对候选新库 projection 的自动识别仍待通用 owner 接线，不伪装为旧格式。
+全期 Feature 只准备一次。使用已合并 Feature 库保存件时，训练 projection 只导出一次、对应 genuine `StockFeatureView` 只打开一次，再传入 `build_configured_stock_sequential_experiment`。原 sequential owner 在 359 折中借用同一句柄，保留重叠 Feature 日期并投影当前训练和预测窗口，逐折释放工作数组；Data ColumnSource 也由调用方一次打开并共享。Research PR20 为原 CLI 添加显式 `feature_library_training_view` 配置，调用正式库适配器，仍待审查合并；该配置只使用 validate/train/evaluate，projection 由自己的公开 owner 准备。
+
+库适配器的冷准入会逐日比对全部 projection 与库中的原始值、时钟、成员和来源，然后释放日 payload；训练滑窗随后读取这些保存件。这是一次冷校验和一次递进工作窗读取，不能声称全部 Feature 字节只读一次。RawLabel 也按每个 fit 的实际共同 anchor 和 cutoff 准备；数值缓存要求端点、anchor 和依赖一致，周训练的 anchor 变化会阻止对应 Raw 数值命中。逐折成熟度、截面 cohort、归一化绑定及矩阵生成仍需计入预算，现 owner 不是只重复 fit/predict。
 
 LightGBM 固定 100 树、31 叶、深度 5、学习率 0.05、seed 42，不加消融或参数搜索。50 万元主账户使用 rank-buffer Top5、keep_rank=10；对照使用同一保存预测的 Top5 等权。两账户沿 `stock_request_with_saved_predictions`、`run_saved_stock_strategy` 和 `evaluate_saved_stock_strategy`，共用冻结市场准入，独立保存账本与评价，并关联同一结果登记。359 折所需的读取限额须显式配置；短示例中的 64 折上限和三策略列表不自动代表新范围。
 
@@ -53,7 +55,7 @@ LightGBM 固定 100 树、31 叶、深度 5、学习率 0.05、seed 42，不加�
 
 成本分别记录原始来源读取与准备、Feature 一次生产与保存、训练视图一次准入、359 折训练和预测、市场准备、两账户、只读信号与账户评价。旧短例的时间只能作为对应实现和维度的参考。新库的共享 DAG、分块写入及保存来源与旧 producer 不同，不能把四列小样本时间按列数直接相乘。没有充分实测支持的阶段保留为未知，不用宽区间冒充可靠总预算或最大上界。
 
-当前检查发现候选 Feature 库 view 为每个日期与列重复包含完整 partition summary，并逐日重写累积 index。大范围可能超出父件读取和驻留预算，这属于一般 Feature 库的元数据结构问题，正在由库 owner 集中处理。缺口未解决和新范围未测量前，不能保证凌晨 6 点前完成；也不能因此删去年份、周训练或每日评价。
+已合并库接口的元数据修复和小真实闭环由 Feature owner 提供证据，全期生产仍待完成。359 折的静态审查确认共享 owner 的生命周期，同时指出 fit anchor 不同的 RawLabel 不能当作一张全期可复用表。模板把累计来源准入限额设为 32 GiB；该限额包含保存文件和元数据，12 GiB Research 驻留限额及 Data 自己的预算是另外的约束。多个 owner 与原生 LightGBM 的内存之和须通过进程 RSS 实测，不能把局部限额说成整进程上界。新范围未取得全链实测前，不能保证凌晨 6 点前完成。
 
 完成后保存每日 H40 IC/RankIC、十组与头部表现、两账户净值、收益、回撤、费用和 CSI300 对照。现账户 analysis 的换手是双边 gross traded/mean NAV；持有期是符合统计资格的已平仓 episode 日历天数。需要其他口径时明确缺失，不能改名替代。供应商历史成员、缺值、复权价格收益与现金权益总回报的边界继续说明。
 
