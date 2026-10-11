@@ -77,4 +77,6 @@ python examples/build_library_tutorials.py --source-ref <已提交的教程版�
 
 固定保存模型的共享会话实测为：冷打开 25.03 秒、首次核验与冻结 20.67 秒、同 owner 第二次调用 1.59 秒；整进程 47.84 秒、RSS 5.08 GiB、新增 7.74 MiB。两次 fit/predict 均为 0，完整输出身份相同。这条 HIT 证据固定于原实现，不能代替新模型训练、换选列准备或五年账户成本。
 
-[有界工程摘要](../reports/research-shared-owner-acceptance-20261011.json)保留原测量，[当前页检查记录](../reports/ml-engineering-operational-page-20261011.json)记录默认阅读、接线与归档检查；[动作执行记录](../reports/ml-engineering-notebook-actions-20261011.json)另列四个实际合成动作与未覆盖范围。合成评价每日 3 个有效配对未达到原门槛 20，非空 IC、RankIC 和 IR 尚未验收。83.79 秒重开 owner HIT、605 秒失败观察器及旧五年估计仍在历史归档，私人模型与数据留在本地。
+[有界工程摘要](../reports/research-shared-owner-acceptance-20261011.json)保留原测量，[当前页检查记录](../reports/ml-engineering-operational-page-20261011.json)记录默认阅读、接线与归档检查；[动作执行记录](../reports/ml-engineering-notebook-actions-20261011.json)另列四个实际合成动作与未覆盖范围。合成评价每日 3 个有效配对未达到原门槛 20，这个极小合成 case 没有覆盖非空 IC、RankIC 和 IR。83.79 秒重开 owner HIT、605 秒失败观察器及旧五年估计仍在历史归档，私人模型与数据留在本地。
+
+[追加保存组合集成](../reports/ml-engineering-saved-combination-integration-20261011.json)复用同一周的两份真实模型与原 Native membership：5 日各有 296 个有效配对，原信号和组合的 IC、RankIC 与 IR 均有限。真实短账户直接读取这次组合交接，但原五年 profile/rules 与范围不符，准入被拒，账户执行为 0。Notebook 现可按 owner 资源文件选择已有 StockNativeViewSource；文件及 Native 两条小合成分支的保存与只读加载均通过。本地路径与六类导航已配好，默认阅读；这些私人配置及保存值不提交到本仓库。

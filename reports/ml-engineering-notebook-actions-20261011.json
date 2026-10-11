@@ -122,7 +122,9 @@
   ],
   "limits": "Small synthetic contract/control-flow execution; no investment, real performance or long-cycle account acceptance is claimed.",
   "executed_notebook_sha256": "4244c3c3f4c2aff443e63b728700e2b2424ee8d43e41933f3baab6b264cf50fa",
-  "current_notebook_sha256": "5e72f2af18b90cee71a2bbefc3a6c68de2e104cd2b39aa3c45538c48a6b088e5",
-  "current_code_matches_executed_code": true,
-  "post_execution_changes": "Prose/metadata only: make minimum_pairs and current evidence limits explicit. Executable code is unchanged; no business rerun."
+  "current_notebook_sha256": "25da27027a9a2ff93d32a5d388513d0d230c1aa17bf78c3355baffd74175054e",
+  "current_code_matches_executed_code": false,
+  "post_execution_changes": "Strategy now also borrows existing Native handles via the public adapter; original-file and Native branches were exercised separately. Other action code cells are unchanged. See the additional saved-combination report.",
+  "current_notebook_code_sha256": "eccf85fe73b15c9716db5726da3974e41358669f58deb890fe4eb7cf1d6fe179",
+  "additional_verification_report": "reports/ml-engineering-saved-combination-integration-20261011.json"
 }

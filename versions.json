@@ -720,7 +720,12 @@
       "report": "reports/ml-engineering-operational-page-20261011.json",
       "action_report": "reports/ml-engineering-notebook-actions-20261011.json",
       "real_original_business_rerun": false,
-      "synthetic_execution": true
+      "synthetic_execution": true,
+      "saved_combination_report": "reports/ml-engineering-saved-combination-integration-20261011.json",
+      "real_saved_signal_statistics": "two original models and Derived; five dates,296 pairs/date,min20; all IC/RankIC/IR finite",
+      "real_combination_account": "BLOCKED at profile/rules scope; no account executed",
+      "local_path_configuration": "prepared privately; default read; six config roles; original refs; Engine result fields pending",
+      "native_strategy_wiring": "original exported StockNativeViewSource; file/native tiny synthetic save/load PASS"
     }
   },
   "bulk": {

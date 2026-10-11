@@ -267,21 +267,33 @@ if EXECUTE and ACTION == &quot;evaluation&quot;:
 <p>选择 Engine owner 冻结的策略请求，保留请求的初始账户、市场、费用和时钟。<code>owner_handoff_file</code> 使用 configured producer 已保存的交接 JSON；下方只把其中原 <code>prediction_bindings</code> 交给已有 request adapter。Market 在策略会话准入一次，账户由唯一 Runtime 执行。该动作不调用 supplier、Feature、fit 或 predict。</p>
 <p><code>runtime_options_file</code> 是 owner 已冻结的资源参数，包含 <code>block_sessions</code>、<code>limits</code>、<code>max_market_bytes</code> 与 <code>max_signal_bytes</code>。选择新策略与新结果目录，避免覆盖旧账户。公开 <code>StrategyRecipeDraft</code> 目前不会自动翻译成账户请求，因此这里直接使用现有 Engine 合同。</p>
 <p>当前五年账户结果：<strong>待回填</strong>。待 owner 保存后，在本地增加 <code>saved_account_file</code> 和 <code>saved_evaluation_file</code>，通过公开 loader 读取。读取与重新执行账户是独立动作；本页没有把已完成 Research 预测称作账户验收。</p>
+<p>当 owner 提供原 Native delivery 时，runtime_options_file 的 native_views 列表给出 directory、manifest_sha256 和 limits；下方沿已有 open_native_view 与 StockNativeViewSource 准入，不寻找并不存在的 logical-batches JSON。真实短账户还需要与原 profile/rules 和 Native query 完全匹配的范围；五年原件不能直接裁成一周并沿用身份。</p>
 </section><section class="example" data-cell-id="1552757e"><div class="example-label">查询结果</div><pre class="code">def consume_saved_predictions(handoff, *, request_file, runtime, destination):
     require_execution()
-    from axiom_engine.runtime import BacktestRequest, StockInputSource, StockMarketSpec, admit_stock_market_inputs
+    from contextlib import ExitStack
+    from axiom_engine.runtime import (BacktestRequest, StockInputSource, StockNativeViewSource,
+        StockMarketSpec, admit_stock_market_inputs)
     from axiom_research import stock_request_with_saved_predictions, run_saved_stock_strategy
 
     original = BacktestRequest.from_dict(read_json(request_file))
     request = stock_request_with_saved_predictions(original,
         prediction_bindings=handoff[&quot;prediction_bindings&quot;])
-    source = StockInputSource(**runtime.get(&quot;source_options&quot;, {}))
-    with admit_stock_market_inputs(StockMarketSpec.from_request(original), source=source,
-            block_sessions=runtime[&quot;block_sessions&quot;], limits=runtime[&quot;limits&quot;],
-            max_market_bytes=runtime[&quot;max_market_bytes&quot;]) as market:
-        return run_saved_stock_strategy(request, market=market, source=source,
-            destination=destination, block_sessions=runtime[&quot;block_sessions&quot;],
-            limits=runtime[&quot;limits&quot;], max_signal_bytes=runtime[&quot;max_signal_bytes&quot;])
+    with ExitStack() as owners:
+        if runtime.get(&quot;native_views&quot;):
+            from axiom_data import open_native_view
+            handles = [owners.enter_context(open_native_view(**item))
+                for item in runtime[&quot;native_views&quot;]]
+            source = owners.enter_context(StockNativeViewSource(native_views=handles,
+                max_active_bytes=runtime[&quot;limits&quot;][&quot;max_block_bytes&quot;],
+                **runtime.get(&quot;source_options&quot;, {})))
+        else:
+            source = StockInputSource(**runtime.get(&quot;source_options&quot;, {}))
+        with admit_stock_market_inputs(StockMarketSpec.from_request(original), source=source,
+                block_sessions=runtime[&quot;block_sessions&quot;], limits=runtime[&quot;limits&quot;],
+                max_market_bytes=runtime[&quot;max_market_bytes&quot;]) as market:
+            return run_saved_stock_strategy(request, market=market, source=source,
+                destination=destination, block_sessions=runtime[&quot;block_sessions&quot;],
+                limits=runtime[&quot;limits&quot;], max_signal_bytes=runtime[&quot;max_signal_bytes&quot;])
 
 
 def read_saved_account(account_file, *, projection_limits, artifact_reader):
@@ -337,7 +349,7 @@ if EXECUTE and ACTION == &quot;strategy&quot;:
 <p><a href="../reports/research-shared-owner-acceptance-20261011.json">公开工程摘要</a>保留原测量身份和范围。原数据及保存父件未改。这次使用已有 COMPLETE Batch，没有重新测冷 checkpoint 发布；原模型输出仍被读取并 hash。Data Parquet 物理读取字节数未测量，不能把 OwnedStore 的逻辑计数称作完整磁盘 IO。</p>
 <p>详细成本、历史失败和原 SHA 位于历史教程及版本表，本页打开时只显示这张实测表。</p>
 </section><section id="section-8" class="markdown"><h2>8. 固定长周期入口、预算与剩余验收</h2>
-<p>固定长周期继续使用第 4 节的 <code>selection</code> 入口：<code>stock_dataset_schedule_v2</code> 从保存 Feature axes 编译周度 folds，再由 <code>build_configured_stock_sequential_experiment</code> 在同一 ColumnSource 和 Feature 会话内逐 fold 准备、训练和冻结。原显式 v1 schedule 仍可使用。当前流程支持固定 2021–2025 范围，已有保存件覆盖 255 折预测与 7 份信号评价；无需为每个模型重新打开数据 owner。只改 Model 时走 <code>models</code> 动作复用 COMPLETE Batch，固定预测的评价和账户消费分别走第 5、6 节。</p>
+<p>固定长周期继续使用第 4 节的 <code>selection</code> 入口：<code>stock_dataset_schedule_v2</code> 从保存 Feature axes 编译周度 folds，再由 <code>build_configured_stock_sequential_experiment</code> 在同一 ColumnSource 和 Feature 会话内逐 fold 准备、训练和冻结。原显式 v1 schedule 仍可使用。现成保存 case 的交易范围为 2019-07-01—2024-06-28，已有保存件覆盖 255 折预测与 7 份信号评价；无需为每个模型重新打开数据 owner。只改 Model 时走 <code>models</code> 动作复用 COMPLETE Batch，固定预测的评价和账户消费分别走第 5、6 节。</p>
 <table>
 <thead>
 <tr>
@@ -365,8 +377,9 @@ if EXECUTE and ACTION == &quot;strategy&quot;:
 </tbody>
 </table>
 <p>已有长周期执行的配套边界为一个重进程、RSS 8 GiB、Research owner 5 GiB、新产物 40 GiB、累计 wall 12 小时。运行沿主协调固定的配置及配套预算；本页开关只选择动作，不扩大这些边界。完整来源大小与进程 RSS 分别计量，模型单次 HIT 耗时不能代替全周期总耗时。新版源码会改变模型定义，旧 255 折保持原身份，读取旧保存件无需重新训练。</p>
-<p>本页的 selection、models（显式两模型与默认单模型）、独立 3D Label 加两模型组合评价、strategy 和账户只读均已用现有极小合成 fixture 实际执行。合成研究侧为 3 证券、6 列父件选 3 列、2 folds；原公共 Data/Core、LightGBM、writer 与评价入口均参与调用。每个评价 session 有 3 个有效配对，低于原规范的 minimum_pairs=20，因此三个整体报告均为 NO_VALID_SESSIONS，原因是 INSUFFICIENT_PAIRS。冻结与统计入口已跑通，非空 IC、RankIC 和 IR 分支尚未覆盖，门槛保持原值。strategy 使用 Engine 原合成市场与保存 DerivedSignal；它证明这条账户编排能执行，尚未证明新 Research 组合和对应真实市场的交接。细节见<a href="../reports/ml-engineering-notebook-actions-20261011.json">动作执行记录</a>。</p>
+<p>本页的 selection、models（显式两模型与默认单模型）、独立 3D Label 加两模型组合评价、strategy 和账户只读均已用现有极小合成 fixture 实际执行。合成研究侧为 3 证券、6 列父件选 3 列、2 folds；原公共 Data/Core、LightGBM、writer 与评价入口均参与调用。每个评价 session 有 3 个有效配对，低于原规范的 minimum_pairs=20，因此三个整体报告均为 NO_VALID_SESSIONS，原因是 INSUFFICIENT_PAIRS。冻结与统计入口已跑通，这个极小合成 case 未覆盖非空 IC、RankIC 和 IR，门槛保持原值；追加的保存模型例子见下文。strategy 使用 Engine 原合成市场与保存 DerivedSignal；它证明这条账户编排能执行，尚未证明新 Research 组合和对应真实市场的交接。细节见<a href="../reports/ml-engineering-notebook-actions-20261011.json">动作执行记录</a>。</p>
 <p>真正未验的范围是新版 Notebook 的完整长周期执行、两份真实 cohort 的共同样本比较、真实 300 列性能与完整物理 IO。五年账户结果仍待 Engine owner 回填。原 47 秒会话证据和 255 折产物保持原值，本轮没有重跑它们。Research 资源释放修复已通过亲审与独立复核，并正常合入 main；源码与 merge 身份见<a href="../versions.json">版本表</a>。</p>
+<p>追加的保存模型小集成已覆盖非空统计：复用同一周的两份原模型及对应 Native membership，5 个日期均有 296 个有效配对，门槛仍为 20；原信号与组合的 IC、RankIC 和 IR 均有限。组合交接被实际 strategy 读取后，短账户在准入处以 Stock profile/rules scope mismatch 拒绝，尚未执行账户。两条既有小合成来源分支只证明文件/Native adapter 能保存并只读加载账户，不代替真实组合账户验收。<a href="../reports/ml-engineering-saved-combination-integration-20261011.json">追加集成记录</a>保留这个区别。本地已配好六类导航、原保存报告和动作路径，默认阅读；两模型组合使用其真实一周范围，策略仍待 Engine 最终交接。</p>
 </section></main></div><script>
 function markWideTables(){document.querySelectorAll('.table-scroll').forEach(function(t){var note=t.previousElementSibling;if(!note||!note.classList.contains('wide-table-note')){note=document.createElement('p');note.className='wide-table-note';note.textContent='宽表可左右滚动查看完整列；也可聚焦表格后使用方向键。';t.before(note);}note.hidden=!(t.clientWidth>0&&t.scrollWidth>t.clientWidth);});}
 function restoreSection(){var id=window.location.hash.slice(1);if(!/^section-[0-9]+$/.test(id))return;var section=document.getElementById(id);if(!section)return;section.querySelectorAll('details').forEach(function(d){d.open=true;});section.scrollIntoView({behavior:'instant',block:'start'});}

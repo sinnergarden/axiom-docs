@@ -1,0 +1,62 @@
+{
+  "status": "SIGNAL_STATISTICS_PASS_ACCOUNT_ADMISSION_BLOCKED",
+  "kind": "EXISTING_REAL_SAVED_TWO_MODEL_ONE_WEEK_INTEGRATION",
+  "signal_statistics": {
+    "status": "PASS",
+    "original_model_count": 2,
+    "sessions": 5,
+    "securities": 569,
+    "valid_pairs_per_session": 296,
+    "minimum_pairs": 20,
+    "all_original_and_combination_daily_IC_RankIC_and_IR": "FINITE",
+    "training_or_prediction_repeated": false,
+    "Native_membership_ref_and_usable_from": "ORIGINAL_SAVED_VALUES"
+  },
+  "direct_strategy": {
+    "status": "BLOCKED",
+    "input": "actual new combined-prediction-handoff.json read by actual Notebook strategy cell",
+    "native_adapter": "existing public StockNativeViewSource and open_native_view",
+    "error": "Stock profile/rules scope mismatch",
+    "account_calls": 0,
+    "public_real_account_load": "NOT_REACHED",
+    "Data_root_opens": 0,
+    "fit_predict": 0,
+    "peak_self_rss_bytes": 333594624,
+    "seconds": 130.18869437486865,
+    "scope_dependency": "saved profile/rules and Native queries bind the original full historical range; a short request needs matching owner-frozen controls"
+  },
+  "adapter_regression": {
+    "original-files": {
+      "status": "PASS",
+      "seconds": 0.17358637508004904,
+      "public_saved_account_projection_load": "PASS"
+    },
+    "native-carrier": {
+      "status": "PASS",
+      "seconds": 0.13126649986952543,
+      "public_saved_account_projection_load": "PASS"
+    }
+  },
+  "adapter_regression_scope": "existing Engine small synthetic v3/Derived fixture; separate from real saved combination account proof",
+  "local_configuration": {
+    "six_readable_roles": true,
+    "default": "read",
+    "explicit_execute_required": true,
+    "full_saved_case_trade_range": [
+      "2019-07-01",
+      "2024-06-28"
+    ],
+    "original_full_folds": 255,
+    "saved_signal_reports": 7,
+    "paths_and_refs": "prepared privately from owner originals; no user-built receipts",
+    "account_reports": "waiting for Engine final saved paths"
+  },
+  "source_bindings": {
+    "Research": "63d54181063a54b2a84754b288a50568867e5406",
+    "Data": "e457372950f30ab36cce743dbdb6633f0147e033",
+    "Engine": "c890160c648824f89284a2a6363279f3930e4b32"
+  },
+  "private_values": "model/signal/result identities, metrics and paths retained locally",
+  "fiveyear_account": "not changed or replayed",
+  "original47second_acceptance": "not rerun"
+}

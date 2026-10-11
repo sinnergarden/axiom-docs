@@ -1365,7 +1365,9 @@ Research 0.2.6 声明 `axiom-engine>=0.3.0`，配置可选依赖 PyYAML，构建
 
 默认阅读模式不要求私人配置，不打开 Data、模型或大账户。执行模式只接用户选择的本地路径、typed YAML 和 owner 资源参数；Snapshot/PIT、OOS 引用、Label descriptor、Signal 和账户绑定均来自原 owner。Model-only 循环保留同一 COMPLETE Batch，修改选列使用原 configured producer 生成新 cohort。当前 stock 配置入口执行 Label/Model/可选 Signal，Feature 与 Strategy draft 不被伪装成通用可执行配置；账户消费使用已保存 Engine 请求和公开 adapter。五年账户结果预留等待 owner 回填，不因预测已保存而称账户通过。
 
-薄编排按已解析 variants 迭代，scope 沿 writer 保存的规范值，独立 Label 经已有显式 owner 映射接口准入。现有极小合成 fixture 实际执行 selection、models（显式两模型及默认单模型）、含两模型组合的 evaluation、strategy 和账户只读；原公共 Data/Core、LightGBM、writer、统计与 Runtime 均被调用。评价每天有 3 个有效配对，低于原门槛 20，报告为 NO_VALID_SESSIONS/INSUFFICIENT_PAIRS；非空 IC、RankIC 和 IR 分支未覆盖。strategy 使用 Engine 自有合成市场和保存 DerivedSignal，未覆盖 Research 新组合与对应真实市场的交接。新版 Notebook 全长周期、两个真实 cohort、真实 300 列性能和完整物理 IO 未验，五年账户仍待 owner 回填。原 47 秒验收与原 255 折均未重跑。[操作页检查摘要](../../reports/ml-engineering-operational-page-20261011.json)与[动作执行记录](../../reports/ml-engineering-notebook-actions-20261011.json)分开保存。
+薄编排按已解析 variants 迭代，scope 沿 writer 保存的规范值，独立 Label 经已有显式 owner 映射接口准入。现有极小合成 fixture 实际执行 selection、models（显式两模型及默认单模型）、含两模型组合的 evaluation、strategy 和账户只读；原公共 Data/Core、LightGBM、writer、统计与 Runtime 均被调用。评价每天有 3 个有效配对，低于原门槛 20，报告为 NO_VALID_SESSIONS/INSUFFICIENT_PAIRS；该极小合成 case 的非空 IC、RankIC 和 IR 分支未覆盖。strategy 使用 Engine 自有合成市场和保存 DerivedSignal，未覆盖 Research 新组合与对应真实市场的交接。新版 Notebook 全长周期、两个真实 cohort、真实 300 列性能和完整物理 IO 未验，五年账户仍待 owner 回填。原 47 秒验收与原 255 折均未重跑。[操作页检查摘要](../../reports/ml-engineering-operational-page-20261011.json)与[动作执行记录](../../reports/ml-engineering-notebook-actions-20261011.json)分开保存。
+
+追加的一周保存组合验收复用两份原模型与对应 Native membership，不重训或预测。5 日各有 296 个有效配对，门槛保留 20，两个原信号与组合的 IC、RankIC、IR 均有限；真实短账户直接消费该组合交接时，以 `Stock profile/rules scope mismatch` 拒绝准入，账户调用为 0。现成 profile/rules 与 Native query 固定完整五年范围，需要 owner 提供匹配的小范围控制件，不能裁剪后沿用旧身份。Notebook 的 `runtime_options_file.native_views` 已接已有 `open_native_view` 与 `StockNativeViewSource`；两条来源的小合成保存/只读分支单独通过，不代替真实组合账户证明。[追加记录](../../reports/ml-engineering-saved-combination-integration-20261011.json)保存准入阻碍与范围。本地路径配置和六类导航由原 owner 产物投影产生，默认阅读，私人路径与统计留在本地。
 
 ## 12. 最小验收标准
 

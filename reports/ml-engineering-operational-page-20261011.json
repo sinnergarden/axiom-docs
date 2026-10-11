@@ -11,6 +11,7 @@
     "Data",
     "StockInputSource",
     "StockMarketSpec.from_request",
+    "StockNativeViewSource",
     "admit_stock_market_inputs",
     "build_configured_stock_sequential_experiment",
     "build_stock_derived_signal",
@@ -24,6 +25,7 @@
     "load_stock_ml_batch_inputs",
     "load_stock_ml_fold",
     "load_stock_sequential_configuration",
+    "open_native_view",
     "open_stock_signal_evaluation_freeze",
     "run_saved_stock_strategy",
     "save_stock_derived_signal_evaluation_inputs",
@@ -54,12 +56,11 @@
   "source_bindings": {
     "Research": "63d54181063a54b2a84754b288a50568867e5406",
     "Engine": "c890160c648824f89284a2a6363279f3930e4b32",
-    "Data": "e457372950f30ab36cce743dbdb6633f0147e033",
-    "Research_merge": "730c211e44c44b9dd92225bdf1b67f8e376d893a"
+    "Data": "e457372950f30ab36cce743dbdb6633f0147e033"
   },
   "actual_action_report": "reports/ml-engineering-notebook-actions-20261011.json",
   "limits": "This record covers read mode and static/configuration checks only. Actual tiny synthetic action execution is recorded separately; no original real business rerun.",
-  "current_notebook_sha256": "5e72f2af18b90cee71a2bbefc3a6c68de2e104cd2b39aa3c45538c48a6b088e5",
-  "notebook_code_sha256": "f343f7a11b5543bbee334411cbc7f68500077d50655070b85ac7e6969c835f3a",
-  "actual_action_report_sha256": "6c78fdea2318e73d7c6f41ec4ae6a7cc3eab6f08a502244ef10c82087e29c361"
+  "current_notebook_sha256": "25da27027a9a2ff93d32a5d388513d0d230c1aa17bf78c3355baffd74175054e",
+  "notebook_code_sha256": "eccf85fe73b15c9716db5726da3974e41358669f58deb890fe4eb7cf1d6fe179",
+  "additional_verification_report": "reports/ml-engineering-saved-combination-integration-20261011.json"
 }
