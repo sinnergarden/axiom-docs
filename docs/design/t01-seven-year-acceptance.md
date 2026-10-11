@@ -2,7 +2,7 @@
 
 T01 用一个固定研究例子检查 M1 是否足够通用。验收范围为 2019-01-02 至 2025-12-31，使用历史 CSI300 当时成员、固定 88 个已有价量特征和一份 LightGBM 配置。执行者通过现有配置和公开入口准备输入、训练、评价、生成两份账户并在 UI 打开结果。发现一般实验也会遇到的能力缺口时，由对应平台 owner 修复；不为 T01 另写训练流程、数据通道或临时账户执行器。
 
-当前状态是配置和轻量日历核查完成。七年 Data scope、扩范围后的保存来源、Feature、模型、信号评价、两账户和 UI 验收尚未完成。[Research Draft PR20](https://github.com/sinnergarden/axiom-research/pull/20)提供独立通用配置与明确的 88 列定义；它尚未合并，也不包含私人数据或结果。原[21 日功能用例](m2-one-year-executable-case.md)保持原来的已执行范围。
+当前状态是分离配置、正式 Data scope 和一次全期保存来源准备完成。Feature、模型、信号评价、两账户和 UI 验收尚未完成。[Research Draft PR20](https://github.com/sinnergarden/axiom-research/pull/20)提供独立通用配置、明确的 88 列定义和经现 Engine 工厂校验的费用表；它尚未合并，也不包含私人数据或结果。原[21 日功能用例](m2-one-year-executable-case.md)保持原来的已执行范围。
 
 ## 配置与时间语义
 
