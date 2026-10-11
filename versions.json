@@ -121,6 +121,22 @@
       }
     },
     "axiom-engine": {
+      "latest_share_allocation_candidate": {
+        "source_commit": "a7073aa2ef37ffe8c63b9e8938b6d7dd4370328f",
+        "source_tree": "c9a5388229900de877ecb56153292983f93fa3e4",
+        "implementation_ref": "sha256:72498f3dec45e717e03787f75d718e013ddd80b96d6b9cd80ab49ed819b4194f",
+        "package_version": "0.3.1",
+        "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/29",
+        "status": "parent_and_independent_review_passed_source_merged_final_data_joint_check_passed",
+        "merge_commit": "4e65af8462949f674fa66d3f5f17ce06dc932568",
+        "source_tree_unchanged_after_merge": true,
+        "first_parent_delta": {"files": 12, "insertions": 462, "deletions": 44},
+        "scope": "explicit historical integer floor and mixed_reviewed_sources_v1 declaration; saved accounting and episode attribution; Derived global implementation migration disclosed",
+        "floor_baseline_source_commit": "dfdb96ba3dc7cff6e50286b68541772f40ac3715",
+        "floor_baseline_unique_related_tests_passed": 145,
+        "candidate_related_tests_passed": 60,
+        "full_fiveyear_account_status": "parent_released_one_full_run_in_progress_no_completion_claim"
+      },
       "commit": "330903c62b5f42f7e25b81b889045c267fc4528c",
       "version": "0.2.1",
       "branch": "main",
