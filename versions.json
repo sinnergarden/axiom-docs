@@ -13,7 +13,11 @@
         "scope": "Explicit local.corporate_actions.tushare.v3 native fields, stable economic identity, cutoff-visible RECORD/EX/PAY/LISTING projection and public scoped rebuild; existing default v2 retained",
         "parent_source_review": "passed_for_fixed_e457_to_e410_delta",
         "independent_review": "passed_for_fixed_e457_to_e410_delta",
-        "integration_status": "reviewed_source_branch_not_merged_to_main; parent decides unified Data integration",
+        "integration_status": "merged_to_main_via_parent_reviewed_pr",
+        "merge_commit": "718f8a89c43198c12de81995ad241728c4b6d627",
+        "pull_request": "https://github.com/sinnergarden/axiom-data/pull/47",
+        "source_tree": "1cfa5070c6445898e1c3da575ca5e6d60c23fa2f",
+        "source_tree_unchanged_after_merge": true,
         "execution_status": "saved public Data rebuild and Reader/Native checks complete; Engine five-year account acceptance remains separate",
         "package_status": "existing installed package and builder identities retained; no new wheel or installation claim"
       },
