@@ -1,8 +1,8 @@
-# M2：一年可执行研究用例与复用边界（候选）
+# 21日股票研究功能用例与复用边界
 
-状态：2026-10-11，父任务已亲审93d99ce并批准有界实现；本文按审定意见收紧时钟与接口。绝对截止14:55 UTC。本文补充既有05 Research、04 Engine合同，不建设新的执行框架。Research源码基线730c211，Docs基线4105a97；Engine策略遵循已审45fd4aa5的[策略协议](engine-strategy-protocol-v1.md)。
+本文补充既有05 Research、04 Engine合同，说明一个可以从配置运行、保存和复用的短样本功能用例。Engine策略遵循[策略协议](engine-strategy-protocol-v1.md)，不建设新的执行框架。
 
-首轮研究问题是价量趋势/过热输入能否产生可比较的中期排序信号。用已覆盖的2023-01-03至2023-12-29作为一年OOS，保留已有历史CSI300的完整成员截面与退出成员执行并集；首版不是CSI800非金融，也不称A01经营改善205列方案已兑现。成员来源沿固定Snapshot的best_effort_vendor_v1限制，不以当前成员回填历史。训练、特征回看及标签成熟尾部属于preparation，不计作OOS。现金50万元，费用/执行规则沿冻结现有配置。
+首轮研究问题是价量趋势/过热输入能否产生可比较的中期排序信号。当前用例为2023-01-03至2023-02-07共21个交易日，保留历史CSI300完整成员截面与569只股票的执行并集，使用88列Feature及两个60名义成熟日训练fold。其目的为功能和复用验收，不据此宣称策略有效。成员来源沿固定Snapshot的best_effort_vendor_v1限制，不以当前成员回填历史。训练、特征回看及标签成熟尾部属于preparation，不计作OOS。现金50万元，费用/执行规则沿冻结配置。
 
 ## 配置与责任
 
@@ -10,7 +10,7 @@
 
 | 文件 | 显式参数 | owner与保存输出 |
 |---|---|---|
-| `time.yaml` | OOS区间、冻结交易日历、504个成熟日期、每20交易日重训、每日严格前session的新预测、fit/model/inference时钟、事后评价cutoff | Research编译已有fold-v3；H40时声明543个前置Feature日期，按日历预计其中504个成熟日期。真实Label依赖仍必须严格早于fit；预计数量不能替代实际准入检查。不新增窗口ABI或训练器。 |
+| `time.yaml` | OOS区间、冻结交易日历、60个名义成熟日期、每20交易日重训、每日严格前session的新预测、fit/model/inference时钟、事后评价cutoff | 将此片段填入dataset.periodic_schedule，Research编译已有fold-v3；H40时声明99个名义训练Feature日期。真实Label依赖仍必须严格早于fit；预计数量不能替代实际准入检查。不新增窗口ABI或训练器。 |
 | `universe.json` | Snapshot、PIT policy、历史成员池、证券并集、资格/覆盖、Native/Reader来源ref | Data选事实与revision；现公共scope/native合同。首例`csi300`；CSI800/行业过滤作为独立输入变体，未有冻结证据不自动开启。 |
 | `features.json` | catalog_ref、有序ID/version、lookback、缺值/归一化、存储与驻留预算 | Research只登记/选配既有Core计划。保存一个不可变母矩阵；Core为唯一Feature数值执行器，Data提供每个输出cutoff的真实选择。 |
 | `label.yaml` | H=40、open(f+1)至close(f+40)、共同anchor复权、因子价格比、成熟/缺失政策 | 复用公共Label执行与保存Raw。准确称40日复权开收收益；不擅称现金权益总回报。首例训练沿现支持的截面z-score，评价使用原始复权收益；原始回归作为另一个显式训练变体，不静默替换。 |
@@ -37,8 +37,10 @@ Engine策略统一职责为`frozen prediction + as-of account + previous complet
 ## 一个完整case与失效规则
 
 1. 选固定Snapshot/Native、日历及成员，估算内存；一次准备88列母矩阵和训练Label。24GiB机器，目标单进程≤16GiB；约1000×569×88的纯float64值约0.37GiB，实际预算另外包含Core窗口、证据、转换和模型内部内存，不以纯值代替RSS。
-2. 固定参数完成一年OOS；保存预测、最小信号报告，交同一预测给三策略生成各自账户/报告。Engine工厂优先集成已完成项，未完成例明确登记，不扩大真实运行数量。
-3. 从同母矩阵选择一个中期subset，再做最多一个固定模型参数变体；这两项需要相应重训，但不再准备Feature母矩阵。单个重进程顺序运行。2026-10-11 用户允许先缩短时间验证功能；本轮工程case为2023-01-03—2023-02-07共21个交易日、完整569股票和88列，训练为60个名义成熟日、99个名义训练Feature日，H40及原PIT不变；实际成熟仍由Label时钟验证，按20交易日触发两次拟合。一年OOS和504日成熟训练尚未验收。
+2. 固定参数完成21日OOS；保存预测、最小信号报告，交同一预测给三策略生成各自账户/报告。未完成步骤明确登记，不扩大真实运行数量。
+3. 从同母矩阵选择一个中期subset，再做最多一个固定模型参数变体；这两项需要相应重训，但不再准备Feature母矩阵。单个重进程顺序运行。H40及原PIT不变，实际成熟仍由Label时钟验证，按20交易日触发两次拟合。
+
+后续扩展示例可把OOS改为2023-01-03—2023-12-29、名义成熟日期改为504；H40对应543个名义前置训练Feature日期。扩展须另冻完整轴、保存身份并实际运行，当前一年OOS和504日成熟训练尚未验收。CSI800非金融及A01经营改善205列也不属于已交付范围。
 
 换Feature定义/时钟、Snapshot或成员输入：相关母件失效；只换入模subset：复用母矩阵，训练/预测重算；换训练Label/参数：仅必要Label与训练/预测重算；只换评价Label/指标：复用预测；只换策略/成本：复用预测，重新运行唯一账户路径。每次保存新身份与路径，不覆盖旧结果。
 
@@ -49,6 +51,33 @@ Engine策略统一职责为`frozen prediction + as-of account + previous complet
 ## 可运行入口
 
 Research公开入口为`examples/a01_one_year.py`，参数文件由`options.json`引用独立的experiment/dataset/model/label YAML及冻结Feature轴JSON。安装已审定的Research/Core/Data源码后，在Research目录运行：
+
+公开可复制模板位于Research的`examples/a01_short_case/`。`<...>`必须填写为本地路径、实际冻结Data日历/成员/时钟或真实摘要；占位值不构成可运行数据。模板没有私人Snapshot、保存结果ref或用户路径。各文件消费关系如下：
+
+| 编辑入口 | 实际消费位置 |
+|---|---|
+| time.yaml | 内容复制到dataset.yaml的periodic_schedule；CLI不自动读取time.yaml |
+| universe.json、features.json | 两个对象合并为一个完整axes.json；冻结Data选择与完整lookback均不可省略 |
+| dataset.yaml | axes_input填该axes.json绝对路径与实际文件摘要；experiment.yaml引用dataset_file |
+| label.yaml、model.yaml | experiment.yaml的specification_files；训练目标与Label成熟口径由现owner核实 |
+| evaluation.json | 内容复制到options.json的evaluation；evaluate消费该对象 |
+| strategies.json | variants各对象作为stock_strategy_spec的参数；由Engine另绑定原执行规则、费用、市场与保存预测，Research CLI不运行账户 |
+| options.json | 本地Data/output/config路径，4GiB读取缓存、16GiB工作预算、母矩阵保存路径及显式matrix_v3 |
+| subset-dataset/experiment/options | 显式11列subset，feature_result仍指母件，reuse_raw_from_batch指主batch.json |
+
+例如在填好universe/features片段后，按原对象拼合并登记实际文件摘要；这只是配置准备，不是新的执行器：
+
+```python
+axes = {**json.loads(Path("universe.json").read_text()),
+        **json.loads(Path("features.json").read_text())}
+write_json("axes.json", axes)  # axiom_research.stock_artifacts.write_json
+dataset["axes_input"] = {"path": str(Path("axes.json").resolve()),
+                         "file_digest": file_digest("axes.json")}
+dataset["periodic_schedule"] = yaml.safe_load(Path("time.yaml").read_text())
+options["evaluation"] = json.loads(Path("evaluation.json").read_text())
+```
+
+将更新后的dataset/options保存后再validate；相应subset-dataset须登记同一轴摘要和时间对象。不能用工作日猜交易日，不能拿旧范围摘要代替新文件摘要。
 
 ```sh
 python examples/a01_one_year.py --options /absolute/path/options.json --stage validate
