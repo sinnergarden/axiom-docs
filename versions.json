@@ -425,9 +425,15 @@
         }
       ],
       "minimal_strategy_protocol_candidate": {
-        "status": "design_pending_parent_review_no_implementation_or_true_account_run",
+        "status": "parent_approved_design_source_candidate_synthetic_pass_review_pending_no_true_account_run",
         "design": "docs/design/engine-strategy-protocol-v1.md",
         "baseline_commit": "4e65af8462949f674fa66d3f5f17ce06dc932568",
+        "source_commit": "bb001fecb5a584f1132b552b3dff6c7f66859969",
+        "source_tree": "fd848f3142f59a356cb804662d49ef97eff39f1c",
+        "source_branch": "codex/engine-strategy-config-20261011",
+        "implementation_ref": "sha256:4c0b61631af5d790a71bb04cca847e590cba14be8faccf9d438d92b139779899",
+        "validation": {"new_synthetic_scenarios": 8, "key_legacy_checks": 11, "source_identity_check": 1, "passed": 20, "seconds": 1.677},
+        "real_case": "Research-owned 2023 historical CSI300 full cross-section with 88 features; not run by Engine",
         "examples": [
           "top_k_equal_weight",
           "rank_buffer",
