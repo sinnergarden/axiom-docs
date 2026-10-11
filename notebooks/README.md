@@ -85,4 +85,4 @@ ML工程页默认四代码单元只读取冻结教学回执与新fold交付回�
 每cutoffLabel/norm、冷准备、证明扩张、账户与展示另计，总上界未知。历史固定窗66min不当最终滑窗估计。
 详见 [ML工程§12](ml_engineering_tutorial.html#section-12)，无全年/五年实跑。
 
-2026-10-11，ML 工程教程 §14.6 新增实际调用的单 fold 函数，复用原 Research `prepare_models`。三列首次模型与同配置 model/Signal HIT 完成，冻结评价输入回执的 definition/batch 来源差异使完整身份验收保持 PARTIAL；`8881882` 的隔离修正已通过小型检查，待源码审阅和保存件补验。原 26 个单元和输出保留，HTML 从保存 Notebook 生成，私有产物留在本地。
+2026-10-11，ML 工程教程 §14.6 将推荐流程接成显式共享 Data/Feature/Batch owner 的单次会话。固定 `8881882` 使用已有三列模型，两次调用完整身份一致、fit/predict 均为 0；冷开 owner 25.03 秒，首次核验与冻结 20.67 秒，同 owner 迭代 1.59 秒。整进程 47.84 秒，RSS 5.08 GiB，新增 7.74 MiB。此前三列首次模型及重开 owner HIT 的 PARTIAL 保留为历史，原 26 个单元和输出未变，HTML 只从保存 Notebook 生成。工程摘要见 [有界验收](../reports/research-shared-owner-acceptance-20261011.json)，私有身份与数据留在本地。

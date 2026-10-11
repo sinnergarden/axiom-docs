@@ -189,18 +189,33 @@
           "fit_predict_Raw_Feature_account_calls": 0,
           "reason": "global profiler covered Snapshot graph sizing; stopped own child; retained actual cost"
         },
-        "notebook": "One new callable definition cell used by the real first/HIT caller; original26 cells and outputs retained; HTML render only",
+        "notebook": "Explicit single with session keeps Data/Feature/Batch; exact saved cell invoked for two saved model calls; original26 preserved; HTML render only",
         "oos_root_fix_candidate": {
           "source_commit": "8881882bc594f4bf99572c876d15eef008f95ebf",
-          "status": "LOCAL_COMMIT_REVIEW_PENDING_REAL_NOT_RERUN",
+          "status": "DRAFT_PR_PARENT_READ_SAVED_OWNER_REUSE_PASS_INDEPENDENT_REVIEW_PENDING",
           "files": 3,
           "targeted_tests": 12,
           "targeted_seconds": 12.878,
           "affected_post_dedup_tests": 2,
           "affected_post_dedup_seconds": 2.692,
-          "public_wire_fields": "unchanged"
+          "public_wire_fields": "unchanged",
+          "pull_request": "https://github.com/sinnergarden/axiom-research/pull/15",
+          "source_tree": "a532a2985e32d18f8d5b1243427b7340276e40ff",
+          "real_saved_owner_reuse": {
+            "status": "PASS",
+            "report": "reports/research-shared-owner-acceptance-20261011.json",
+            "cold_owner_seconds": 25.026417459128425,
+            "first_saved_model_seconds": 20.67233125003986,
+            "same_owner_iteration_seconds": 1.5855996659956872,
+            "end_to_end_seconds": 47.83782716700807,
+            "sampled_peak_tree_RSS_bytes": 5458231296,
+            "new_path_bytes": 8114830,
+            "same_returned_identity": true,
+            "fit_predict_calls": 0,
+            "private_results": "local only"
+          }
         },
-        "integration": "PR13 and14 remain draft;79 base commits relative to main are not approved for integration; no merge/new wheel"
+        "integration": "Remote main3ef34fe; PR13/14/15 open draft;4c46294 baseline79 commits/105files still requires integration review; fixed parent source review and prior28/32 test scopes separately documented; no merge/new wheel"
       }
     },
     "axiom-engine": {

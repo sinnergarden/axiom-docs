@@ -795,31 +795,86 @@ for fold in folds:
     training, predictions = validate_spec(fold, calendar)
     print(f&quot;fit={fold[&#x27;fit_session&#x27;]}，训练 {len(training)} sessions，&quot;
           f&quot;OOS={fold[&#x27;oos_trade_sessions&#x27;]}，预测={predictions}&quot;)
-</pre></details></section><section id="cell-26" class="markdown"><h3>14.6 对一个冻结 fold 更换模型特征并复用</h3>
-<p>下面的函数将调用交给 Research 已有的 <code>examples/stock_sequential_experiment.py:prepare_models</code>。调用方明确提供一个冻结 fold、固定 Snapshot、保存 Feature、原 Label/model YAML 和选中的特征，因此不会展开其他 fold。Feature 和 Raw Label 由原 owner 读取，训练、预测和冻结输出仍走公开入口。</p>
-<p>把参数字典传给 <code>prepare_selected_fold(**arguments)</code>，随后以同一字典再次调用，可以核验保存引用和缓存复用。本轮从这个保存单元定义并调用该函数：固定 <code>3a69a44</code> 的单 fold 三特征首次调用 106.21 秒，fit/predict 各 1 次；同配置 HIT 83.79 秒，Data select/adjust、Raw、归一化和 fit/predict 均为 0。Batch、模型、预测和 Engine 交接引用相同。调用耗时包含核验与观察器成本，HIT 仍读取保存 Feature 和目标控制件。</p>
-<p>严格的完整结果复现保持 PARTIAL：首次冻结回执引用 <code>definition.json</code>，HIT 引用 <code>batch.json</code>，因而冻结评价输入身份不同。两份保存件的其他元数据与日切片摘要相同。隔离修正 <code>8881882</code> 在完成时核验最终 manifest，统一回执来源，并保持原 definition 和最终 batch 的变更检查；小型完整 first/HIT 与来源变更负例通过，真实保存件补验尚待源码审阅。旧产物保留，没有重训原 255 折。</p>
-<p>一次全局 Python 观察器覆盖 Snapshot 图计量，605.19 秒后主动停止；仅 Data.open 1 次、训练等均为 0，成本与失败记录留存。修正观察器后的完整首次/HIT 进程耗时 192.54 秒，峰值 RSS 5.23 GiB，新增产物约 49.38 MiB。资源额度、进程 RSS 与读取字节分别记录，Data Parquet 物理读取量未测量。私有路径、数据、模型结果和完整引用留在本地验收件。原 26 个单元的源码、输出和执行次数均保留；HTML 从保存 Notebook 生成。准确范围见 <a href="../docs/design/05_axiom_research.md#114-%E6%9C%AC%E5%9C%B0%E5%A2%9E%E9%87%8F%E9%AA%8C%E6%94%B6%E4%B8%8E%E7%9C%9F%E5%AE%9E%E8%A1%A5%E9%AA%8C%E8%BE%B9%E7%95%8C">Research §11.4</a>。</p>
-</section><section class="example" data-cell-id="research-onefold-reuse-call"><div class="example-label">单 fold 的公开 owner 调用</div><pre class="code">def prepare_selected_fold(research_checkout, data, *, snapshot, data_limits,
-                          configuration_paths, saved_feature, fold_spec,
-                          prepare_options, signal_scope, output,
-                          model_feature_selection, signal_contexts,
-                          metrics, progress):
-    &quot;&quot;&quot;Run one explicitly supplied frozen fold through the existing owner API.&quot;&quot;&quot;
-    from pathlib import Path
-    from runpy import run_path
-
-    prepare_models = run_path(
-        str(Path(research_checkout) / &quot;examples&quot; / &quot;stock_sequential_experiment.py&quot;)
-    )[&quot;prepare_models&quot;]
-    return prepare_models(
-        data, snapshot=snapshot, data_limits=data_limits,
-        configuration_paths=configuration_paths, saved_feature=saved_feature,
-        frozen_fold_specs=[fold_spec], prepare_options=prepare_options,
-        signal_scope=signal_scope, output=output,
-        model_feature_selection=model_feature_selection,
-        signal_contexts=signal_contexts, metrics=metrics, progress=progress,
+</pre></details></section><section id="cell-26" class="markdown"><h3>14.6 在一个研究会话内复用保存输入与模型</h3>
+<p>推荐在一个显式 <code>with</code> 会话内打开 Data ColumnSource 和保存 Feature，随后保留已核验的 Batch。下面的函数一次进入这些上下文，在内部依次尝试调用方提供的 TrainingSpec；同一配置重复时继续使用同一个 Batch。不要在每次模型迭代时重新调用会打开所有 owner 的 <code>prepare_models</code>。已有保存模型仍通过公开 builder 核验，冻结信号仍通过原 writer 保存。</p>
+<p>调用方提供固定 Snapshot、保存 Feature 路径、完整 batch 字典、原 Label/model YAML、冻结评价 scope 和输出目录。先用 <code>load_stock_experiment_specs(configuration_paths)</code> 取得 typed <code>specs[&quot;model&quot;]</code>；把同一个对象放进 <code>training_specs=[model_spec, model_spec]</code>，即可在一次 <code>run_saved_fold_session(...)</code> 调用内核验重复结果。<code>identities[0] == identities[1]</code> 比较实际返回的 Batch、模型、预测和冻结评价输入引用，耗时另存在 <code>costs</code>，不会参与身份。</p>
+<p>静态调用链是 <code>Data.open_column_source → load_stock_feature_view → load_stock_ml_batch_inputs → build_stock_ml_fold_from_saved_inputs → open_stock_signal_evaluation_freeze.finish</code>。前两层在整个会话结束时关闭，Batch 在当前保存 cohort 的模型迭代结束后关闭。换模型参数时仍使用该 Batch，可能需要新的 fit/predict；换特征子集应在这两层外部 owner 内调用 <code>open_stock_ml_batch_preparation(..., feature_inputs=feature, column_source=source, model_feature_selection=...)</code>，创建身份准确的新 cohort。相邻窗口用该准备 owner 的 <code>next_fold()</code> 顺序推进，保留重叠 Feature 块，并核验新增日期和目标。不同子集的 Batch 不能互换。</p>
+<p>本轮在固定 <code>8881882</code> 上调用下方保存单元，使用原三特征模型做一次有界的同 owner 两次调用，已通过。冷打开 Data/Feature/Batch 合计 25.03 秒；首次保存模型核验与冻结 20.67 秒；同 owner 第二次调用 1.59 秒。两个返回身份完全一致，包含完整的冻结评价输入 ArtifactRef transport；原模型和预测引用保持原值，fit/predict 均为 0。公开 loader 接收原封存 COMPLETE Batch 字典，回执内嵌该文档；新的冷准备 checkpoint 发布继续由此前小例覆盖。原 26 个单元未执行，本轮只定义并调用这个增量单元。</p>
+<p>整个进程 47.84 秒，峰值 RSS 5.08 GiB，新增产物 7.74 MiB，低于 wall 300 秒、RSS 10 GiB、新增 2 GiB 的上限。第二次调用的 OwnedStore 计数中，Feature 和准备输入的读取与 hash 字节均为 0，模型输出仍读/hash 4,091,378 字节；writer 侧验证和 Data 物理 IO 不在这些计数内。窗口准入 1 次，后续借用 1 次，没有训练矩阵 gather。原 23,363 个冻结文件及 362 个已有产物 epoch 均保持原值。工程摘要见 <a href="../reports/research-shared-owner-acceptance-20261011.json">本次验收</a>，完整结果身份与私有路径留在本地。</p>
+<p>把此前重开 owner 的 83.79 秒与本次同 owner 1.59 秒分开展示，是为了说明冷打开成本和会话内迭代的边界。源码修正、观察器和 owner 生命周期均不同，不能将该对比称作单一 CPU 优化的测量；新的模型参数、子集或窗口仍要承担其实际新增工作。本次没有再次训练三列模型，没有做两份真实 cohort 的共同样本比较或真实 300 列验收。</p>
+<p>此前 <code>3a69a44</code> 的高层冷调用为 106.21 秒，其中 fit/predict 各 1 次；再次重开 owner 的 HIT 为 83.79 秒，其中 owner 范围 67.16 秒，外部开关与初始化范围约 16.63 秒。它保留了冻结回执 definition/batch 来源不同的 PARTIAL 历史。<code>8881882</code> 统一 COMPLETE 来源并保留两份来源的 epoch 检查。一次全局观察器造成的 605.19 秒失败也保留；本轮禁用全局 profiler。原 26 个单元及保存输出保持原值，HTML 从 Notebook 生成，私人输入和完整结果引用留在本地。</p>
+</section><section class="example" data-cell-id="research-onefold-reuse-call"><div class="example-label">单 fold 的公开 owner 调用</div><pre class="code">def run_saved_fold_session(data, *, snapshot, data_limits, saved_feature,
+                           batch_manifest, research_limits, training_specs,
+                           signal_scope, fold_destination, signal_destination,
+                           progress=None):
+    &quot;&quot;&quot;Open owners once; iterate explicit models on one saved single-fold cohort.&quot;&quot;&quot;
+    from time import perf_counter
+    from axiom_research import (
+        load_stock_feature_view, load_stock_ml_batch_inputs,
+        build_stock_ml_fold_from_saved_inputs,
+        open_stock_signal_evaluation_freeze, to_dict,
     )
+
+    if len(batch_manifest[&quot;folds&quot;]) != 1:
+        raise ValueError(&quot;This example requires a complete single-fold batch&quot;)
+    item = batch_manifest[&quot;folds&quot;][0]
+    identities, costs = [], []
+
+    def note(phase, **values):
+        if progress is not None:
+            progress({&quot;phase&quot;: phase, **values})
+
+    started = perf_counter()
+    note(&quot;data_owner_open_start&quot;)
+    with data.open_column_source(snapshot=snapshot, limits=data_limits) as source:
+        note(&quot;data_owner_opened&quot;, seconds=perf_counter() - started)
+        feature_started = perf_counter()
+        with load_stock_feature_view(saved_feature, limits=research_limits,
+                                     residency=&quot;sequential&quot;) as feature:
+            note(&quot;feature_owner_opened&quot;, seconds=perf_counter() - feature_started)
+            batch_started = perf_counter()
+            with load_stock_ml_batch_inputs(
+                batch_manifest, feature_inputs=feature,
+                limits=research_limits, residency=&quot;sequential&quot;,
+            ) as batch:
+                note(&quot;batch_owner_opened&quot;, seconds=perf_counter() - batch_started)
+                owner_open_seconds = perf_counter() - started
+                for iteration, model_spec in enumerate(training_specs):
+                    note(&quot;model_iteration_start&quot;, iteration=iteration)
+                    began = perf_counter()
+                    model_metrics = {}
+                    with open_stock_signal_evaluation_freeze(
+                        batch, scope=signal_scope, destination=signal_destination,
+                        signal_name=&quot;model&quot;,
+                    ) as writer:
+                        run = build_stock_ml_fold_from_saved_inputs(
+                            item[&quot;input_manifest&quot;], fold_spec=item[&quot;fold_spec&quot;],
+                            destination=fold_destination, batch=batch,
+                            training_spec=model_spec, metrics=model_metrics,
+                        )
+                        frozen = writer.finish()
+                    saved = run.to_dict()
+                    identities.append({
+                        &quot;batch_ref&quot;: batch.identity,
+                        &quot;fold_path&quot;: str(run.path),
+                        &quot;fold_ref&quot;: saved[&quot;fold_ref&quot;],
+                        &quot;model_ref&quot;: saved[&quot;model_ref&quot;],
+                        &quot;signal_run_ref&quot;: saved[&quot;signal_run_ref&quot;],
+                        &quot;signal_evaluation_input&quot;: to_dict(frozen),
+                    })
+                    costs.append({&quot;iteration&quot;: iteration,
+                                  &quot;seconds&quot;: perf_counter() - began,
+                                  &quot;model_metrics&quot;: model_metrics})
+                    note(&quot;model_iteration_done&quot;, **costs[-1])
+                    run = saved = frozen = None
+                batch_metrics = batch.metrics
+                feature_metrics = feature.metrics
+                data_statistics = dict(source.statistics)
+    return {&quot;identities&quot;: identities, &quot;costs&quot;: costs,
+            &quot;owner_open_seconds&quot;: owner_open_seconds,
+            &quot;session_seconds&quot;: perf_counter() - started,
+            &quot;batch_metrics&quot;: batch_metrics, &quot;feature_metrics&quot;: feature_metrics,
+            &quot;data_statistics&quot;: data_statistics}
 </pre></section></main></div><script>
 function markWideTables(){document.querySelectorAll('.table-scroll').forEach(function(t){var note=t.previousElementSibling;if(!note||!note.classList.contains('wide-table-note')){note=document.createElement('p');note.className='wide-table-note';note.textContent='宽表可左右滚动查看完整列；也可聚焦表格后使用方向键。';t.before(note);}note.hidden=!(t.clientWidth>0&&t.scrollWidth>t.clientWidth);});}
 function restoreSection(){var id=window.location.hash.slice(1);if(!/^section-[0-9]+$/.test(id))return;var section=document.getElementById(id);if(!section)return;section.querySelectorAll('details').forEach(function(d){d.open=true;});section.scrollIntoView({behavior:'instant',block:'start'});}

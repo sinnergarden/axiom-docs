@@ -1340,6 +1340,31 @@ timezone、fit/model/inference 本地时间和 aware evaluation_cutoff 全部显
 
 成功模型与 HIT 阶段的逻辑 OwnedStore 返回文件字节分别为 427,079,668 与 443,213,954；前者另观测到 Data Snapshot 完整读取 358,875,550 字节，后者无新的 Data 完整文件读取。Data Parquet 物理读字节不由这些计数证明。23,363 个原文件 epoch 与 89 个此前尝试文件 epoch 均保持原值。原 255 折、7 份保存评价、Data 进程和原数据根保留；真实两个 owner 的共同样本比较与 300 列补验尚未执行。PR13 和 PR14 仍为 draft，后者仅承载四文件生命周期修复，基线相对 main 的 79 个提交仍需单独整合审阅。
 
+#### 2026-10-11 显式共享 owner 的保存模型验收
+
+主协调亲读 PR15 的固定 `8881882` 后，批准一次总 wall 不超过 300 秒的有界补验，优先使用已有保存模型。先以控制件核对完整模型定义完全相同，再从 [Notebook §14.6](../../notebooks/ml_engineering_tutorial.html#cell-26) 的实际保存函数进入已有公共 API。Data ColumnSource、Feature view 和 COMPLETE Batch 各只打开一次，模型调用循环留在这些 owner 内。对同一 cohort 换模型参数可继续使用 Batch；换特征子集应在保留的 Feature/ColumnSource 内通过原 preparation owner 创建新 cohort，相邻窗口则用其原 `next_fold()` 顺序推进。推荐流程不能把每次重开所有 owner 的 `prepare_models` 称作会话内迭代。
+
+该真实保存模型补验通过。冷打开 owner 合计 25.03 秒，首次保存模型核验与冻结 20.67 秒，同 owner 第二次调用 1.59 秒。两次完整返回身份完全一致，原模型和预测引用保持原值；两个 builder 都报告 HIT，fit/predict 均为 0，保护后端也没有被调用。整个进程 47.84 秒，采样峰值 RSS 5.08 GiB，新增路径文件约 7.74 MiB。23,363 个原冻结文件与 362 个已有保存文件的 epoch 均保持原值，受监控子进程已退出。
+
+第二次 OwnedStore 调用没有重读或重新 hash Feature 和准备输入，仍读/hash 原模型输出 4,091,378 字节。窗口准入一次，后续借用一次，评价投影两次，训练矩阵 gather 为 0。这些逻辑计数不包含 writer 侧验证及全部 Data IO，Data Parquet 物理读取量仍未测量。完整工程摘要见 [本轮验收](../../reports/research-shared-owner-acceptance-20261011.json)。冷打开和首次验证成本仍需单列；此前 83.79 秒的重开 owner HIT 保持历史记录，两个阶段的观察器和源码不同，不据此声称单因素性能提升。
+
+这次由公开 `load_stock_ml_batch_inputs` 载入原 COMPLETE Batch 字典，冻结回执内嵌该完整文档。它验证了 `8881882` 的保存模型与重复冻结入口；新 checkpoint 转为 COMPLETE 的冷准备边界继续由前述小例覆盖，没有重做此前真实首次 fit。旧 definition/batch 差异的两份产物仍保留，原字段未改。两份真实 cohort 的共同样本比较和真实 300 列验收尚未执行；PR15 的独立审阅和整体源码整合也不能由这个单 fold 结果替代。
+
+#### PR14/15 之前基线的集成依赖与审查范围
+
+2026-10-11 只读核实，Research 远端 main 仍为 `3ef34fea99473716cd03c217a8a0af1629ad67d0`。基线 `4c46294` 相对该 main 为 79 个提交、105 个文件，不能仅审 PR14 的四个文件和 PR15 的三个文件就认为整个基线获准整合。[完整基线比较](https://github.com/sinnergarden/axiom-research/compare/3ef34fea99473716cd03c217a8a0af1629ad67d0...4c462948d7fe622a71fbb74623db5c2ada47246a) 可逐项审阅公开代码与测试。PR13 仍是 head `32bbb478`、base main 的 draft，只涵盖较早的矩阵输入增量；PR14 以 `4c46294` 为 base，PR15 以 `3a69a44` 为 base。三个 PR 的 GitHub reviews 当前均为空；主协调在会话中的固定源码亲审与 GitHub 平台审批记录分别保留。
+
+| 集成项 | 固定来源与审查证据 | 当前边界 |
+|---|---|---|
+| Data 公共列来源 | `e457372950f30ab36cce743dbdb6633f0147e033`，`codex/data-column-source-v1-20261008`，版本 0.3.8；Research 使用 `Data.open_column_source`、select/adjust 及固定 Snapshot/Query 证据 | 本轮只读绑定该开发源码，未声称 wheel 或 main 已含相同实现 |
+| Engine 原 Core/信号入口 | `1fa97878fda28769bbf1fea4ca37e7bdfbaa4524`，`codex/engine-m1-signal-contract-20261008`，版本 0.3.1；Feature、Forward Returns、截面归一化与 SignalEval 使用原 Core | 本轮不执行数学、统计或账户；原 Core API 与来源约束继续适用 |
+| 冷准备与逐 fold 交接 | `d5cfbe3` 的 writer epoch/冷 batch 闭包是原 255 折真实保存生产源码；配置接线来自 `e3b2b21`，列 as-of 与入口来自 `292d1c9` | 原 producer 与保存证据保留，不能把旧 255 折标为 `4c46294` 或 `8881882` 的新执行 |
+| 独立目标、跨 owner、短配置 | `9750750`、`78fe119`、`192ec63` 依次增加独立评价 Label、显式多 owner 和周 schedule/选列评价；源码可沿完整比较逐项查看 | 各里程碑证据按当时输入和 source 解释，整体 79 提交仍需整合审阅 |
+| `4c46294` 准入与预算修正 | 此前主协调亲审和独立复审记录保留；准确修正件的 28 项定向测试通过，约 7.14 秒，另有 `192ec63` 的旧 32 项记录 | 两份测试不能相加称作一个完整套件；GitHub 上未推断整个基线已有批准 |
+| 生命周期与 COMPLETE 回执 | [PR14](https://github.com/sinnergarden/axiom-research/pull/14) 固定 `3a69a44` 的 21 项检查与真实三列 first/HIT；[PR15](https://github.com/sinnergarden/axiom-research/pull/15) 固定 `8881882` 的 12 项小例及本次保存模型同 owner 补验 | 本轮没有 merge、发布新 wheel 或改旧 wire，私人模型与数据留在本地 |
+
+Research 0.2.6 声明 `axiom-engine>=0.3.0`，配置可选依赖 PyYAML，构建/ML 可选依赖 `axiom-data>=0.3.4` 与 pyarrow，模型还固定 Qlib 0.9.7 和 LightGBM 4.7.0。本次准确运行环境是 Python 3.12.14、numpy 2.3.5、pandas 2.2.3、pyarrow 23.0.1，并直接绑定上述 Data/Engine 开发源码。包版本下限并不证明这些分支接口已经进入发布包，后续整合须同时核对具体源码。
+
 ## 12. 最小验收标准
 
 | ID | 情景 | 必须结果 |
