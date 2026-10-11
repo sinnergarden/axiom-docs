@@ -795,7 +795,32 @@ for fold in folds:
     training, predictions = validate_spec(fold, calendar)
     print(f&quot;fit={fold[&#x27;fit_session&#x27;]}，训练 {len(training)} sessions，&quot;
           f&quot;OOS={fold[&#x27;oos_trade_sessions&#x27;]}，预测={predictions}&quot;)
-</pre></details></section></main></div><script>
+</pre></details></section><section id="cell-26" class="markdown"><h3>14.6 对一个冻结 fold 更换模型特征并复用</h3>
+<p>下面的函数将调用交给 Research 已有的 <code>examples/stock_sequential_experiment.py:prepare_models</code>。调用方明确提供一个冻结 fold、固定 Snapshot、保存 Feature、原 Label/model YAML 和选中的特征，因此不会展开其他 fold。Feature 和 Raw Label 由原 owner 读取，训练、预测和冻结输出仍走公开入口。</p>
+<p>把参数字典传给 <code>prepare_selected_fold(**arguments)</code>，随后以同一字典再次调用，可以核验保存引用和缓存复用。本轮从这个保存单元定义并调用该函数：固定 <code>3a69a44</code> 的单 fold 三特征首次调用 106.21 秒，fit/predict 各 1 次；同配置 HIT 83.79 秒，Data select/adjust、Raw、归一化和 fit/predict 均为 0。Batch、模型、预测和 Engine 交接引用相同。调用耗时包含核验与观察器成本，HIT 仍读取保存 Feature 和目标控制件。</p>
+<p>严格的完整结果复现保持 PARTIAL：首次冻结回执引用 <code>definition.json</code>，HIT 引用 <code>batch.json</code>，因而冻结评价输入身份不同。两份保存件的其他元数据与日切片摘要相同。隔离修正 <code>8881882</code> 在完成时核验最终 manifest，统一回执来源，并保持原 definition 和最终 batch 的变更检查；小型完整 first/HIT 与来源变更负例通过，真实保存件补验尚待源码审阅。旧产物保留，没有重训原 255 折。</p>
+<p>一次全局 Python 观察器覆盖 Snapshot 图计量，605.19 秒后主动停止；仅 Data.open 1 次、训练等均为 0，成本与失败记录留存。修正观察器后的完整首次/HIT 进程耗时 192.54 秒，峰值 RSS 5.23 GiB，新增产物约 49.38 MiB。资源额度、进程 RSS 与读取字节分别记录，Data Parquet 物理读取量未测量。私有路径、数据、模型结果和完整引用留在本地验收件。原 26 个单元的源码、输出和执行次数均保留；HTML 从保存 Notebook 生成。准确范围见 <a href="../docs/design/05_axiom_research.md#114-%E6%9C%AC%E5%9C%B0%E5%A2%9E%E9%87%8F%E9%AA%8C%E6%94%B6%E4%B8%8E%E7%9C%9F%E5%AE%9E%E8%A1%A5%E9%AA%8C%E8%BE%B9%E7%95%8C">Research §11.4</a>。</p>
+</section><section class="example" data-cell-id="research-onefold-reuse-call"><div class="example-label">单 fold 的公开 owner 调用</div><pre class="code">def prepare_selected_fold(research_checkout, data, *, snapshot, data_limits,
+                          configuration_paths, saved_feature, fold_spec,
+                          prepare_options, signal_scope, output,
+                          model_feature_selection, signal_contexts,
+                          metrics, progress):
+    &quot;&quot;&quot;Run one explicitly supplied frozen fold through the existing owner API.&quot;&quot;&quot;
+    from pathlib import Path
+    from runpy import run_path
+
+    prepare_models = run_path(
+        str(Path(research_checkout) / &quot;examples&quot; / &quot;stock_sequential_experiment.py&quot;)
+    )[&quot;prepare_models&quot;]
+    return prepare_models(
+        data, snapshot=snapshot, data_limits=data_limits,
+        configuration_paths=configuration_paths, saved_feature=saved_feature,
+        frozen_fold_specs=[fold_spec], prepare_options=prepare_options,
+        signal_scope=signal_scope, output=output,
+        model_feature_selection=model_feature_selection,
+        signal_contexts=signal_contexts, metrics=metrics, progress=progress,
+    )
+</pre></section></main></div><script>
 function markWideTables(){document.querySelectorAll('.table-scroll').forEach(function(t){var note=t.previousElementSibling;if(!note||!note.classList.contains('wide-table-note')){note=document.createElement('p');note.className='wide-table-note';note.textContent='宽表可左右滚动查看完整列；也可聚焦表格后使用方向键。';t.before(note);}note.hidden=!(t.clientWidth>0&&t.scrollWidth>t.clientWidth);});}
 function restoreSection(){var id=window.location.hash.slice(1);if(!/^section-[0-9]+$/.test(id))return;var section=document.getElementById(id);if(!section)return;section.querySelectorAll('details').forEach(function(d){d.open=true;});section.scrollIntoView({behavior:'instant',block:'start'});}
 window.addEventListener('load',function(){markWideTables();restoreSection();});window.addEventListener('hashchange',restoreSection);window.addEventListener('resize',markWideTables);document.addEventListener('toggle',markWideTables,true);

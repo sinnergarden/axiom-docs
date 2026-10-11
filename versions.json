@@ -150,6 +150,57 @@
         "frozen_previous_run_source": "d5cfbe30c84ec108e8ba3b32eadfbd5f82167769",
         "real_acceptance_status": "PARTIAL: independent5D exact outcome and baseline prediction comparison, 5D/3D evaluation, six100/six50 shared Dataset and model/report HIT passed; three-column normalization rejected before allocation by combined6GiB; two real owners pending",
         "source_tree": "18385b9851a1d046c3e4c99c87472ae5e663c208"
+      },
+      "feature_fact_lifecycle_candidate": {
+        "source_commit": "3a69a44c80a933f46488b9bffb1dcac23e61b500",
+        "version": "0.2.6",
+        "pull_request": "https://github.com/sinnergarden/axiom-research/pull/14",
+        "status": "DRAFT_PR_PARENT_READ_REAL_ONEFOLD_PARTIAL_FROZEN_INPUT_IDENTITY_DRIFT",
+        "prior_targeted_tests": 21,
+        "prior_targeted_seconds": 121.352,
+        "real_onefold": {
+          "first_seconds": 106.211355375126,
+          "hit_seconds": 83.78973779198714,
+          "first_fit_calls": 1,
+          "first_predict_calls": 1,
+          "hit_fit_calls": 0,
+          "hit_predict_calls": 0,
+          "first_Data_select_calls": 4,
+          "hit_Data_select_calls": 0,
+          "first_Data_adjust_calls": 2,
+          "hit_Data_adjust_calls": 0,
+          "first_raw_cache_hits": 9,
+          "first_raw_math_calls": 0,
+          "first_normalization_calls": 1,
+          "Feature_rebuild_calls": 0,
+          "supplier_calls": 0,
+          "account_calls": 0,
+          "model_and_Signal_handoff_identity": "equal",
+          "frozen_evaluation_input_identity": "different definition.json versus batch.json receipt source",
+          "end_to_end_seconds": 192.535249292,
+          "sampled_peak_tree_RSS_bytes": 5615108096,
+          "new_path_bytes": 51783707,
+          "private_results": "local_only",
+          "physical_parquet_read_bytes": "NOT_MEASURED"
+        },
+        "aborted_observer": {
+          "seconds": 605.1854948749999,
+          "actual_Data_open_calls": 1,
+          "fit_predict_Raw_Feature_account_calls": 0,
+          "reason": "global profiler covered Snapshot graph sizing; stopped own child; retained actual cost"
+        },
+        "notebook": "One new callable definition cell used by the real first/HIT caller; original26 cells and outputs retained; HTML render only",
+        "oos_root_fix_candidate": {
+          "source_commit": "8881882bc594f4bf99572c876d15eef008f95ebf",
+          "status": "LOCAL_COMMIT_REVIEW_PENDING_REAL_NOT_RERUN",
+          "files": 3,
+          "targeted_tests": 12,
+          "targeted_seconds": 12.878,
+          "affected_post_dedup_tests": 2,
+          "affected_post_dedup_seconds": 2.692,
+          "public_wire_fields": "unchanged"
+        },
+        "integration": "PR13 and14 remain draft;79 base commits relative to main are not approved for integration; no merge/new wheel"
       }
     },
     "axiom-engine": {

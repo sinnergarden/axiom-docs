@@ -84,3 +84,5 @@ ML工程页默认四代码单元只读取冻结教学回执与新fold交付回�
 执行输出只在本地副本保存。256周warm约42.72min要求父件全准备且proof规模相近；
 每cutoffLabel/norm、冷准备、证明扩张、账户与展示另计，总上界未知。历史固定窗66min不当最终滑窗估计。
 详见 [ML工程§12](ml_engineering_tutorial.html#section-12)，无全年/五年实跑。
+
+2026-10-11，ML 工程教程 §14.6 新增实际调用的单 fold 函数，复用原 Research `prepare_models`。三列首次模型与同配置 model/Signal HIT 完成，冻结评价输入回执的 definition/batch 来源差异使完整身份验收保持 PARTIAL；`8881882` 的隔离修正已通过小型检查，待源码审阅和保存件补验。原 26 个单元和输出保留，HTML 从保存 Notebook 生成，私有产物留在本地。

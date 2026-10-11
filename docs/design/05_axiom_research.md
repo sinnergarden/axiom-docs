@@ -1328,6 +1328,18 @@ timezone、fit/model/inference 本地时间和 aware evaluation_cutoff 全部显
 
 模型 warm 必须在同一当前实现内验收。现 builder 将 Research、Core、Data 的整体实现字节纳入身份，加载旧模型不执行训练，但拿新源码重建旧定义可能 MISS；不得把这个重建当作必然 HIT。新参数对照不称 booster 增量续训。Raw reuse 仍要求完整原 fold 集合及一致 query plan，不能截取 255 折后伪装成原 owner；若没有可直接复用的短批次，单 fold 目标与选列准备应另计 Data、Raw 和归一化成本，经主协调安排后才执行。此前冻结账户尝试及后续新账户准入由 Engine owner 和主协调确认。
 
+#### 2026-10-11 单 fold 三特征与冻结回执补验
+
+主协调亲审 `3a69a44` 后授权补验同一个冻结 fold。该增量只在窗口内共享一次已核验的行事实，并在转换后释放原 native JSON；不同 validity、clock 和 reason 的事实仍保留原值。此前 21 项定向检查已经通过，本轮没有重复套件。300 列的工程小例保留其原性质，没有新的真实宽表性能验收。
+
+[ML Notebook §14.6](../../notebooks/ml_engineering_tutorial.html#cell-26) 提供已执行的 `prepare_selected_fold` 函数。它直接调用已有 `prepare_models`，明确接收冻结 fold、保存 Feature、typed Label/model YAML、选列与预算。真实执行仅消费一个 fold 的三列模型；9 个既有 Raw 块全部 HIT，Raw 数学计算为 0，归一化 1 次，fit/predict 各 1 次。首次调用 106.21 秒，同配置 HIT 83.79 秒；HIT 的 Data select/adjust、Raw、归一化与 fit/predict 全为 0。Batch、模型、预测和 Engine 的原交接字段一致。
+
+完整输出身份验收仍为 PARTIAL。首次冻结的准入回执引用 `definition.json`，完整 owner 的 HIT 引用 `batch.json`，造成冻结评价输入引用不同；其余元数据及日切片摘要相同。隔离修正 `8881882` 在 owner COMPLETE 后读取、核验最终 batch 与当前 manifest 相同，再将回执与闭包统一到该最终来源。原 definition 的 epoch 仍守护至发布，最终 batch 也纳入变更检查。该候选通过 12 项小型 first/HIT、来源变更与生命周期检查；源码仍待主协调和独立审阅，没有在候选上再次训练真实模型。旧 wire 字段及两份历史产物均保留。
+
+本次授权保留 source 16 GiB、新产物 2 GiB 和累计实际受监控执行 60 分钟；联合矩阵改为 8 GiB、进程树 RSS 改为 10 GiB，单次超时 900 秒。Data 工作额度包含其 2.625 GiB 来源缓存，工作上限 4.4375 GiB；Research resident 上限 1.5 GiB，调用方余量 64 MiB。修正观察器后的完整进程为 192.54 秒，采样峰值 RSS 5.23 GiB，新增产物约 49.38 MiB。一次错误的全局观察器在 Snapshot 图计量处中止，用时 605.19 秒，仅 Data.open 1 次；这笔成本单独保留并计入累计额度。
+
+成功模型与 HIT 阶段的逻辑 OwnedStore 返回文件字节分别为 427,079,668 与 443,213,954；前者另观测到 Data Snapshot 完整读取 358,875,550 字节，后者无新的 Data 完整文件读取。Data Parquet 物理读字节不由这些计数证明。23,363 个原文件 epoch 与 89 个此前尝试文件 epoch 均保持原值。原 255 折、7 份保存评价、Data 进程和原数据根保留；真实两个 owner 的共同样本比较与 300 列补验尚未执行。PR13 和 PR14 仍为 draft，后者仅承载四文件生命周期修复，基线相对 main 的 79 个提交仍需单独整合审阅。
+
 ## 12. 最小验收标准
 
 | ID | 情景 | 必须结果 |
