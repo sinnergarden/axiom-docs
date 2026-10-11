@@ -1,0 +1,7 @@
+# Quantity constraints for a historical stock union
+
+The short OOS case uses the unchanged frozen union of 569 securities, including securities that were not listed on every account session. Core/4 currently builds the strategy's complete quantity-constraint map by calling the order eligibility lookup for every security. That lookup correctly rejects an unlisted security, but the map also includes nonmembers that cannot become orders. As a result, an otherwise valid Top5 decision fails before selection.
+
+The fix supplies the complete map from each security's frozen board and the source-backed quantity-rule interval for the trade session. It still requires the verified rule window. The existing member/listing consistency check and the separate rule lookup for every actual selected or held order continue to enforce listing eligibility. The frozen union, saved prediction identities, strategy contract, fees, prices and account executor keep their established meanings.
+
+This is an adapter defect correction. It changes the Engine implementation reference and therefore gives fresh results new identities. Saved accounts remain loadable with their original identities; no saved account is rewritten. Validation covers a future-listed nonmember that must allow a decision, a contradictory future-listed member that must still fail, the strategy and lifecycle suites, and the same short OOS input. The successful short Native delivery is reused for the fresh execution.
