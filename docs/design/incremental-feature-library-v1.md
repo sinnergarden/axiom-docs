@@ -1,6 +1,6 @@
 # 增量特征库：今晚实施方案
 
-`draft`，2026-10-11。协调方已审 Engine `9a796740433fb7353745bddeddb5d31555fd94dd` 与 Research `6e4a7b5aff80f1c9e2d161aeffe5c83bb7910c90`，实现分别位于 [Engine PR34](https://github.com/sinnergarden/axiom-engine/pull/34) 与 [Research PR18](https://github.com/sinnergarden/axiom-research/pull/18)。真实小例已通过 Feature 子集复用、增列增日和 Core 对照，并完成 H1 标签、两次不同模型训练及新预测；账户和评价尚未启动，当前阻塞在原生市场输入的新增产物预算。全历史完成时间仍需按实际吞吐测量。
+`draft`，2026-10-11。协调方已审 Engine `9a796740433fb7353745bddeddb5d31555fd94dd` 与 Research `6e4a7b5aff80f1c9e2d161aeffe5c83bb7910c90`，实现分别位于 [Engine PR34](https://github.com/sinnergarden/axiom-engine/pull/34) 与 [Research PR18](https://github.com/sinnergarden/axiom-research/pull/18)。真实小例已通过 Feature 子集复用、增列增日和 Core 对照，并完成 H1 标签、两次不同模型训练、新预测以及两个独立 Top5 账户和评价。协调方随后批准本文的紧凑 view 与日期覆盖索引改造；布局修正固定 Engine `df9d56a38230f3af488f7abee5b080ba5f19f3b2` 与 Research `0fa5b62d60964db3b16b8124c2f77ac03999406b`，待集中 review，完整七年 Feature 尚未执行。全历史完成时间仍需按实际吞吐测量。
 
 **Owner 与接口。** Data 管事实、成员和 PIT；Core 保留唯一数学；Research 管定义、Release、独立可读配置及实验记录。Engine 新 `feature_library` 外围包管覆盖查询、缺口执行、保存和矩阵投影，Core 仍无 I/O。这是[总纲边界](01_axiom_overview.md#module-boundaries)的待审增量：从现 storage/`VerifiedMatrixStore` 抽取共享 buffer/hash/mmap 与文件生命周期实现；Research 保留 label/fold 准入和公共入口，薄调用 Engine，不整库搬 reader。
 
@@ -10,7 +10,7 @@ Engine 的 `FeatureLibrary` 在构造时接受读取、工作区和列块预算�
 
 用现 `normalized=False` 默认准备 raw/base；raw DAG 含 CS 时仍绑定池。固定参考池下筛训练/交易行只做投影，改池只重算相关 CS 闭包。现88列可用于相同参考池的 normalized 扩展；首次 raw 准备属于另一个 stage，不能从旧 zscore 反推。性能变化须证明等价；语义修复只失效受影响闭包，保留旧件审计。
 
-**保存与迁移。** 延用内容寻址 buffers、原子分区，增加可重建的小型列覆盖索引。分区有局部日期/证券轴和列语义身份，view 显式投影到请求轴/schema。88列一年扩到100列两年时，只算 `旧日期×12新增列 ∪ 新日期×100列` 及所需输入历史，旧 buffer/分区 refs 不变。无覆盖项表示未计算，已发布 validity/reason 表示计算后缺值。分区核验后才原子更新索引，中断后从封存分区恢复。旧 loader/refs 保留；新布局显式启用，旧矩阵仅在原准入通过后作为带原轴/身份的只读叶子接入，不重签旧件。
+**保存与迁移。** 延用内容寻址 buffers、原子分区，增加可重建的小型列覆盖索引。分区有局部日期/证券轴和列语义身份，view 显式投影到请求轴/schema。88列一年扩到100列两年时，只算 `旧日期×12新增列 ∪ 新日期×100列` 及所需输入历史，旧 buffer/分区 refs 不变。无覆盖项表示未计算，已发布 validity/reason 表示计算后缺值。每个输出日封存分区和日期覆盖件，请求结束后一次原子发布小根索引。中断后核验已封存分区及实际 buffers 再恢复，临时半成品不能进入覆盖。旧 loader/refs 保留；新布局显式启用，旧矩阵仅在原准入通过后作为带原轴/身份的只读叶子接入，不重签旧件。
 
 **结构性提速。** [producer](https://github.com/sinnergarden/axiom-research/blob/c70afc8acfe26b3d8a6b18beaf68432a17ae1a94/src/axiom_research/stock_feature_column_producer.py) 将 packed 数组展开再打包，[准入](https://github.com/sinnergarden/axiom-research/blob/c70afc8acfe26b3d8a6b18beaf68432a17ae1a94/src/axiom_research/stock_matrix_feature_column_metadata.py) 逐 cell 切片 hash。优先让 Core 数组直达有界日期/列块，冻结连续 bytes 后 hash/写入，按同一物理块验证，只在取行时展开。新 proof 按块绑定，整列块拼接不能冒充旧逐行哈希顺序。source 改成有界只读块，物理输入块解码与编译/调度复用；历史需求复用 `required_history`/`_needed`。保留连续日历与每输出日 anchor/cutoff，不以月末 anchor 替代含绝对常量的 KMID2/RSV 输入。
 
@@ -43,6 +43,16 @@ Feature 进程峰值 RSS 为 0.79GiB。含失败准备回执的全部新增小�
 
 四列、10 棵树和两列、5 棵树各训练一次，均保存了真实 LightGBM booster、模型和新预测；各用五个成熟日期、1,500 行训练数据，输出 1,138 行完整预测网格，其中两日共 600 行有效。两次的 Feature Core 调用均为 0。四列的 view 准入及标签准备耗时 5.59 秒，随后 fit/predict/保存信号合计 2.31 秒；两列对应为 3.79 和 0.54 秒。既有组合入口未单独保留 backend fit 与 predict 的计时，不能将这些合计数字冒充独立 backend 耗时。
 
-账户输入的原生导出随后在保存 coverage 时拒绝 128MiB 导出配额。固定 Snapshot 的 price-limits coverage 约 117MiB、corporate-actions coverage 约 196MiB，既有接口会完整保存这些全局证据；两份合计 313MiB，尚未计入小例已有的约 24MiB 产物和其他输入，已超过协调方保留的 256MiB 新增总预算。因此账户和评价没有启动，重进程已退出，Feature、标签、模型和预测全部保留。下一步需协调原生输入的保存预算或既有只读复用入口，再接续原 Engine 账户；不重算 Feature 或重新训练。
+协调方随后把 native 导出预算改为 1GiB、新增总产物预算改为 2GiB，同一小例继续使用已保存 Feature、模型和预测。原生市场输入按三个交易日的精确 scope 导出，产物约 320.24MiB，耗时 68.41 秒。原较长窗口的 Native 文件不能直接冒充这个短 scope，因为正式 reader 核验成员、市场、复权、涨跌停范围及事件 cutoff。private runner 曾因 JSON 保存形式不符合正式 reader 的 canonical 要求失败；修正保存形式后复用同一 Native delivery 接续，没有重导出或修改平台数学。
 
-当前仍未接入旧 88 列 normalized 母矩阵，尚未证明 CSI1800 历史并集，亦未测量全历史索引和预计算吞吐。
+两个独立 Top5 账户均已完成，且已保存最小评价。市场冷打开和 Engine 准入合计 149.06 秒，其中 Engine 来源审计 3.16 秒、capture 1.93 秒，其余主要属于 Native 实际文件核验与重放。四列模型的预测准入、账户和评价分别为 0.68、0.12、0.56 秒；两列模型分别为 0.60、0.11、0.56 秒，市场 owner 记录了一次 basis 复用。账户阶段 Feature、fit 和 predict 调用均为 0。所有重进程已退出，完整小例累计新增产物约 344.52MiB，最高进程 RSS 为 4.36GiB。
+
+**七年元数据布局修正。** 旧 v1 view 对每个日期×列复制整个块摘要，16 列块内重复 16 次；2242日×88列仅两类哈希字符串就至少 427,881,216 bytes，已经超过默认64MiB父件限制。旧覆盖索引每个输出日全量重写；按等量增长，2242日累计写量是最终单层索引的1121.5倍。不能通过扩大父件限制掩盖这个成本。
+
+新 v2 view 对每个选中块只保存一次原分区 descriptor 和日期、列选择。语义、依赖和完整来源凭证留在原分区；日期覆盖件只保存局部覆盖摘要，根只引用不可变日期件。`FeatureView.column_receipts(session, columns)` 从实际分区核验并返回来源凭证，Research 的 CS 与训练兼容性适配通过这个公开方法读取。规划尚未投影的日期使用短期 metadata owner，避免把全年父件积累到一个 owner 后反复核验所有旧日期。数学、日 anchor/cutoff、原 buffer/partition refs 和 Source/PIT 验证保持原口径。新 transport refs 明确属于 v2，旧 v1 view 仍可读取，旧产物不重签。
+
+元数据级检查采用全部88个登记 A01 normalized DAG 定义、2242日、3497证券和16列块，分区引用及来源 profile 为合成输入；没有读取 Data 或执行 Feature。半期1121日的 root/view 为442,942 / 4,092,430 bytes，全期为885,737 / 7,705,413 bytes，最大日期父件18,727 bytes，均低于原64MiB上限。两次检查点共写2242个日期件、2个root、2个view；保留的覆盖/view元数据54,669,514 bytes，总写入55,112,456 bytes。两者均不包含既有不可变 Core 分区 headers/buffers，不能当作全历史库的总磁盘用量；这次检查证明新增 transport 随日期线性增长，并不证明全期真实吞吐。
+
+另以原三个真实小例的已保存 v1 件，只读生成独立 v2 视图，五类数组、原因/来源字典与分区 refs 均完全一致，未调用 Data、Core 或训练。八个针对性用例覆盖原六项复用/身份检查、旧 v1 冷读取及元数据迁移、规模与读前大小限制；同一中断用例确认完整分区可恢复、临时 JSON 不可见。训练仍沿用既有一次导出并打开全期 Feature owner、各 sequential fold 共享的机制，不新增逐 fold 导出路径。
+
+当前仍未接入旧 88 列 normalized 母矩阵，尚未证明 CSI1800 历史并集，亦未测量真实全历史预计算吞吐和总磁盘用量。
