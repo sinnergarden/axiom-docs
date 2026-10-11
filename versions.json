@@ -723,9 +723,10 @@
       "synthetic_execution": true,
       "saved_combination_report": "reports/ml-engineering-saved-combination-integration-20261011.json",
       "real_saved_signal_statistics": "two original models and Derived; five dates,296 pairs/date,min20; all IC/RankIC/IR finite",
-      "real_combination_account": "BLOCKED at profile/rules scope; no account executed",
-      "local_path_configuration": "prepared privately; default read; six config roles; original refs; Engine result fields pending",
-      "native_strategy_wiring": "original exported StockNativeViewSource; file/native tiny synthetic save/load PASS"
+      "real_combination_account": "PASS matching real six-day Query/profile/rules; 5 NAV/5 orders/5 fills; public saved projection load PASS; full fiveyear pending",
+      "local_path_configuration": "prepared privately; default read; six roles; bounded saved account wired; full account/evaluation pending",
+      "native_strategy_wiring": "original exported StockNativeViewSource; file/native tiny synthetic save/load PASS",
+      "implementation_migration": "fixed c890 acceptance; final Engine needs Derived regeneration from saved raw predictions without retraining"
     }
   },
   "bulk": {
