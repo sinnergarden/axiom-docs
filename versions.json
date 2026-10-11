@@ -6,6 +6,24 @@
   },
   "implementations": {
     "axiom-data": {
+      "reviewed_ordinary_shareholder_entitlements_source": {
+        "source_commit": "eb9d32652d8d10e439c749cd259801ee9f8632fd",
+        "reviewed_base": "e4109ad00be5b79dfc66176ad4200b599ae627c7",
+        "branch": "codex/data-ordinary-entitlements-v1-20261011",
+        "scope": "Public scoped producer binds reviewed ordinary-holder net entitlements and necessary source dependencies to compatible v1 execution facts; issuer totals and immutable supplier Snapshot remain independent",
+        "parent_source_review": "passed_for_fixed_e410_to_eb9_delta",
+        "independent_review": "passed_for_fixed_e410_to_eb9_delta",
+        "integration_status": "merged_to_main_via_parent_reviewed_pr",
+        "merge_commit": "b743b704aba1232941f98dc2b338c6261fd3d8fb",
+        "merge_first_parent": "718f8a89c43198c12de81995ad241728c4b6d627",
+        "pull_request": "https://github.com/sinnergarden/axiom-data/pull/48",
+        "source_tree": "47b380d52d94e93cb7c6bf155ae408ec27a02db4",
+        "source_tree_unchanged_after_merge": true,
+        "first_parent_delta": "Only producer, lazy public export, synthetic tests and producer documentation; four files and 595 added lines",
+        "availability_basis": "mixed_reviewed_sources_v1 explicitly retains vendor historical assumptions; each reviewed event uses the maximum necessary dependency boundary with actual receipts retained separately",
+        "execution_status": "Source and synthetic boundary checks complete; full-account execution and acceptance remain separate Engine-owner work",
+        "package_status": "Existing installed package and builder identities retained; no new wheel or installation claim"
+      },
       "reviewed_corporate_actions_v3_source": {
         "source_commit": "e4109ad00be5b79dfc66176ad4200b599ae627c7",
         "reviewed_base": "e457372950f30ab36cce743dbdb6633f0147e033",
