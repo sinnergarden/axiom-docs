@@ -1,6 +1,6 @@
 # 增量特征库：今晚实施方案
 
-`draft`，2026-10-11。协调方已审 Engine `9a796740433fb7353745bddeddb5d31555fd94dd` 与 Research `6e4a7b5aff80f1c9e2d161aeffe5c83bb7910c90`，实现分别位于 [Engine PR34](https://github.com/sinnergarden/axiom-engine/pull/34) 与 [Research PR18](https://github.com/sinnergarden/axiom-research/pull/18)。真实小例已通过 Feature 子集复用、增列增日和 Core 对照；标签、训练、策略及评价尚未完成，当前阻塞在旧 Data Snapshot 的内存准入。全历史完成时间仍需按实际吞吐测量。
+`draft`，2026-10-11。协调方已审 Engine `9a796740433fb7353745bddeddb5d31555fd94dd` 与 Research `6e4a7b5aff80f1c9e2d161aeffe5c83bb7910c90`，实现分别位于 [Engine PR34](https://github.com/sinnergarden/axiom-engine/pull/34) 与 [Research PR18](https://github.com/sinnergarden/axiom-research/pull/18)。真实小例已通过 Feature 子集复用、增列增日和 Core 对照，并完成 H1 标签、两次不同模型训练及新预测；账户和评价尚未启动，当前阻塞在原生市场输入的新增产物预算。全历史完成时间仍需按实际吞吐测量。
 
 **Owner 与接口。** Data 管事实、成员和 PIT；Core 保留唯一数学；Research 管定义、Release、独立可读配置及实验记录。Engine 新 `feature_library` 外围包管覆盖查询、缺口执行、保存和矩阵投影，Core 仍无 I/O。这是[总纲边界](01_axiom_overview.md#module-boundaries)的待审增量：从现 storage/`VerifiedMatrixStore` 抽取共享 buffer/hash/mmap 与文件生命周期实现；Research 保留 label/fold 准入和公共入口，薄调用 Engine，不整库搬 reader。
 
@@ -39,4 +39,10 @@ Engine 的 `FeatureLibrary` 在构造时接受读取、工作区和列块预算�
 
 Feature 进程峰值 RSS 为 0.79GiB。含失败准备回执的全部新增小例产物约 11.87MiB，低于 256MiB 预算。六个有针对性的合成用例还证明了改参考池、修订输入、一次中断恢复和新 raw 字段补历史时的局部复用；这些合成证据不能冒充真实修订或通用新字段适配。
 
-真实纵向随后在既有 `Data.open_column_source` 的旧 Snapshot 准入处停止，尚无 fit、保存模型信号、新账户或新评价结果。仅打开 Data、尚未准入 saved Feature source 时，进程峰值也达到 4.41GiB，触发已声明的 4GiB RSS 保护。原 64MiB ColumnSource 缓存另曾在年度物理分区借用处拒绝；增加缓存并没有解决 Snapshot 的瞬时加载峰值。下一步须由协调方提供兼容且可容纳该 Snapshot 的 Data owner 或调整进程预算，再从已保存的 Feature view 接续标签/训练/信号/策略/评价；不重复 Feature 生产。当前仍未接入旧 88 列 normalized 母矩阵，尚未证明 CSI1800 历史并集，亦未测量全历史索引和预计算吞吐。
+真实纵向曾在既有 `Data.open_column_source` 的旧 Snapshot 准入处触发 4GiB 保护。协调方随后将同一小例的进程上限改为 12GiB、目标常态不超过 8GiB；未改 Data 格式，未重新生产 Feature。接续执行的 Data Snapshot 打开耗时 29.78 秒，saved source 冷准入另计 34.26 秒，进程峰值为 3.40GiB。实际物理输入最高占用约 211MiB，因此 ColumnSource 使用 512MiB 缓存；原 64MiB 缓存不够借用年度物理块。
+
+四列、10 棵树和两列、5 棵树各训练一次，均保存了真实 LightGBM booster、模型和新预测；各用五个成熟日期、1,500 行训练数据，输出 1,138 行完整预测网格，其中两日共 600 行有效。两次的 Feature Core 调用均为 0。四列的 view 准入及标签准备耗时 5.59 秒，随后 fit/predict/保存信号合计 2.31 秒；两列对应为 3.79 和 0.54 秒。既有组合入口未单独保留 backend fit 与 predict 的计时，不能将这些合计数字冒充独立 backend 耗时。
+
+账户输入的原生导出随后在保存 coverage 时拒绝 128MiB 导出配额。固定 Snapshot 的 price-limits coverage 约 117MiB、corporate-actions coverage 约 196MiB，既有接口会完整保存这些全局证据；两份合计 313MiB，尚未计入小例已有的约 24MiB 产物和其他输入，已超过协调方保留的 256MiB 新增总预算。因此账户和评价没有启动，重进程已退出，Feature、标签、模型和预测全部保留。下一步需协调原生输入的保存预算或既有只读复用入口，再接续原 Engine 账户；不重算 Feature 或重新训练。
+
+当前仍未接入旧 88 列 normalized 母矩阵，尚未证明 CSI1800 历史并集，亦未测量全历史索引和预计算吞吐。

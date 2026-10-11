@@ -87,9 +87,9 @@
     },
     "axiom-research": {
       "incremental_feature_library_candidate": {
-        "integration_status": "draft_pr_parent_reviewed_fixed_source_heads_real_feature_reuse_passed_vertical_blocked",
+        "integration_status": "draft_pr_parent_reviewed_fixed_source_heads_real_feature_reuse_training_signals_passed_account_blocked",
         "real_feature_case": "7 sessions x 569 securities x 4 columns; subset raw/CS compute zero; add one column/day computes gaps only; original Core exact eight-day comparison",
-        "real_vertical_status": "Data Snapshot admission exceeded 4GiB process guard before label/fit; strategy/evaluation not completed",
+        "real_vertical_status": "H1 labels, 10-tree four-column and 5-tree two-column models plus new predictions completed with Feature Core calls zero; account native coverage exceeds 256MiB new-artifact cap, so account/evaluation not started",
         "full_history_completion_claim": false,
         "source_commit": "6e4a7b5aff80f1c9e2d161aeffe5c83bb7910c90",
         "pull_request": "https://github.com/sinnergarden/axiom-research/pull/18",
@@ -312,9 +312,9 @@
     },
     "axiom-engine": {
       "incremental_feature_library_candidate": {
-        "integration_status": "draft_pr_parent_reviewed_fixed_source_heads_real_feature_reuse_passed_vertical_blocked",
+        "integration_status": "draft_pr_parent_reviewed_fixed_source_heads_real_feature_reuse_training_signals_passed_account_blocked",
         "real_feature_case": "7 sessions x 569 securities x 4 columns; subset raw/CS compute zero; add one column/day computes gaps only; original Core exact eight-day comparison",
-        "real_vertical_status": "Data Snapshot admission exceeded 4GiB process guard before label/fit; strategy/evaluation not completed",
+        "real_vertical_status": "H1 labels, 10-tree four-column and 5-tree two-column models plus new predictions completed with Feature Core calls zero; account native coverage exceeds 256MiB new-artifact cap, so account/evaluation not started",
         "full_history_completion_claim": false,
         "source_commit": "9a796740433fb7353745bddeddb5d31555fd94dd",
         "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/34",
