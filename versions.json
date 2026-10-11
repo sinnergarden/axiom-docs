@@ -284,7 +284,7 @@
         "axiom-research": "58f807b8b6a51c31acf3c5ec1503f53de84d44c4",
         "axiom-engine": "1fa97878fda28769bbf1fea4ca37e7bdfbaa4524"
       },
-      "changes": "prose and links only; existing identity fields and implementation bindings retained",
+      "changes": "prose, specialist links and AGENTS navigation only; existing identity fields and implementation bindings retained",
       "execution": "no data query, rebuild, test or account rerun; existing small receipts and source differences inspected",
       "automatic_semantic_validity_gate": "not_confirmed; change owner records impact, coordinator reviews, execution owner checks before use"
     },
