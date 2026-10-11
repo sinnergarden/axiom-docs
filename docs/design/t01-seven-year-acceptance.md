@@ -32,6 +32,8 @@ evaluation_cutoff: '2026-03-09T20:30:00+08:00'
 
 先由 Data 冻结完整真实日历、历史成员及所需事实范围，再把实际 Feature 轴路径和文件摘要填入 dataset。manifest 中已有分区与保存 source 覆盖不足是不同的问题：先检查事实与观察范围，只为真实缺口请求供应商数据。旧保存 source 或旧结果仍保持其原范围和身份。
 
+本次冻结物理来源与库为 638 只证券，其中 32 只仅用于预热。库 owner 的原始 `sample_universe` 和正式训练 projection 为完整 606 只，dataset、保存预测及 StockMarketSpec 统一使用该轴。638 只物理来源保留，逐日历史成员 mask 保留；仅 OOS 的成员并集不替代完整训练轴。
+
 Research 的正式入口仍是 `examples/a01_one_year.py`。名称不限制配置区间；完整 options 引用 experiment、dataset、model、label 和真实保存来源。
 
 ```sh
