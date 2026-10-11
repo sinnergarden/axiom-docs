@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "Engine_source": "a7073aa2ef37ffe8c63b9e8938b6d7dd4370328f",
+  "Engine_merge": "4e65af8462949f674fa66d3f5f17ce06dc932568",
+  "Engine_tree": "c9a5388229900de877ecb56153292983f93fa3e4",
+  "implementation_ref": "sha256:72498f3dec45e717e03787f75d718e013ddd80b96d6b9cd80ab49ed819b4194f",
+  "counts": {
+    "Data_root_opens": 0,
+    "fit_predict": 0,
+    "feature_execution": 0,
+    "account": 0
+  },
+  "seconds": 132.928329374874,
+  "peak_self_rss_bytes": 428310528,
+  "rss_guard_bytes": 805306368,
+  "stages": [
+    {
+      "phase": "public Research rederive from identical frozen raw predictions",
+      "status": "PASS",
+      "seconds": 18.39226695895195
+    },
+    {
+      "phase": "public final Engine market plus old/new Signal admission; no Runtime account",
+      "status": "PASS",
+      "seconds": 114.33050604187883
+    }
+  ],
+  "kind": "FINAL_ENGINE_DERIVED_REGENERATION_AND_SIGNAL_ADMISSION",
+  "scope": "same real frozen two-model six-calendar-session/five-OOS-session scope",
+  "original_raw_predictions_models": "BYTE_UNCHANGED",
+  "scores_validity_and_original_parent_refs": "EXACT",
+  "old_c890_Derived": "REJECTED by existing implementation gate",
+  "new_final_Derived": "ADMITTED by public bind_stock_prediction_inputs",
+  "historical_c890_account": "UNCHANGED_NOT_REPLAYED; public read under final Engine PASS",
+  "new_account_run": false,
+  "signal_statistics": "not recalculated; prior c890 finite-statistics evidence retained",
+  "private_values": "signal/account/result identities, paths and financial values remain local"
+}
