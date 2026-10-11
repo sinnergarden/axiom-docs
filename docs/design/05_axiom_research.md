@@ -1320,40 +1320,52 @@ timezone、fit/model/inference 本地时间和 aware evaluation_cutoff 全部显
 
 主协调亲审 `3a69a44` 后授权补验同一个冻结 fold。该增量只在窗口内共享一次已核验的行事实，并在转换后释放原 native JSON；不同 validity、clock 和 reason 的事实仍保留原值。此前 21 项定向检查已经通过，本轮没有重复套件。300 列的工程小例保留其原性质，没有新的真实宽表性能验收。
 
-[ML Notebook §14.6](../../notebooks/ml_engineering_tutorial.html#cell-26) 提供已执行的 `prepare_selected_fold` 函数。它直接调用已有 `prepare_models`，明确接收冻结 fold、保存 Feature、typed Label/model YAML、选列与预算。真实执行仅消费一个 fold 的三列模型；9 个既有 Raw 块全部 HIT，Raw 数学计算为 0，归一化 1 次，fit/predict 各 1 次。首次调用 106.21 秒，同配置 HIT 83.79 秒；HIT 的 Data select/adjust、Raw、归一化与 fit/predict 全为 0。Batch、模型、预测和 Engine 的原交接字段一致。
+[历史 ML Notebook](../../notebooks/ml_engineering_history_20261011.html)保留首次补验的记录。本地编排直接调用已有 `prepare_models`，明确接收冻结 fold、保存 Feature、typed Label/model YAML、选列与预算。真实执行仅消费一个 fold 的三列模型；9 个既有 Raw 块全部 HIT，Raw 数学计算为 0，归一化 1 次，fit/predict 各 1 次。首次调用 106.21 秒，同配置 HIT 83.79 秒；HIT 的 Data select/adjust、Raw、归一化与 fit/predict 全为 0。Batch、模型、预测和 Engine 的原交接字段一致。
 
-完整输出身份验收仍为 PARTIAL。首次冻结的准入回执引用 `definition.json`，完整 owner 的 HIT 引用 `batch.json`，造成冻结评价输入引用不同；其余元数据及日切片摘要相同。隔离修正 `8881882` 在 owner COMPLETE 后读取、核验最终 batch 与当前 manifest 相同，再将回执与闭包统一到该最终来源。原 definition 的 epoch 仍守护至发布，最终 batch 也纳入变更检查。该候选通过 12 项小型 first/HIT、来源变更与生命周期检查；源码仍待主协调和独立审阅，没有在候选上再次训练真实模型。旧 wire 字段及两份历史产物均保留。
+完整输出身份验收仍为 PARTIAL。首次冻结的准入回执引用 `definition.json`，完整 owner 的 HIT 引用 `batch.json`，造成冻结评价输入引用不同；其余元数据及日切片摘要相同。隔离修正 `8881882` 在 owner COMPLETE 后读取、核验最终 batch 与当前 manifest 相同，再将回执与闭包统一到该最终来源。原 definition 的 epoch 仍守护至发布，最终 batch 也纳入变更检查。该候选通过 12 项小型 first/HIT、来源变更与生命周期检查；随后主协调亲审与独立复审通过，没有在候选上再次训练真实模型。旧 wire 字段及两份历史产物均保留。
 
 本次授权保留 source 16 GiB、新产物 2 GiB 和累计实际受监控执行 60 分钟；联合矩阵改为 8 GiB、进程树 RSS 改为 10 GiB，单次超时 900 秒。Data 工作额度包含其 2.625 GiB 来源缓存，工作上限 4.4375 GiB；Research resident 上限 1.5 GiB，调用方余量 64 MiB。修正观察器后的完整进程为 192.54 秒，采样峰值 RSS 5.23 GiB，新增产物约 49.38 MiB。一次错误的全局观察器在 Snapshot 图计量处中止，用时 605.19 秒，仅 Data.open 1 次；这笔成本单独保留并计入累计额度。
 
-成功模型与 HIT 阶段的逻辑 OwnedStore 返回文件字节分别为 427,079,668 与 443,213,954；前者另观测到 Data Snapshot 完整读取 358,875,550 字节，后者无新的 Data 完整文件读取。Data Parquet 物理读字节不由这些计数证明。23,363 个原文件 epoch 与 89 个此前尝试文件 epoch 均保持原值。原 255 折、7 份保存评价、Data 进程和原数据根保留；真实两个 owner 的共同样本比较与 300 列补验尚未执行。PR13 和 PR14 仍为 draft，后者仅承载四文件生命周期修复，基线相对 main 的 79 个提交仍需单独整合审阅。
+成功模型与 HIT 阶段的逻辑 OwnedStore 返回文件字节分别为 427,079,668 与 443,213,954；前者另观测到 Data Snapshot 完整读取 358,875,550 字节，后者无新的 Data 完整文件读取。Data Parquet 物理读字节不由这些计数证明。23,363 个原文件 epoch 与 89 个此前尝试文件 epoch 均保持原值。原 255 折、7 份保存评价、Data 进程和原数据根保留；真实两个 owner 的共同样本比较与 300 列补验尚未执行。该次验收的源码与产物按原身份保留，后续整合状态另见下文 PR16。
 
 #### 2026-10-11 显式共享 owner 的保存模型验收
 
-主协调亲读 PR15 的固定 `8881882` 后，批准一次总 wall 不超过 300 秒的有界补验，优先使用已有保存模型。先以控制件核对完整模型定义完全相同，再从 [Notebook §14.6](../../notebooks/ml_engineering_tutorial.html#cell-26) 的实际保存函数进入已有公共 API。Data ColumnSource、Feature view 和 COMPLETE Batch 各只打开一次，模型调用循环留在这些 owner 内。对同一 cohort 换模型参数可继续使用 Batch；换特征子集应在保留的 Feature/ColumnSource 内通过原 preparation owner 创建新 cohort，相邻窗口则用其原 `next_fold()` 顺序推进。推荐流程不能把每次重开所有 owner 的 `prepare_models` 称作会话内迭代。
+主协调亲读 PR15 的固定 `8881882` 后，批准一次总 wall 不超过 300 秒的有界补验，优先使用已有保存模型。先以控制件核对完整模型定义完全相同，再从 [历史 Notebook §14.6](../../notebooks/ml_engineering_history_20261011.html#cell-26) 的实际保存函数进入已有公共 API。Data ColumnSource、Feature view 和 COMPLETE Batch 各只打开一次，模型调用循环留在这些 owner 内。对同一 cohort 换模型参数可继续使用 Batch；换特征子集应在保留的 Feature/ColumnSource 内通过原 preparation owner 创建新 cohort，相邻窗口则用其原 `next_fold()` 顺序推进。推荐流程不能把每次重开所有 owner 的 `prepare_models` 称作会话内迭代。
 
 该真实保存模型补验通过。冷打开 owner 合计 25.03 秒，首次保存模型核验与冻结 20.67 秒，同 owner 第二次调用 1.59 秒。两次完整返回身份完全一致，原模型和预测引用保持原值；两个 builder 都报告 HIT，fit/predict 均为 0，保护后端也没有被调用。整个进程 47.84 秒，采样峰值 RSS 5.08 GiB，新增路径文件约 7.74 MiB。23,363 个原冻结文件与 362 个已有保存文件的 epoch 均保持原值，受监控子进程已退出。
 
 第二次 OwnedStore 调用没有重读或重新 hash Feature 和准备输入，仍读/hash 原模型输出 4,091,378 字节。窗口准入一次，后续借用一次，评价投影两次，训练矩阵 gather 为 0。这些逻辑计数不包含 writer 侧验证及全部 Data IO，Data Parquet 物理读取量仍未测量。完整工程摘要见 [本轮验收](../../reports/research-shared-owner-acceptance-20261011.json)。冷打开和首次验证成本仍需单列；此前 83.79 秒的重开 owner HIT 保持历史记录，两个阶段的观察器和源码不同，不据此声称单因素性能提升。
 
-这次由公开 `load_stock_ml_batch_inputs` 载入原 COMPLETE Batch 字典，冻结回执内嵌该完整文档。它验证了 `8881882` 的保存模型与重复冻结入口；新 checkpoint 转为 COMPLETE 的冷准备边界继续由前述小例覆盖，没有重做此前真实首次 fit。旧 definition/batch 差异的两份产物仍保留，原字段未改。两份真实 cohort 的共同样本比较和真实 300 列验收尚未执行；PR15 的独立审阅和整体源码整合也不能由这个单 fold 结果替代。
+这次由公开 `load_stock_ml_batch_inputs` 载入原 COMPLETE Batch 字典，冻结回执内嵌该完整文档。它验证了 `8881882` 的保存模型与重复冻结入口；新 checkpoint 转为 COMPLETE 的冷准备边界继续由前述小例覆盖，没有重做此前真实首次 fit。旧 definition/batch 差异的两份产物仍保留，原字段未改。两份真实 cohort 的共同样本比较和真实 300 列验收尚未执行；PR15 后续已通过独立审阅；整体源码整合不能由这个单 fold 结果替代。
 
 #### PR14/15 之前基线的集成依赖与审查范围
 
 2026-10-11 只读核实，Research 远端 main 仍为 `3ef34fea99473716cd03c217a8a0af1629ad67d0`。基线 `4c46294` 相对该 main 为 79 个提交、105 个文件，[完整比较](https://github.com/sinnergarden/axiom-research/compare/3ef34fea99473716cd03c217a8a0af1629ad67d0...4c462948d7fe622a71fbb74623db5c2ada47246a) 保留发布范围的追溯。主协调核回历史裁决：`d5cfbe30c84ec108e8ba3b32eadfbd5f82167769` 已通过完整生产源码父审及独立 PASS，并生成原 255 折预测和 7 份评价；`4c46294` 的父审与独立复审可复用。PR13 的 `32bbb478` 当时只准 reader/OOS/prepare 局部，Feature producer 仍有 P1，不能先独立合入该旧树。
 
-最终整合采用固定 `8881882bc594f4bf99572c876d15eef008f95ebf`、tree `a532a2985e32d18f8d5b1243427b7340276e40ff`，由[最终整合 PR16](https://github.com/sinnergarden/axiom-research/pull/16) 集中审阅后再一次合并。PR13/14/15 保留为历史，原 base 与链接不改。`d5cfbe3` 之后恰好是四个到 `4c46294` 的增量和 PR14/15，没有额外提交。57 文件回执的源码 hash 与原测试日志均已只读核对；其中 53 文件在最终树仍与 4c 字节相同，4 个生产文件的变化准确属于 PR14 的 store/reader 与 PR15 的 build/compact。相对 d5 的全部 14 个生产文件均在这份回执中，没有 PR14/15 之外的新代码。最终集中 review 复用这些历史裁决，独立复核只需覆盖两项小 delta，旧测试不重跑。尚未 merge 或制作新 wheel，GitHub 的空 reviews 不代替会话中的固定源码亲审记录。
+最终整合现固定为 `63d54181063a54b2a84754b288a50568867e5406`、tree `f36e54345aa8f8f7e84cdd2fc916e671c541497f`，由[最终整合 PR16](https://github.com/sinnergarden/axiom-research/pull/16) 集中审阅后再一次合并。PR13/14/15 保留历史 base 与链接。`d5cfbe3` 之后恰好是四个到 `4c46294` 的增量、PR14/15 和本次 eager 失败清理，共七个提交。原 57 文件回执的源码 hash 与测试日志均已只读核对；53 文件仍与 4c 字节相同，另四个生产文件属于 PR14 的 store/reader 与 PR15 的 build/compact，最新清理只继续修改其中 store 一个文件。相对 d5 的完整生产变化仍为原 14 文件。
+
+PR15 的 COMPLETE 根闭包增量已通过主协调与独立复审。PR14 的独立审阅发现 eager 准入异常后，保存的 traceback 仍可经 block 持有 compact row facts。`63d5418` 在异常路径先通过已有 trim 释放 block facts、视图与数组，再关闭 store。准确注入在修复前的 full/subset 两种模式均失败，修复后的两项定向测试在 25.145 秒通过，并保持异常 traceback 存活检查释放顺序。该次测试绑定 Engine `c890160c648824f89284a2a6363279f3930e4b32`；成功准入与 sequential 路径未改，没有重跑原 47 秒验收或旧套件。小修复的独立复核与最终集中审阅仍待完成，尚未 merge 或制作新 wheel。
 
 | 集成项 | 固定来源与审查证据 | 当前边界 |
 |---|---|---|
 | Data 公共列来源 | `e457372950f30ab36cce743dbdb6633f0147e033`，`codex/data-column-source-v1-20261008`，版本 0.3.8；Research 使用 `Data.open_column_source`、select/adjust 及固定 Snapshot/Query 证据 | 本轮只读绑定该开发源码，未声称 wheel 或 main 已含相同实现 |
 | Engine 原 Core/信号入口 | `1fa97878fda28769bbf1fea4ca37e7bdfbaa4524`，`codex/engine-m1-signal-contract-20261008`，版本 0.3.1；Feature、Forward Returns、截面归一化与 SignalEval 使用原 Core | 本轮不执行数学、统计或账户；原 Core API 与来源约束继续适用 |
 | 冷准备与逐 fold 交接 | `d5cfbe3` 的 writer epoch/冷 batch 闭包是原 255 折真实保存生产源码；配置接线来自 `e3b2b21`，列 as-of 与入口来自 `292d1c9` | 原 producer 与保存证据保留，不能把旧 255 折标为 `4c46294` 或 `8881882` 的新执行 |
-| 独立目标、跨 owner、短配置 | `9750750`、`78fe119`、`192ec63` 依次增加独立评价 Label、显式多 owner 和周 schedule/选列评价；源码可沿完整比较逐项查看 | 各里程碑证据按当时输入和 source 解释，整体 79 提交仍需整合审阅 |
+| 独立目标、跨 owner、短配置 | `9750750`、`78fe119`、`192ec63` 依次增加独立评价 Label、显式多 owner 和周 schedule/选列评价；源码可沿完整比较逐项查看 | 各里程碑按当时输入和 source 解释，原大基线 review 复用历史裁决，最新小修复单独复核 |
 | `4c46294` 准入与预算修正 | 此前主协调亲审和独立复审记录保留；准确修正件的 28 项定向测试通过，约 7.14 秒，另有 `192ec63` 的旧 32 项记录 | 两份测试不能相加称作一个完整套件；GitHub 上未推断整个基线已有批准 |
 | 生命周期与 COMPLETE 回执 | [PR14](https://github.com/sinnergarden/axiom-research/pull/14) 固定 `3a69a44` 的 21 项检查与真实三列 first/HIT；[PR15](https://github.com/sinnergarden/axiom-research/pull/15) 固定 `8881882` 的 12 项小例及本次保存模型同 owner 补验 | 本轮没有 merge、发布新 wheel 或改旧 wire，私人模型与数据留在本地 |
 
 Research 0.2.6 声明 `axiom-engine>=0.3.0`，配置可选依赖 PyYAML，构建/ML 可选依赖 `axiom-data>=0.3.4` 与 pyarrow，模型还固定 Qlib 0.9.7 和 LightGBM 4.7.0。本次准确运行环境是 Python 3.12.14、numpy 2.3.5、pandas 2.2.3、pyarrow 23.0.1，并直接绑定上述 Data/Engine 开发源码。包版本下限并不证明这些分支接口已经进入发布包，后续整合须同时核对具体源码。
+
+
+<a id="ml-engineering-operational"></a>
+#### 当前 M1 操作页与历史归档
+
+[当前 Notebook](../../notebooks/ml_engineering_tutorial.ipynb)及[生成 HTML](../../notebooks/ml_engineering_tutorial.html)现按八节展示配置、共享会话、模型与选列迭代、独立 Label 评价、组合保存预测、Engine 消费和实测。原 28 单元的 Notebook 与 HTML 原样另存为[明确历史归档](../../notebooks/ml_engineering_history_20261011.ipynb)，原输出与执行次数保留。
+
+默认阅读模式不要求私人配置，不打开 Data、模型或大账户。执行模式只接用户选择的本地路径、typed YAML 和 owner 资源参数；Snapshot/PIT、OOS 引用、Label descriptor、Signal 和账户绑定均来自原 owner。Model-only 循环保留同一 COMPLETE Batch，修改选列使用原 configured producer 生成新 cohort。当前 stock 配置入口执行 Label/Model/可选 Signal，Feature 与 Strategy draft 不被伪装成通用可执行配置；账户消费使用已保存 Engine 请求和公开 adapter。五年账户结果预留等待 owner 回填，不因预测已保存而称账户通过。
+
+本次只检查新单元默认阅读模式、公共调用签名、配置解析、归档完整性和 HTML 生成，不重跑数据、训练、原 47 秒验收或账户。[操作页检查摘要](../../reports/ml-engineering-operational-page-20261011.json)与原业务测量分开保存。
 
 ## 12. 最小验收标准
 
