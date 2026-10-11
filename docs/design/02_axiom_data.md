@@ -186,6 +186,8 @@ build 的代码来源须可恢复：保存已提交源码的 Git 历史、依赖
 
 新增观测或离线重解释生成新域/Snapshot 与新 Native 身份，保留原供应商实际 receipt 和可核查的 Raw lineage；重解释时间不冒称新的供应商 receipt。终态实施条款的 next-open 假设标识为 `tushare.current_implemented_terms_from_later_notice_next_open.v1`，严格政策不借该假设回填早年信息集。Engine 使用同一经济 ID 与阶段合同，账户登记权益决定 PAY/LISTING 是否相关；来源非整数比例保持原值，不为绕过整数股份规则而舍入。复用原价格/模型引用仍须冻结新的执行数据引用与 run identity。
 
+普通持有人有效权益使用公开 `produce_ordinary_shareholder_action_facts`，输入与限制见[窄 producer 说明](https://github.com/sinnergarden/axiom-data/blob/eb9d32652d8d10e439c749cd259801ee9f8632fd/docs/ordinary-shareholder-entitlements.md)。Data 核验已审适用条件、精确比例导算及必要来源依赖，经 `source_refs` 绑定独立解释产物与新执行 facts，保留发行人总送转量、供应商事实和未知权益。`mixed_reviewed_sources_v1` 明确包含 vendor historical assumption，可用时间取全部必要来源约束的最大值，实际观察与取得时间分别保存。Engine 校验值、范围、别名与引用，负责显式账户舍入和上市日代理；文档适用性解释留在 Data，源码合并不代表完整账户验收。
+
 加入 usable_from 晚于 T 的数据不能改变 T 前 safe 输出。合法新证据证明更早公开时，新 Snapshot 可以改变历史解释，需说明影响；旧 Snapshot 不变。PIT 证据不足与单位错、日期错、错配证券等处理缺陷不是一回事，后者必须修复。
 
 ## 6. 范围、状态与派生的必要边界
