@@ -67,12 +67,28 @@
       "long_iteration_performance": "not_measured"
     },
     "T01_execution": {
+      "start_session": "2019-01-02",
+      "end_session": "2025-12-31",
+      "reference_universe": "historical_CSI300",
+      "sample_securities": 606,
+      "feature_columns": 88,
+      "model_backend": "LightGBM",
       "completed_training_folds": 359,
+      "retraining_frequency": "weekly",
+      "inference_frequency": "daily",
       "completed_signal_evaluation_sessions": 1699,
-      "accounts": "waiting_for_Engine_lifecycle_fix",
-      "main_result_published_to_UI": false,
+      "accounts": "original_two_accounts_and_evaluations_complete",
+      "main_result_published_to_UI": true,
+      "new_shared_baseline_and_SMA120_gate_comparison": "running; performance_target_not_measured",
       "M1": "not_complete",
-      "evidence": "parent-confirmed execution progress, 2026-10-12; saved private results remain with their owners"
+      "evidence": "parent-confirmed original T01 completion including normal Research index/UI, 2026-10-12; new comparison remains separate"
+    },
+    "engine_saved_input_reuse": {
+      "source_commit": "163704c56c7365e1ceb03f64bcd5b3d87dda4666",
+      "merge_commit": "306b26d3ec513fa6422b5647ec6fa3e03dfacf1e",
+      "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/38",
+      "execution_universe_boundary": "CSI300 only for shared and saved-reloaded market/prediction account inputs; CSI800/1800 require separate admission implementation and validation",
+      "long_performance_acceptance": "not_measured"
     },
     "installed_package_changed": false
   },
@@ -163,7 +179,9 @@
     },
     "remaining": {
       "CSI1800_history_and_all_registered_features": "not_prepared",
-      "full_period_model_signal_strategy_evaluation_acceptance": "T01_training_and_signal_evaluation_complete; accounts_wait_Engine_lifecycle_fix; main_result_not_published_to_UI",
+      "full_period_model_signal_strategy_evaluation_acceptance": "original_T01_training_daily_inference_signal_evaluation_two_accounts_account_evaluation_and_normal_index_UI_complete",
+      "shared_input_baseline_and_SMA120_gate_comparison": "running; performance_target_not_measured; PR26_long_model_iteration_performance_not_measured",
+      "general_account_universe": "CSI300 shared/saved-input path only; CSI800/1800 not_enabled_by_universe_id",
       "M1": "not_complete"
     },
     "installed_package_changed": false
@@ -593,7 +611,7 @@
         }
       ],
       "minimal_strategy_protocol_candidate": {
-        "status": "parent_approved_design_source_candidate_synthetic_pass_review_pending_no_true_account_run",
+        "status": "implemented_merged; historical_short_case_evidence_retained; original_T01_complete_within_CSI300_scope",
         "design": "docs/design/engine-strategy-protocol-v1.md",
         "baseline_commit": "4e65af8462949f674fa66d3f5f17ce06dc932568",
         "source_commit": "de25ac6c1922a16368718407f537ff0fd2744ace",
@@ -604,6 +622,7 @@
         "validation": {"synthetic_scenarios": 10, "source_identity_check": 1, "passed": 11, "seconds": 0.546, "scope": "current review-fix candidate; initial key legacy evidence retained separately"},
         "review_corrections": ["preserve-only pending/registered rights explicitly retain zero targets without buys", "exact allocation ratios retain K3 lot boundary; no epsilon or upward quantity rounding"],
         "source_pull_request": "https://github.com/sinnergarden/axiom-engine/pull/31",
+        "merge_commit": "6418db146962583b3356a3c0ae31d3d92fc35628",
         "real_case": "Research-owned 2023 historical CSI300 full cross-section with 88 features; not run by Engine",
         "examples": [
           "top_k_equal_weight",

@@ -1,6 +1,6 @@
 # Engine 最小组合策略接口
 
-2026-10-11 父已亲审 `45fd4aa5` 并批准以下收紧口径；源码候选实施中，未执行真实账户。实施期限为当天 14:55 UTC。本页补充 [Trade §6.1](04_axiom_trade.md)，供 Engine、Research 和独立审阅者共享。原 TopK 接口只有固定排序和等权目标，无法表达保留旧持仓、退出覆盖和重新入场状态，因此本轮需要一个显式、可保存的策略配置和纯函数协议。
+最小策略配置与纯函数协议已由 [Engine PR31](https://github.com/sinnergarden/axiom-engine/pull/31)实现并合并，当前 [main 306b26d](https://github.com/sinnergarden/axiom-engine/commit/306b26d3ec513fa6422b5647ec6fa3e03dfacf1e)还包含PR38的共享输入保存与重载。历史短样本及T01原双账户各保留其实际验收范围；新的共享输入baseline与SMA120 gate对照仍在运行，尚不报告新性能结论。本页补充 [Trade §6.1](04_axiom_trade.md)，供Engine、Research及使用者理解目标持仓、保留旧持仓、退出覆盖和重新入场状态；账户仍由唯一Runtime执行。
 
 ## 模块、输入与输出
 
@@ -12,7 +12,7 @@ Core 新增 `stock_strategy` 模块。最小协议为 `StockStrategy.plan(*, inp
 
 预算 `B` 为现金加实持数量按前收盘计价，排除现金应收和待上市赠股价值。先从 `B` 预留被冻结保留数量及退出中实持的参考价值 `R`，其余选中证券各请求 `B/K`，合计超过 `max(0,B-R)` 时按同一比例缩小。保留资产不会再次分配权重，未实际退出的资产不会被提前当作资金；空位和退出覆盖腾出的预算持现金。输出目标不证明卖出成功。
 
-Research 使用新公共工厂 `stock_portfolio_policy(*, strategy_spec, universe_id, execution_universe, execution_rules)`；旧 `stock_portfolio_policy(*, top_k, execution_universe)` 调用仍保持原结果。新配置绑定完整冻结 union、规则 ref 和成员查询身份；CSI300 保留已有成员范围 ref，其余池 ID 生成各自身份并必须通过原始成员查询准入。本次真实 case 固定为 2023 年历史 CSI300 全截面，Research 的 88 列特征。只有 CSI800 的实际输入通过准入后才能声称可用；不能以当前行业身份宣称历史非金融池，缺历史行业证据时披露未排除金融。
+Research使用公共工厂 `stock_portfolio_policy(*, strategy_spec, universe_id, execution_universe, execution_rules)`；旧 `stock_portfolio_policy(*, top_k, execution_universe)` 调用保持原结果。配置绑定完整冻结union、规则ref和成员查询身份。工厂能表达池ID，但当前共享及保存重载market/predictions账户准入仍固定CSI300，CSI800/1800不能仅改 `universe_id` 启用；其他池须另完成来源、成员及账户准入适配和实际验证。历史2023年短样本及T01原七年账户均使用历史CSI300、88列Feature；其结果不证明通用股票池或全部M1已经交付。历史非金融池另需历史行业证据。
 
 ## 三种实例与组合顺序
 

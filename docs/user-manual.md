@@ -1,7 +1,7 @@
 # Axiom 使用说明书
 本说明书面向研究者和代为执行实验的 agent。先按研究问题选择用法，再修改对应配置。Notebook 提供少量完整演示；这里说明每种任务需要什么、会做什么、得到什么，以及哪些内容可以复用。
 ## 当前可用范围
-本文首次编写于 2026-10-11，当前状态核对至 2026-10-12。增量特征库的已验证范围和测量统一记录在 [versions.json](../versions.json) 的 `incremental_feature_library_candidate` 条目；操作与边界见[增量特征库指导页](design/incremental-feature-library-v1.md)。T01 七年用例已完成359个fold训练和1699个交易日的信号评估；账户等待Engine生命周期修复，主结果尚未发布到UI，M1尚未完成。准备件跨模型复用已实现并合并，小范围验证通过，真实长期迭代性能仍待测。
+本文首次编写于 2026-10-11，当前状态核对至 2026-10-12。增量特征库的已验证范围和测量统一记录在 [versions.json](../versions.json) 的 `incremental_feature_library_candidate` 条目；操作与边界见[增量特征库指导页](design/incremental-feature-library-v1.md)。T01原七年用例（2019-01-02至2025-12-31，历史CSI300的606只证券、88列、LightGBM）已完成359个周fold训练、每日推理、1699日信号评价、原双账户及账户评价，并已正常登记到Research索引，在UI查看。新的共享输入baseline与SMA120 gate对照仍在运行，性能目标尚未实测。准备件跨模型复用的小范围验证已通过，PR26长期换模型性能仍未测；M1其他验收项尚未全部完成。
 已经保存的五年六特征案例证明了该案例的训练、预测和账户链路。短样本宽特征工程案例使用历史CSI300成员并集中的569只证券、88个价量特征；预测区间为2023-01-03至2023-02-07，共21个交易日，母特征覆盖120个日期，模型进行两次训练。新增的可复用库已准备2016-10-13至2025-12-30共2242日、88列的 raw/base 和原历史CSI300每日截面标准化结果，正式训练投影含606只证券；另32只仅用于暖机历史，不进入训练。上述特征准备证据覆盖准备与读取，训练和账户另按各自保存结果验收。88列是可实现的Alpha158子集加中长期趋势及量额特征；CSI1800全特征库、历史行业及其他缺少字段或算子的特征仍未准备。
 ## 先准备一份研究计划
 一个实验由以下独立配置组成。入口只引用这些配置，避免把几百项参数塞进一个文件。
@@ -45,13 +45,23 @@
 ## 用法六：同一个信号尝试不同策略
 **输入**：保存的信号、当时账户状态、可见市场参考信息和策略配置。
 策略输出目标权重、需要保留的数量、退出要求、下一状态和原因。唯一执行引擎负责整手、费用、可卖数量、成交约束、现金及权益账本。目标持仓与实际成交分别保存。
-此前短样本的三个例子已完成相同21个交易日的真实账户运行；当前T01长期账户仍待Engine生命周期修复：
+此前短样本的三个例子已完成相同21个交易日的真实账户运行，保留其原验收范围：
 1. TopK等权：按信号排序选K只，各分配1/K预算。K可配置。
 2. 排名缓冲：旧持仓仍在前十时保留，空位由高排名候选补足；候选不足留现金。
 3. TopK加周频收盘止盈止损：使用上一完整交易日的持仓价格收益触发退出，下一交易日执行；冷却完成后才允许重新入场。
 第三种只在配置的周频检查点判断，不能写成每日或盘中止损。收益成本口径包含买入费用及已确认股票权益数量，现金分红不从成本扣除。卖不出的持仓仍占槽位，不能假定已卖出后买入更多证券。
 更复杂的策略应实现同一个规划接口，继续交给现有执行引擎。持久运行入口只接纳已经实现并可重建的策略类型；新增类型需要小范围接入，不把任意Python函数塞进保存配置。
 换策略时只编辑对应策略配置，复用已保存的 `prediction-bindings.json`、市场输入和初始资金，以独立目录保存新账户及评价。用Engine公共工厂绑定原执行规则，或调用Research公开的 `stock_request_with_saved_predictions`、`run_saved_stock_strategy`、`evaluate_saved_stock_strategy`；这些入口继续消费Engine owner及其准入检查。A01 CLI只有validate/features/train/evaluate四个阶段，账户另由这些公共入口执行。
+T01原七年双账户及评价已完成；新的共享输入baseline与SMA120 gate对照仍在运行，不据此更新收益或性能结论。Engine [PR38](https://github.com/sinnergarden/axiom-engine/pull/38)提供跨进程保存与重载。以下调用均来自 `axiom_engine.runtime`，market和inputs须已完成准入，两份destination各用独立目录；保留返回的ArtifactRef回执。new_request由原公开请求入口构造，只改变策略并保持兼容输入：
+
+```python
+market_ref = save_stock_market_inputs(market, market_destination, limits=limits)
+prediction_ref = save_stock_prediction_inputs(inputs, prediction_destination, limits=limits)
+reopened_market = load_stock_market_inputs(market_ref, StockMarketSpec.from_request(new_request), limits=limits, max_market_bytes=max_market_bytes)
+reopened_inputs = load_stock_prediction_inputs(reopened_market, prediction_ref, new_request, limits=limits, max_signal_bytes=max_signal_bytes)
+```
+
+重载仍核验保存分片、范围和语义；每个新账户继续检查策略与risk绑定，以 `reopened_inputs` 为 `run_stock_backtest` 的source，沿原独立sink和账本执行，完成后依次关闭预测、市场owner。原祖先不会因重载而重新采集或训练，冷加载和新账户仍有成本。Engine main [306b26d](https://github.com/sinnergarden/axiom-engine/commit/306b26d3ec513fa6422b5647ec6fa3e03dfacf1e)的共享及重载market/predictions账户路径当前仅支持CSI300；CSI800/1800不能仅改 `universe_id` 启用，也不属于已完成的通用M1交付。
 ## 用法七：评价信号和交易结果
 评价模块的输入输出保持独立。
 | 类别 | 输入 | 输出 |
@@ -134,7 +144,7 @@ publish_stock_result(
 )
 ```
 
-路径均替换为真实owner回执，沿用首次运行冻结的request。`two-accounts-handoff.json` 的 `accounts` 数组放两个对象，各对象保存下表字段。Publisher逐一检查原身份与状态，再关联到同一实验；账户尚未完成时保留实际缺口，当前T01不能提前登记为完整两账户结果。
+路径均替换为真实owner回执，沿用首次运行冻结的request。`two-accounts-handoff.json` 的 `accounts` 数组放两个对象，各对象保存下表字段。Publisher逐一检查原身份与状态，再关联到同一实验。T01原双账户及评价已完成正常登记；正在运行的新对照另按实际保存状态登记，不覆盖原结果。
 
 | 每个账户对象的字段 | 值来自哪里 |
 | --- | --- |
