@@ -1358,6 +1358,8 @@ exact，来源、数量和 reason 不豁免。独审、draft PR 父审及 merge 
 实现见 [Engine PR21](https://github.com/sinnergarden/axiom-engine/pull/21) 与
 [PR22](https://github.com/sinnergarden/axiom-engine/pull/22)，均已合并；Qlib 不承担账户执行。
 
+下一次性能集中改造见[端到端复用草案](e2e-artifact-reuse-proposal.md)，状态为 proposed、尚未实现。保留此处和 §16 的 `AdmittedStockInputs`/`AdmittedStockMarket`、既有 market/basis key 及账户数学；拟将 audit 后展开的私有 JSON 载体替换为有界 typed/packed 块，不新增同义 handle。当前实现和已验证复用范围不因本草案改变。
+
 ```python
 admit_stock_inputs(manifest: BacktestRequest, *, source: StockInputSource,
                    block_sessions: int, limits: dict,
