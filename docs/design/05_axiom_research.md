@@ -152,6 +152,8 @@ Reader 构造、索引、详情和比较仅读取并校验索引元数据，不�
 
 Research producer 在 owner 保存与公共校验后写入新的不可变 manifest，随后用现有索引锁和原子替换更新 head；相同 result_id+revision+digest 重试幂等，冲突拒绝。旧 head 在新 manifest 或引用核验失败时保持可读，失败状态可作为新的修订保存，不能让 RUNNING 或仅有 `experiment-result.json` 的目录冒充 COMPLETE。A01 的 `experiment-result.json`、`batch.json`、`prediction-bindings.json` 和信号评价由 producer 登记为 typed refs；Engine 的多个策略账户及后续评价按原 owner 身份追加 manifest 修订，无须移动已保存文件或逐项运行人工登记工具。未登记的旧目录仍不被 UI 猜测扫描。
 
+现有列表/manifest 读取已轻量；大批保存输出在 publish 中仍可能重复投影和散列。[M1 复用草案](e2e-artifact-reuse-proposal.md)拟在现保存格式上共享同次 publish 的已校验 projection、unique fold 一次，并让同会话追加统计/账户只验新节点和引用边；状态为 proposed、尚未实现。冷进程仍一次完整去重核验，现 schema、公共 loader 与不可变发布保留，不凭落盘 PASS 免验，也不改变上述已实现登记状态。
+
 2026-10-12 的 Derived 登记增量沿用这些字段。`publish_stock_result(..., derived_signals=[saved_path, ...])` 接受 owner 已保存的组合目录或其中的 `signal.json`；配置入口保存的 `derived_signals` 回执也走同一条路径。它使用公开 `load_stock_derived_signal(path, research_root=...)` 验证原组合、冻结 SignalPlan、原父输出及文件摘要，只保存引用，不重算组合、训练、独立评价或账户。新增固定产物类型 `StockDerivedSignal`，其 `artifact_contract_version='derived_signal_run_v1'`、`artifact_id=signal_run_ref`、`content_digest` 为原 Signal Document 的规范 JSON 摘要，locator 指向根内 `signal.json`。`signals[].prediction_artifact_key` 指向此产物；`lineage_artifact_keys` 保留原训练折或冻结配置引用，实际多个父 Signal/Model/Fold 的身份和原保存定位由 Derived 公共 loader 的已有闭包核验。Derived 的 `signal_plan_ref` 必须等于本结果冻结配置的 SignalPlan 引用，原 universe、calendar 和推理 session 必须属于冻结 Dataset 范围。
 
 直接使用已保存的多个模型组合时，调用方沿用 `begin_stock_result_registration` 冻结问题、版本和 attempt，显式省略 `required_stages` 中的 `training`；这种结果只登记既有父输出，不声明本次重新训练。`required_stages=()` 表示只要求至少一个已验证 Signal，默认训练及评价要求保持原值。需要独立评价或账户时仍声明原有阶段名，并用现有评价保存钩子及 `attach_stock_account` 追加修订。完整训练声明仍须原 sequential/batch/fold 定义逐项匹配。账户可消费原 raw frames 或已登记 Derived 的原 `engine_input_binding()`；账户 `signal_run_ref` 仍沿用 Engine 的整组 prediction input 身份，不替换成某一组合的 ID。保存的 COMPLETE/BLOCKED 和 stopped 原因、缺件隔离、不可变 receipt 与发布失败时旧 head 保护均保留。
@@ -918,7 +920,7 @@ Data 保存文档原文/版本与公开证据
 
 #### 数据只在需要的边界完整验证
 
-按 §8.2.2 的公开入口完整验证共同输入，建立当前进程的只读批对象。一个实际文件在这次批量准入中只读取、散列和解码一次；引用同一文件的不同来源描述仍分别核对。相邻窗口复用批对象，仅重新选择当前窗口、特征列和已成熟样本。旧独立完整来源加载器保留原语义。新进程重新执行适用的完整准入，不信任磁盘上保存的“已验证”标记。
+现有 §8.2.2 的公开入口完整验证共同输入，建立当前进程的只读批对象；相邻窗口复用它，仅重新选择窗口、特征列和已成熟样本。完整批量准入要求同一实际文件只读取、散列和解码一次，不同来源描述与语义边仍分别核对。按[M1 复用草案](e2e-artifact-reuse-proposal.md)，本次拟在现 owner 内复用首次写出的 Feature proof descriptor，并在正常入口分离已保存 prepared 输入与 model 输出目录，换 model 不重复 Raw/norm/proof，尚未实现。新进程保留原完整准入合同、冷登记一次去重核验；旧 loader 与首次账户安全准入不放宽，不信任持久“已验证”标记。
 
 进入计算后，主要工作集是数值、有效性、时间、索引和必要状态。完整来源保留在可追溯的产物中。压缩表示已建立且无消费者再使用原解析对象时，释放原对象及其记账。避免同时驻留原 JSON、复制行对象和数值矩阵。
 
@@ -930,7 +932,7 @@ Data 保存文档原文/版本与公开证据
 
 只在真实需要时增加缓存层。先消除重复加载和对象副本，再决定是否并行。并行选择一个主要层级，限制总线程和内存，避免多层并发相乘。
 
-磁盘容量、逻辑工作集和进程内存分别计量。预算依据当前硬件及完整输入范围设置。某次实验的 5.5 GiB、2 GiB 或时间上限属于运行配置，不是业务合同或永久架构要求。不能通过缩小股票池、跳过校验或改变精度来伪造达标。
+源字节、临时存储、逻辑工作集和进程树 RSS 分别计量；沿现 limits 预检并报告真实增长。[M1 复用草案](e2e-artifact-reuse-proposal.md)明确保留首次冷加载和市场 audit/capture 成本，按各类配置变化分别验收，不以新资源框架作前置。某次实验的 5.5 GiB、2 GiB 或时间上限属于运行配置，不是业务合同或永久架构要求。不能通过缩小股票池、跳过校验或改变精度来伪造达标。
 
 #### 性能怎样验收
 
@@ -949,7 +951,7 @@ LabelSpec 固定起止端点、价格口径与实际交易日历。对已按本�
 
 Research 维护 idea、可读配置、实验组合、模型与策略插件，以及研究结果的组织。Data 负责事实选择、版本与视图。稳定、跨实验复用的计算和执行能力按 Core/Engine 的既有边界提供公共入口；统一账户与按日运行归 Trade。Qlib View 是数据适配边界，Qlib 的模型及处理器通过这一边界使用。
 
-当前仍在 Research 的通用准备和加载实现可以先沿现入口完成 M1；移动源码时应保持公共接口和业务结果。仓库搬迁单独安排，避免把研究者下一次实验与目录重组绑定。每次更换模型、标签或策略，都应能从上表看清复用什么及新增成本。
+当前稳定准备和加载机制先留在现 owner，继续沿现入口使用。[M1 复用草案](e2e-artifact-reuse-proposal.md)只贯通登记复用、proof descriptor 与 prepared 输入消费三项；Research 薄边界是长期原则，源码搬迁和通用框架不作本次前置。每次更换模型、标签或策略，都应能从上表看清复用什么及新增成本。
 
 ### 8.1 阶段缓存身份
 
