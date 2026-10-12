@@ -1418,9 +1418,9 @@ audit/capture 各一次，账户阶段原输入重开为零；无 Data/Research/
 调用，原输入、旧结果与源码不变，handles/helpers 已关闭。这只证明该有界窗口。
 benchmark 口径、合成检查和逐文件计时见 [软件测试说明](https://github.com/sinnergarden/axiom-engine/blob/63b032cf5158a2abfc28ed87eef73acc64665b4f/tools/stock_input_benchmarks.md)。
 
-#### 固定输入投影的保存与重新打开（2026-10-12 源码候选）
+#### 固定输入投影的保存与重新打开（实现范围与验收边界）
 
-上面的私有 owner 复用已经实现。本节新增 Engine 正规输入投影产物及其标准保存、加载入口，是本轮待父审的源码候选；小型 fresh-process 对照与一次 606×32 sessions 合成探测已完成，真实多年性能尚未验收。一次完整 Native、市场与预测准入后，市场和预测 owner 分别保存小型 manifest 与有界列数组 parts，后续同输入的不同策略或新进程通过原 owner 重新打开。调用方提供明确 ArtifactRef 和固定 scope，加载核对本产物 schema、完整行键与覆盖、时点、原依赖 refs、全部部件内容和语义版本，在写 ledger 前失败；无需每次重新追溯全部原文件。加载也从原 factor 事实核对正值、NULL 原因与连续性限制。它没有公开的 PASS 或 skip-validation 参数，也不复制训练、coverage 大图形成另一份闭包 JSON。
+当前股票账户输入 owner 支持 CSI300 执行 union，参数化策略规则不扩大其已准入股池范围。一次完整 Native、市场与预测准入后，可分别保存市场和预测投影，供不同策略或新进程通过同一 Core/Runtime 消费。正规保存件由小型 manifest 与有界列数组 parts 组成。加载以调用方明确提供的 ArtifactRef 为边界，检查本产物内容、完整部件与行键、依赖身份、时点及语义版本，并保留原准入 provenance；它不重新扫描祖先，也不声称从投影独立重证完整原 Native。任何加载失败均发生在 ledger 分配前。
 
 ```python
 save_stock_market_inputs(market, destination, *, limits) -> ArtifactRef
@@ -1435,19 +1435,18 @@ load_stock_prediction_inputs(market, ref, request: BacktestRequest, *, limits, m
 
 原数值类型、NULL、missing_reason、未知生命周期、原 native/source refs、单位、修订与观察时间逐值保存。列数组和共享 metadata 字典只是传输布局；解码恢复相同原行和顺序，不给原 Native 重签身份。首次市场构建在一个受预算窗口内共享只读原视图和索引，完成现有价量、限价、factor 连续性、成员与生命周期检查，再批量编码；全部原验证成功后才原子提交 manifest。basis 免行自比仅接受不可变内容 ref 相同且 scope、cutoff、排序及其他视图语义相同的原件；不同原件仍逐值、逐 metadata 配对。manifest 直接定位日期或有界分区，part 和编码缓冲都有上限，读取一个日期不会解析完整历史 JSON。
 
-市场兼容键绑定完整执行 union、calendar、warmup、PIT/knowledge cutoff、原行情与身份 refs、clock、profile/rules/费用、权益事实和投影语义版本；预测键另绑定完整原 model/fold/raw 或 derived refs、训练/LabelSpec 链接及其成员 basis。账户资金和 TopK、rank_buffer、exit 配置仅在不改变输入选择、预测或准入语义时移出输入键；每次运行仍校验自身 policy 和实际 scope、clock、profile、rules/equity，保留账户版本、容量、冻结及待到账权益。未来影响输入的风险观察需要独立 ref 与语义绑定，并纳入输入键；本轮未知风险字段仍拒绝，不借策略参数脱键隐式放行。一个公共研究运行应共享市场与预测 owner，独立进程使用已保存件，不要求用户手工维持 Python 进程。
+市场兼容键绑定 CSI300 执行 union、calendar、warmup、PIT/knowledge cutoff、原行情与身份 refs、clock、profile/rules/费用、权益事实和投影语义版本。预测投影键在该范围中绑定原 model/fold/raw 或 derived refs、训练/LabelSpec 链接及成员 basis，用于预测缓存与保存件。请求能力键另加入当前 `risk_input` 与 `risk_input_ref`：相同预测可在 no-gate/gate 或风险 ref 改变后复用，但需要新绑定，旧 handle 拒绝不同风险依赖。每次绑定与运行仍完整验证当前风险输入和自身 policy，重新绑定 receipt 的 request_ref；预测缓存不保存风险校验能力。风险依赖独立于股票执行市场，市场缓存可继续复用。
+
+账户资金及合法 TopK、rank_buffer、exit 配置按各自请求执行。命中预测缓存时不进入原 source scope，已关闭的 Native source 不妨碍消费已准入投影；未命中时仍执行原准入。每个账户保留独立版本、容量、冻结与待到账权益。不同位置的原件只要 role、native_ref 和 ArtifactRef 逻辑身份相同，即可重开；改变语义依赖需重新准入。
 
 投影语义版本在相关业务正确性语义改变时更新；producer implementation_ref 留作来源，不因无关 commit 自动重建。Derived 仍受既有原分数、父 refs、最大依赖时钟和 implementation_ref 合同限制；保存投影不解除这些限制，未明确兼容的旧 Derived 在 ledger 前拒绝，不能重签原件以求复用。Core、唯一 Runtime/ledger 循环和保存账户、评价、UI 结果格式保持。
 
-首版验证先比较 cold build、保存后新进程重开及同预测两个策略的逐项业务结果，并检查错 ref、缺部件、尾部损坏、未来时点、语义不兼容和 held equity/lifecycle 停止。606×32 sessions 合成探测只证明规模与读写次数；真实七年验证由父任务与下一版策略合并为一个执行窗口。目标首次 market 从本轮 2,469 秒降至不超过 600 秒，后续市场与预测准备不超过 60 秒；这是待验收目标。Native、预测绑定、纯账户、评价与登记分别计时，登记当前约 595 秒仍是独立关键路径，不把局部提升称为全链验收。
+小型验证覆盖 cold build、新进程重开和不同策略的业务结果对照，以及损坏部件、时点/身份错误、持仓权益与生命周期停止、locator 迁移和请求隔离。规模探针的计时与限制见 [软件测试说明](https://github.com/sinnergarden/axiom-engine/blob/codex/stock-market-reuse-design-20261012/tools/stock_input_benchmarks.md#2026-10-12-input-reuse-synthetic-probe)，设计正文不作为运行日志。首次市场准备不超过 600 秒、后续市场与预测准备不超过 60 秒仍是待实测目标；真实七年与全链验收尚未完成，登记是独立关键路径。预测重开对完整原 Signal 内容身份的复核也受 decoded 预算限制，超大单帧明确拒绝；原 Source 流式入口继续可用。
 
 
-唯一 606×32 合成探针（实现收尾前）的实际计时为：Native cold 0.635 秒、market cold 7.869 秒、prediction cold 5.696 秒、保存 0.029 秒、market 重开 1.843 秒、prediction 重开 1.140 秒、第二策略预测借用 0.006 秒；第二策略原预测准入次数为零。primary/control 的账户与结果读取分别 1.278/1.324 秒，观察进程峰值 RSS 637,124,608 bytes。最终加载入口随后补充原投影逐值核对和严格 canonical/schema 检查，未重复规模探针；这些数值不是最终 head 的性能承诺，不能据此宣称多年 60 秒准备或全链目标通过。固定 small tests 的逐项业务结果对照和缺权益/生命周期停止通过，原七年预测与旧账户产物不修改。预测重开对每个原 Signal 的完整内容身份复核同样计入 decoded 预算；超大单一原帧超过该预算时明确拒绝，不能借保存件自动扩大额度。现有 Source 流式入口仍保留。
+#### 股票市场风险观察与周频门控（实现范围与验收边界）
 
-
-#### 股票市场风险观察与周频门控（2026-10-12，合同候选）
-
-本段对应独立风险源码候选 `1c3ca26`，待与输入复用候选共同亲审。股票策略在原 `stock_strategy_spec_v1` 中显式配置可选 `market_gate`；未启用时 spec、state 和 request 不增加默认字段，原合同身份保持。SMA120 实验使用以下配置，原 Top5/keep10 选股仍由既有策略完成：
+本段对应已合并的风险接口 [PR37](https://github.com/sinnergarden/axiom-engine/pull/37)，与输入复用使用同一 Core/Runtime。股票策略在原 `stock_strategy_spec_v1` 中显式配置可选 `market_gate`；未启用时 spec、state 和 request 不增加默认字段，原合同身份保持。SMA120 实验使用以下配置，原 Top5/keep10 选股仍由既有策略完成：
 
 ```python
 market_gate = {"rule": "close_above_sma", "security_id": "000300.SH",
@@ -1460,7 +1459,7 @@ market_gate = {"rule": "close_above_sma", "security_id": "000300.SH",
 
 全局状态从 `uninitialized` 开始，取得完整观察后进入 `risk_on`、`exit_pending` 或 `risk_off`。门关闭时先清仓并停止补位；卖出未成交、冻结持仓、待交付股份或登记股票权益尚未清空时，保持 `exit_pending`。登记权益包含 `record_pending_quantity` 形成的 pre-EX 股票权益。只有实际清空且门重新开启，才恢复常规选股，卖出意向不代表成交。
 
-保存件同时核对观察身份和状态转移，并在每条 decision 的 `expected_account_version` 处折叠原 journal 中的数量、可卖数量、待交付股份及 pre-EX 登记权益，核实决策当时的真实持有状态。昨日 positions 不能代替该时点的账本。风险候选已沿现有 `ConfiguredStockStrategy.plan` 接入回测；daily shadow 应消费同一观察上下文，本轮尚未完成其实际验收。原账户、生命周期与权益执行门槛继续生效。
+保存件同时核对观察身份和状态转移，并在每条 decision 的 `expected_account_version` 处折叠原 journal 中的数量、可卖数量、待交付股份及 pre-EX 登记权益，核实决策当时的真实持有状态。昨日 positions 不能代替该时点的账本。风险观察沿现有 `ConfiguredStockStrategy.plan` 接入回测；daily shadow 应消费同一观察上下文，本轮尚未完成其实际验收。原账户、生命周期与权益执行门槛继续生效。
 
 历史 PIT 仍采用既有 `best_effort_vendor_v1` 供应商时点假设，不声称严格历史修订版本可见性。缺失或迟到的风险事实、程序错误，以及未成交或权益 BLOCKED 分别保留；缺风险事实不能默认开启，也不能删除日期掩盖缺口。
 
