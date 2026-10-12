@@ -1383,6 +1383,7 @@ StockInputSource(*, scalar_cache_bytes=0, file_parse_mode="stream",
 URI 不改变逻辑输入身份；复用读取已捕获的字节，不转读新路径。
 这是进程内能力，不新增公开 input ref、receipt 或持久 validated 标记。
 
+
 | 变更 | 处理 |
 |---|---|
 | account_id、正整数初始现金、合法 TopK | 可复用；初始持仓为空；资金与 k 绑定各自请求/run |
@@ -1416,6 +1417,32 @@ RSS 估算与采样不是逐分配硬上界；成功后释放整图，父进程�
 audit/capture 各一次，账户阶段原输入重开为零；无 Data/Research/Feature/fit/predict/supplier
 调用，原输入、旧结果与源码不变，handles/helpers 已关闭。这只证明该有界窗口。
 benchmark 口径、合成检查和逐文件计时见 [软件测试说明](https://github.com/sinnergarden/axiom-engine/blob/63b032cf5158a2abfc28ed87eef73acc64665b4f/tools/stock_input_benchmarks.md)。
+
+#### 固定输入投影的保存与重新打开（2026-10-12 源码候选）
+
+上面的私有 owner 复用已经实现。本节新增 Engine 正规输入投影产物及其标准保存、加载入口，是本轮待父审的源码候选；小型 fresh-process 对照与一次 606×32 sessions 合成探测已完成，真实多年性能尚未验收。一次完整 Native、市场与预测准入后，市场和预测 owner 分别保存小型 manifest 与有界列数组 parts，后续同输入的不同策略或新进程通过原 owner 重新打开。调用方提供明确 ArtifactRef 和固定 scope，加载核对本产物 schema、完整行键与覆盖、时点、原依赖 refs、全部部件内容和语义版本，在写 ledger 前失败；无需每次重新追溯全部原文件。它没有公开的 PASS 或 skip-validation 参数，也不复制训练、coverage 大图形成另一份闭包 JSON。
+
+```python
+save_stock_market_inputs(market, destination, *, limits) -> ArtifactRef
+load_stock_market_inputs(ref, spec: StockMarketSpec, *, limits, max_market_bytes) -> AdmittedStockMarket
+save_stock_prediction_inputs(inputs, destination, *, limits) -> ArtifactRef
+load_stock_prediction_inputs(market, ref, request: BacktestRequest, *, limits, max_signal_bytes) -> AdmittedStockInputs
+```
+
+市场产物为 `stock_prepared_market_v1`，预测产物为 `stock_prepared_predictions_v1`。两者使用同一 `stock_input_columns_v1` 传输布局和 `stock_input_projection_semantics_v1` 语义版本。manifest 绑定原输入逻辑身份、producer implementation、完整 calendar、block_sessions、原 inventory、全部有界部件 hash、顺序记录的 offset/length 与解码尺寸，以及原 owner 的 native/block/meta 定位。ArtifactRef 的内容 hash 固定整个 manifest；记录索引覆盖全部已保存字节，缺部件、尾部损坏、错误解码尺寸或未知schema均拒绝。保存目录新建并原子提交，不覆盖旧产物。重开对象沿用 PID、独占执行 scope、close/borrow 与原输入/结果限额；消费时仍检查保存部件没有被替换。进程内 basis 配对能力不序列化；不同新预测仍须原配对检查，或建立同一不可变原件的精确相等。
+
+市场 owner 保留受配额限制的预测快照，账户包装器关闭一次借用后，同输入下一个策略可再次借用，原预测扫描和捕获为零。不同预测只可替换已无借用的私有缓存，不删除公开产物；新进程先打开市场、打开预测，再通过原 `bind_stock_prediction_inputs` 复用下一策略。因此现公共 `run_saved_stock_strategy` 的逐账户 bind/close 不再强制重复读取359折。预测保存原 model/fold 小型元数据和原 row order；重开验证 model/spec/header 链接、原 Signal/score 内容身份、原成员和时钟，不执行训练或推理。现 `load_stock_backtest_projection` 仍读取其明确引用的小型 profile，账户、评价及 UI 格式保持原样。
+
+原数值类型、NULL、missing_reason、未知生命周期、原 native/source refs、单位、修订与观察时间逐值保存。列数组和共享 metadata 字典只是传输布局；解码恢复相同原行和顺序，不给原 Native 重签身份。首次市场构建在一个受预算窗口内共享只读原视图和索引，完成现有价量、限价、factor 连续性、成员与生命周期检查，再批量编码；全部原验证成功后才原子提交 manifest。basis 免行自比仅接受不可变内容 ref 相同且 scope、cutoff、排序及其他视图语义相同的原件；不同原件仍逐值、逐 metadata 配对。manifest 直接定位日期或有界分区，part 和编码缓冲都有上限，读取一个日期不会解析完整历史 JSON。
+
+市场兼容键绑定完整执行 union、calendar、warmup、PIT/knowledge cutoff、原行情与身份 refs、clock、profile/rules/费用、权益事实和投影语义版本；预测键另绑定完整原 model/fold/raw 或 derived refs、训练/LabelSpec 链接及其成员 basis。账户资金和 TopK、rank_buffer、exit 配置仅在不改变输入选择、预测或准入语义时移出输入键；每次运行仍校验自身 policy 和实际 scope、clock、profile、rules/equity，保留账户版本、容量、冻结及待到账权益。未来影响输入的风险观察需要独立 ref 与语义绑定，并纳入输入键；本轮未知风险字段仍拒绝，不借策略参数脱键隐式放行。一个公共研究运行应共享市场与预测 owner，独立进程使用已保存件，不要求用户手工维持 Python 进程。
+
+投影语义版本在相关业务正确性语义改变时更新；producer implementation_ref 留作来源，不因无关 commit 自动重建。Derived 仍受既有原分数、父 refs、最大依赖时钟和 implementation_ref 合同限制；保存投影不解除这些限制，未明确兼容的旧 Derived 在 ledger 前拒绝，不能重签原件以求复用。Core、唯一 Runtime/ledger 循环和保存账户、评价、UI 结果格式保持。
+
+首版验证先比较 cold build、保存后新进程重开及同预测两个策略的逐项业务结果，并检查错 ref、缺部件、尾部损坏、未来时点、语义不兼容和 held equity/lifecycle 停止。606×32 sessions 合成探测只证明规模与读写次数；真实七年验证由父任务与下一版策略合并为一个执行窗口。目标首次 market 从本轮 2,469 秒降至不超过 600 秒，后续市场与预测准备不超过 60 秒；这是待验收目标。Native、预测绑定、纯账户、评价与登记分别计时，登记当前约 595 秒仍是独立关键路径，不把局部提升称为全链验收。
+
+
+唯一 606×32 合成探针（实现收尾前）的实际计时为：Native cold 0.635 秒、market cold 7.869 秒、prediction cold 5.696 秒、保存 0.029 秒、market 重开 1.843 秒、prediction 重开 1.140 秒、第二策略预测借用 0.006 秒；第二策略原预测准入次数为零。primary/control 的账户与结果读取分别 1.278/1.324 秒，观察进程峰值 RSS 637,124,608 bytes。最终加载入口随后补充原投影逐值核对和严格 canonical/schema 检查，未重复规模探针；这些数值不是最终 head 的性能承诺，不能据此宣称多年 60 秒准备或全链目标通过。固定 small tests 的逐项业务结果对照和缺权益/生命周期停止通过，原七年预测与旧账户产物不修改。预测重开对每个原 Signal 的完整内容身份复核同样计入 decoded 预算；超大单一原帧超过该预算时明确拒绝，不能借保存件自动扩大额度。现有 Source 流式入口仍保留。
 
 ### 6.7 股票公司行动的最小权益状态机（2026-10-09，集中实现候选，待父审）
 
