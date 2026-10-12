@@ -814,7 +814,7 @@ execution_universe 必须等于 execution_rules.universe，
 stock_execution_rules_ref；supported_security_ids 必须等于完整 execution_universe。
 旧 policy 工厂、Core v1/v2 和其严格资格校验保持原行为。
 
-完整股票 Core context 增加 `stock_feature_lifecycle`：公开调用携带 `{reference,binding,owner_batch}`，其中 owner_batch 是原 states DataBatch；binding 精确为 `{contract_version:"stock_feature_lifecycle_input_v1",feature_session,knowledge_cutoff,pit_policy,owner_native_ref,stock_execution_rules_ref,availability_policy_ref}`。reference 是 binding 的内容 hash，owner_native_ref 绑定完整原生 bytes；Core 核对原 policy、Feature cutoff、行键和 lifecycle revision/Raw，再解析资格，不接收调用者提供的资格布尔。Runtime 私有调用仅传 `{reference,binding}` 并复用本次原件准入产生的内存证明，按既有预算只保留下一次决策所需的前一日事实；不新增可移植准入标记。
+完整股票 Core context 增加 `stock_feature_lifecycle`：公开调用携带 `{reference,binding,owner_batch}`，其中 owner_batch 必须是原单日 states DataBatch，行数与 metadata 仅覆盖该 Feature 日完整 union；多日批次在 hash 前拒绝，不在每次决策重新校验全历史 owner。Runtime 从已准入 owner 借用单日视图，原全批 ref 只作为引用；binding 精确为 `{contract_version:"stock_feature_lifecycle_input_v1",feature_session,knowledge_cutoff,pit_policy,owner_native_ref,stock_execution_rules_ref,availability_policy_ref}`。reference 是 binding 的内容 hash，owner_native_ref 绑定完整原生 bytes；Core 核对原 policy、Feature cutoff、行键和 lifecycle revision/Raw，再解析资格，不接收调用者提供的资格布尔。Runtime 私有调用仅传 `{reference,binding}` 并复用本次原件准入产生的内存证明，按既有预算只保留下一次决策所需的前一日事实；不新增可移植准入标记。
 
 候选只使用该 Feature 日状态，随后执行原 valid/TopK 规则；不以静态身份表的下一交易日日期提前排除。定仓按板块、生效日期和已核实窗口取得数量规则，实际成交仍通过同一 Runtime 的交易日上市、状态、factor 和价格限制。已知退市独立排除，未知生命周期保留 UNKNOWN 原因；已有持仓的 `HELD_MISSING_STOCK_LIFECYCLE_CAPABILITY` 和 `HELD_EQUITY_FACT_GAP` 停止门槛保留。保存决策新增该 reference 与 binding；完整路径的直接 Core 调用需补原证据，旧非完整路径和旧保存结果读取保留。新增真实输入依赖改变 intent_id 和新 run identity，active 的排名、定仓数量和业务 trace 保持一致。回测与 daily shadow 复用这些业务规则，既有 shadow 服务实现缺口不因此成为已验收。
 
