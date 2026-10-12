@@ -1,5 +1,38 @@
 {
   "schema_version": "axiom_docs_versions_v1",
+  "saved_result_discovery": {
+    "status": "implemented_merged_static_derived_UI_read_only_verification_passed",
+    "as_of": "2026-10-12",
+    "design": "docs/design/05_axiom_research.md#experiment-result-discovery",
+    "manual": "docs/user-manual.md#用法九管理实验并在-ui-打开结果",
+    "usage": "已保存组合信号可自动登记、刷新索引查看，实际评价/账户仍需相应owner完成",
+    "research": {
+      "source_commit": "8b5cce142e0ee267328552e9f3f8ccbe74b2dec6",
+      "merge_commit": "f0d9b3bbaf89aec6c709f88b02f0b0debc5438ac",
+      "preserved_first_parent": "a49e9499bcb570ee6f60e02a35c29f25d282ce4b",
+      "branch": "main",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/23",
+      "ordinary_discovery_pull_request": "https://github.com/sinnergarden/axiom-research/pull/19"
+    },
+    "ui": {
+      "source_commit": "35031f90c46cc944a633a2fcc04693a221ce25c2",
+      "merge_commit": "508841f8fcdeeda8eabda71d1c7128bc76e7c220",
+      "branch": "publish/ui-readonly",
+      "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/14",
+      "ordinary_discovery_pull_request": "https://github.com/sinnergarden/axiom-ui/pull/13"
+    },
+    "validation": {
+      "scope": "public static saved dual-combination registration and read-only navigation",
+      "verified_signals": 2,
+      "original_JSON_files": 19,
+      "original_JSON_files_unchanged": true,
+      "temporary_missing_one_artifact_other_still_readable": true,
+      "evidence": "parent-confirmed Research PR23 and UI PR14 closeout, 2026-10-12",
+      "new_training_signal_mathematics_or_real_strategy_return_acceptance": false
+    },
+    "private_artifacts": "local only",
+    "installed_package_changed": false
+  },
   "incremental_feature_library_candidate": {
     "status": "merged_full_period_feature_preparation_projection_and_public_cold_load_verified",
     "as_of": "2026-10-12",
@@ -88,8 +121,7 @@
     "remaining": {
       "CSI1800_history_and_all_registered_features": "not_prepared",
       "full_period_model_signal_strategy_evaluation_acceptance": "separate_execution_owner_work",
-      "M1": "not_complete",
-      "Derived_signal_UI_auto_discovery": "unsupported_registration_reports_BLOCKED"
+      "M1": "not_complete"
     },
     "installed_package_changed": false
   },

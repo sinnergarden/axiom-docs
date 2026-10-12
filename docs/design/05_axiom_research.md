@@ -139,7 +139,7 @@ Reader 构造、索引、详情和比较仅读取并校验索引元数据，不�
 <a id="experiment-result-discovery"></a>
 #### 保存结果自动发现：v2 增量合同
 
-状态：既有 Raw 保存结果发现已由 Research PR19 和 UI PR13 实现并合并（2026-10-12）；下面的 Derived 保存登记增量为本轮候选，仍待源码亲审和 UI owner 联验。沿用上述唯一 `ExperimentStore` 索引及问题→版本→运行关系，不建立第二 registry 或数据库。`experiment_index_v1` / `experiment_projection_v1` 继续可读；首次登记新结果时在原子替换中升级为 `experiment_index_v2`，保留原 questions、versions、runs、组织历史与计数语义。v2 新增轻量 `result_heads`；`ExperimentReader.index()` 的 `experiment_projection_v2` 原样保留旧问题投影，并携带这些 head。索引不内嵌训练批次、逐日信号、账户 ledger 或评价序列。
+状态：保存结果自动登记与 UI 只读发现已实现（2026-10-12）。Derived 增量由 [Research PR23](https://github.com/sinnergarden/axiom-research/pull/23) 合并至 main、[UI PR14](https://github.com/sinnergarden/axiom-ui/pull/14) 合并至默认 `publish/ui-readonly` 分支，承接既有 Raw 登记入口。已保存组合信号可自动登记、刷新索引查看，实际评价/账户仍需相应owner完成。沿用上述唯一 `ExperimentStore` 索引及问题→版本→运行关系，不建立第二 registry 或数据库。`experiment_index_v1` / `experiment_projection_v1` 继续可读；首次登记新结果时在原子替换中升级为 `experiment_index_v2`，保留原 questions、versions、runs、组织历史与计数语义。v2 新增轻量 `result_heads`；`ExperimentReader.index()` 的 `experiment_projection_v2` 原样保留旧问题投影，并携带这些 head。索引不内嵌训练批次、逐日信号、账户 ledger 或评价序列。
 
 | 层次 | v2 保存字段与含义 |
 |---|---|
@@ -156,7 +156,9 @@ Research producer 在 owner 保存与公共校验后写入新的不可变 manife
 
 直接使用已保存的多个模型组合时，调用方沿用 `begin_stock_result_registration` 冻结问题、版本和 attempt，显式省略 `required_stages` 中的 `training`；这种结果只登记既有父输出，不声明本次重新训练。`required_stages=()` 表示只要求至少一个已验证 Signal，默认训练及评价要求保持原值。需要独立评价或账户时仍声明原有阶段名，并用现有评价保存钩子及 `attach_stock_account` 追加修订。完整训练声明仍须原 sequential/batch/fold 定义逐项匹配。账户可消费原 raw frames 或已登记 Derived 的原 `engine_input_binding()`；账户 `signal_run_ref` 仍沿用 Engine 的整组 prediction input 身份，不替换成某一组合的 ID。保存的 COMPLETE/BLOCKED 和 stopped 原因、缺件隔离、不可变 receipt 与发布失败时旧 head 保护均保留。
 
-UI 的 index/head/manifest schema 不增加字段。固定 Research loader 表追加 `StockDerivedSignal -> load_stock_derived_signal`，并对该类型及含 Derived 的 `StockPredictionBindings` 传入同一个 `research_root`；点选后验证原 contract/identity/digest。展示组合 stage、semantics 与父引用时从这个公共保存对象读取，独立评价和账户继续用原 loader。联合验收先登记极小保存组合，再从公开 `index()` 找到同一 result_id、`result()` 取得原组合引用；UI 刷新同一索引并点选后应显示该 Signal 和已登记的评价/账户，缺单件只将该件标为不可用。该增量的首次验收是保存件登记与只读导航，不代替组合数学或真实多年账户验收。
+UI 的 index/head/manifest schema 不增加字段。固定 Research loader 表已接入 `StockDerivedSignal -> load_stock_derived_signal`，并对该类型及含 Derived 的 `StockPredictionBindings` 传入同一个 `research_root`；点选后验证原 contract/identity/digest。展示组合 stage、semantics 与父引用时从这个公共保存对象读取，独立评价和账户继续用原 loader。用户刷新同一索引后点选结果，即可查看组合信号和已登记的评价、账户；未完成阶段保持其原状态和原因。
+
+公开静态双组合只读联验已通过：两个 Signal 均为 verified，19 个原 JSON 保持不变；在独立临时根构造缺单件场景时，另一件仍可正常读取。该证据验证保存件自动登记和只读导航，没有新增组合数学、训练或真实策略收益验收。Research 固定源码 `8b5cce1` 合并为 `f0d9b3b`，保留首父 `a49e949` 的股票池修复；UI 固定源码 `35031f9` 合并为 `508841f`。完整身份见 [versions.json](../../versions.json)。
 
 公开入口增量为 `ExperimentStore.publish_result(manifest, roots=...)` 和 `ExperimentReader(index_path).result(result_id, roots=...)`；后者只验证 head、manifest 与相对引用，不打开大型训练/账户原件。`index()` 仍只读小索引。Research 为 A01 的 `experiment-result.json`、`batch.json` 和 prediction bindings 提供可按需读取的固定公共投影/loader，UI 不把私有 JSON 当新业务合同。旧单记录 API 与 v1 Reader 行为保持。
 
