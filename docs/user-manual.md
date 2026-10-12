@@ -1,8 +1,8 @@
 # Axiom 使用说明书
 本说明书面向研究者和代为执行实验的 agent。先按研究问题选择用法，再修改对应配置。Notebook 提供少量完整演示；这里说明每种任务需要什么、会做什么、得到什么，以及哪些内容可以复用。
 ## 当前可用范围
-本文首次编写于 2026-10-11。增量特征库的当前状态、已验证范围、测量和适用源码统一记录在 [versions.json](../versions.json) 的 `incremental_feature_library_candidate` 条目；操作与边界见[增量特征库指导页](design/incremental-feature-library-v1.md)。全期特征准备和训练视图校验已通过，完整多年模型、信号、策略及评价仍由各执行 owner 验收，M1 尚未完成。
-已经保存的五年六特征案例证明了该案例的训练、预测和账户链路。短样本宽特征工程案例使用历史CSI300成员并集中的569只证券、88个价量特征；预测区间为2023-01-03至2023-02-07，共21个交易日，母特征覆盖120个日期，模型进行两次训练。新增的可复用库已准备2016-10-13至2025-12-30共2242日、88列的 raw/base 和原历史CSI300每日截面标准化结果，正式训练投影含606只证券；另32只仅用于暖机历史，不进入训练。此范围证明特征准备与读取能力，不代表全期训练或账户已经完成。88列是可实现的Alpha158子集加中长期趋势及量额特征；CSI1800全特征库、历史行业及其他缺少字段或算子的特征仍未准备。
+本文首次编写于 2026-10-11，当前状态核对至 2026-10-12。增量特征库的已验证范围和测量统一记录在 [versions.json](../versions.json) 的 `incremental_feature_library_candidate` 条目；操作与边界见[增量特征库指导页](design/incremental-feature-library-v1.md)。T01 七年用例已完成359个fold训练和1699个交易日的信号评估；账户等待Engine生命周期修复，主结果尚未发布到UI，M1尚未完成。准备件跨模型复用已实现并合并，小范围验证通过，真实长期迭代性能仍待测。
+已经保存的五年六特征案例证明了该案例的训练、预测和账户链路。短样本宽特征工程案例使用历史CSI300成员并集中的569只证券、88个价量特征；预测区间为2023-01-03至2023-02-07，共21个交易日，母特征覆盖120个日期，模型进行两次训练。新增的可复用库已准备2016-10-13至2025-12-30共2242日、88列的 raw/base 和原历史CSI300每日截面标准化结果，正式训练投影含606只证券；另32只仅用于暖机历史，不进入训练。上述特征准备证据覆盖准备与读取，训练和账户另按各自保存结果验收。88列是可实现的Alpha158子集加中长期趋势及量额特征；CSI1800全特征库、历史行业及其他缺少字段或算子的特征仍未准备。
 ## 先准备一份研究计划
 一个实验由以下独立配置组成。入口只引用这些配置，避免把几百项参数塞进一个文件。
 | 配置 | 研究者决定什么 |
@@ -24,16 +24,18 @@
 **完成判据**：指定范围运行完成，结果可重新打开，缺失与排除原因可见。遇到错误时说明停在哪一步、哪些产物仍有效。禁止把成功的前几周当成全年结果。
 ## 用法二：从已有特征集挑一个子集
 **输入**：已保存的特征母矩阵、需要的有序特征ID、新的实验配置。
-例如，已有88列，下一次只用中期趋势和量额列。平台从母矩阵选列；仍需为新输入重新训练和预测。特征语义、实际输入 revision、每日时钟及参考池相同且已有覆盖时，Feature 计算为0。筛选训练或交易证券使用 `sample_universe`；若同时改变截面标准化使用的参考成员，相关截面结果需要重新计算。
+例如，已有88列，下一次只用中期趋势和量额列。在新的dataset配置中填写有序的 `model_feature_selection`，options保留原 `feature_result` 或 `feature_library_training_view`，设置新的 `output_root` 和 `prepared_destination`。清除 `prepared_batch`，以 `reuse_raw_from_batch` 指向原完整batch回执，从 `train` 开始。平台复用母矩阵和兼容的Raw输入，为实际入选特征与有效样本重新准备截面资格、标准化和fold控制，再训练和预测。旧normalized cohort不能直接搬到新子集。
+特征语义、实际输入revision、每日时钟及参考池相同且已有覆盖时，Feature计算为0；新的样本准备、矩阵投影和训练仍有成本。筛选训练或交易证券使用 `sample_universe`；若同时改变截面标准化使用的参考成员，相关截面结果需要重新计算。
 **输出**：子集清单、新模型与预测、与原实验可比的评价，以及实际复用情况。母矩阵中的其他列不被删除。
 缺少某一列时，应在运行前指出名称和原因；不能静默补零或更换表达式。
 ## 用法三：更换模型或模型参数
-保持特征、训练标签与时间划分相同，只改模型配置。复用准备好的输入，重新拟合并保存预测。比较信号时使用同一个评价标签及共同有效样本，同时保留各自覆盖率。
+保持特征、训练标签、fold计划、准备参数和入模特征顺序相同，只改 `model.yaml` 中支持的模型配置，由新的experiment配置引用它。options保留原Feature入口，设置新的 `output_root`，以 `prepared_batch` 指向已保存的COMPLETE batch manifest，清除 `reuse_raw_from_batch`；运行 `validate`、`train`、`evaluate`，跳过 `features`。入口先核对完整输入身份，兼容后复用准备件并重新拟合、保存预测；不兼容时停止该复用路径。
+这一路径不重新打开Data准备输入，小范围验证中Data、Raw、Core准备及proof写入均为0；新进程冷加载、准入、矩阵投影、模型训练和预测仍需时间。比较信号时使用同一个评价标签及共同有效样本，同时保留各自覆盖率。
 当前已验证的模型后端为LightGBM，可以在支持的配置字段内改变参数。新增算法可通过现有模型扩展接口接入，但仍须实现并验证训练、保存和推理适配；接口可扩展不表示任意算法已经实现。适用版本见 [versions.json](../versions.json)。
 ## 用法四：更换标签期限或评价目标
 训练标签和评价标签分别配置。
-- 改训练标签：复用特征，准备必要的新标签，重新训练和预测。
-- 只改评价标签：直接复用保存的预测，计算新期限下的信号表现。
+- 改训练标签：修改 `label.yaml` 及其experiment引用，保留兼容的Feature入口，使用新的输出和准备目录，清除旧 `prepared_batch`。Label期限或成熟条件变化时，重新准备必要标签、样本资格、标准化及fold控制，再训练和预测；旧Raw是否兼容也须由公共入口核实，不能只改期限就强行复用。
+- 只改评价标签：复用保存的预测，用公开 `build_stock_evaluation_label_inputs` 保存新评价Label，再以 `save_stock_signal_evaluation_inputs` 显式绑定原预测owner与共同Label，交 `evaluate_stock_signal_input_analysis` 计算。配置与保存形状见[独立评价Label](design/05_axiom_research.md#stock-evaluation-label-owner)和[多owner评价](design/05_axiom_research.md#stock-multi-owner-signal-evaluation)。A01的 `evaluate` 消费已保存评价输入，单改训练 `label.yaml` 不会替换那份输入里的Label。
 例如，60日模型和180日模型都可以对照同一个180日真实收益标签。比较时统一评价日期、成员与有效样本。每个标签只有在其终点及必要数据都已可知后才成熟；训练只能使用拟合当时已经成熟的标签。
 收益名称必须说明起止价格和复权口径。因子复权价格收益与另计现金权益的账户收益分开解释。
 ## 用法五：组合已经保存的信号
@@ -43,12 +45,13 @@
 ## 用法六：同一个信号尝试不同策略
 **输入**：保存的信号、当时账户状态、可见市场参考信息和策略配置。
 策略输出目标权重、需要保留的数量、退出要求、下一状态和原因。唯一执行引擎负责整手、费用、可卖数量、成交约束、现金及权益账本。目标持仓与实际成交分别保存。
-本轮三个例子已完成相同 21 个交易日的真实账户运行：
+此前短样本的三个例子已完成相同21个交易日的真实账户运行；当前T01长期账户仍待Engine生命周期修复：
 1. TopK等权：按信号排序选K只，各分配1/K预算。K可配置。
 2. 排名缓冲：旧持仓仍在前十时保留，空位由高排名候选补足；候选不足留现金。
 3. TopK加周频收盘止盈止损：使用上一完整交易日的持仓价格收益触发退出，下一交易日执行；冷却完成后才允许重新入场。
 第三种只在配置的周频检查点判断，不能写成每日或盘中止损。收益成本口径包含买入费用及已确认股票权益数量，现金分红不从成本扣除。卖不出的持仓仍占槽位，不能假定已卖出后买入更多证券。
 更复杂的策略应实现同一个规划接口，继续交给现有执行引擎。持久运行入口只接纳已经实现并可重建的策略类型；新增类型需要小范围接入，不把任意Python函数塞进保存配置。
+换策略时只编辑对应策略配置，复用已保存的 `prediction-bindings.json`、市场输入和初始资金，以独立目录保存新账户及评价。用Engine公共工厂绑定原执行规则，或调用Research公开的 `stock_request_with_saved_predictions`、`run_saved_stock_strategy`、`evaluate_saved_stock_strategy`；这些入口继续消费Engine owner及其准入检查。A01 CLI只有validate/features/train/evaluate四个阶段，账户另由这些公共入口执行。
 ## 用法七：评价信号和交易结果
 评价模块的输入输出保持独立。
 | 类别 | 输入 | 输出 |
@@ -64,6 +67,7 @@
 **当前可用**：普通 A01 训练与评价自动登记，Engine 保存账户可关联到同一结果。已保存组合信号可自动登记、刷新索引查看，实际评价/账户仍需相应owner完成。首次配置研究目录及 Engine 结果目录，之后运行实验或保存组合信号，打开 UI 点击刷新即可查看对应 idea 的结果。
 同一 idea 下可以有多个实验版本；每次运行有稳定的结果编号。一个结果可以关联多份预测、信号评价和策略账户。比如同一预测跑 Top5、排名缓冲和退出策略，页面显示三个账户；后来追加年度评价，更新对应账户的评价，不增加一个重复实验。
 Research 负责保存结果并自动登记到现有实验索引。登记内容包括配置、运行状态、实际覆盖、产物类型、版本和位置；完整产物保存成功后才发布对应引用。失败或只完成部分阶段时，页面显示已完成内容和未完成原因。
+首次运行前在 `result_discovery.required_stages` 声明完成条件；完整账户用例填training、signal_evaluation、accounts、account_evaluation，并在 `result_discovery.strategy_refs` 声明原策略引用。默认只要求training与signal_evaluation，因此索引显示COMPLETE也不代表账户完成；已经冻结的同一次尝试不能中途改完成条件。同一idea的变体沿用 `result_discovery.question` 中的question_id，用 `version` 说明本次配置与明确改动；否则默认问题编号随配置变化。
 UI 列表先读取轻量索引，打开详情时才通过对应模块的公共读取接口加载结果。各目录只需配置一次；索引中的路径相对于这些目录解析。刷新和查看结果不触发数据采集、训练或回测。静态导出页面标明生成时间，展示当时的结果快照。
 **已验证范围**：正式 Research v2 索引中的一个主结果包含两折、两个 Signal 和三个策略账户，页面指标与所属模块保存值一致；读取不执行训练或回测。小型回归覆盖重试保存、发布失败保留旧结果、缺件隔离和账户阻断状态。另一次公开静态双组合只读联验中，两个组合 Signal 均通过公共 loader 验证，19 个原 JSON 未变；临时缺一件时，另一件仍正常。此次组合联验仅覆盖保存件发现与读取，未新增组合数学或真实策略收益验收。
 **后续覆盖**：多个 idea、多版本、其他规模和组合仍按实际验证逐项补齐；具体评价及账户的完成状态以所属模块保存值为准。
@@ -79,7 +83,7 @@ UI 列表先读取轻量索引，打开详情时才通过对应模块的公共�
 }
 ```
 
-启动前使用 [Research PR23](https://github.com/sinnergarden/axiom-research/pull/23)（main 合并版本 [f0d9b3b](https://github.com/sinnergarden/axiom-research/commit/f0d9b3bbaf89aec6c709f88b02f0b0debc5438ac)）与 [UI PR14](https://github.com/sinnergarden/axiom-ui/pull/14)（默认 `publish/ui-readonly` 分支合并版本 [508841f](https://github.com/sinnergarden/axiom-ui/commit/508841f8fcdeeda8eabda71d1c7128bc76e7c220)）对应的源码及其兼容依赖。它们保留 PR19/13 的普通结果入口并增加保存组合信号读取。历史版本清单中的条目仅记录各自证据，不能证明本机已安装这个入口。将下面的源码路径替换为本机路径后启动：
+启动前使用 [Research PR26](https://github.com/sinnergarden/axiom-research/pull/26)（main合并版本 [7b5be85](https://github.com/sinnergarden/axiom-research/commit/7b5be85c4a06bce8d76d813a053da1e0ae68e076)，包含PR24/25/26及原组合信号入口）与 [UI PR14](https://github.com/sinnergarden/axiom-ui/pull/14)（默认 `publish/ui-readonly` 分支合并版本 [508841f](https://github.com/sinnergarden/axiom-ui/commit/508841f8fcdeeda8eabda71d1c7128bc76e7c220)）对应的源码及其兼容依赖。历史版本清单中的条目仅记录各自证据，不能证明本机已安装这个入口。将下面的源码路径替换为本机路径后启动：
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/path/axiom-ui/src:/path/axiom-research/src:/path/axiom-engine/src python3 -m axiom_ui --serve-results --workspace-config /private/axiom-roots.json
@@ -88,16 +92,56 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/path/axiom-ui/src:/path/axiom-research/src
 打开命令打印的 `127.0.0.1` 地址，点“刷新保存索引”再选择结果；按 Ctrl-C 停止。
 
 ## 实际入口与运行顺序
-配置字段和完整用例见[研究用例说明](design/m2-one-year-executable-case.md)；源代码入口为 Research 的 `examples/a01_one_year.py`。准备好引用独立配置文件的 `options.json` 后，在已安装对应 Data、Engine、Research 版本的环境中运行：
+配置字段和完整用例见[研究用例说明](design/m2-one-year-executable-case.md)；源代码入口为 Research 的 `examples/a01_one_year.py`。`options.json` 的 `experiment_file` 引用本次experiment配置，后者引用独立dataset/model/label文件。填好本地路径和预算后，在已安装对应Data、Engine、Research版本的环境中运行：
 ```sh
 python examples/a01_one_year.py --options /absolute/path/options.json --stage validate
 python examples/a01_one_year.py --options /absolute/path/options.json --stage features
 python examples/a01_one_year.py --options /absolute/path/options.json --stage train
 python examples/a01_one_year.py --options /absolute/path/options.json --stage evaluate
 ```
-首次 `features` 保存母矩阵和 `feature-result.json`。后续改模型或入模特征子集时，保留同一个 `feature_result`，从 `train` 开始。训练将 `experiment-result.json`、`batch.json`、`prediction-bindings.json` 保存到新的不可变回执目录，现有实验索引定位当前版本；评价阶段从该索引读取已登记回执。`prediction-bindings.json` 供策略回测读取，`reuse_raw_from_batch` 指向原回执目录的 `batch.json`。
-策略使用 Engine 的 `stock_strategy_spec` 与 `stock_portfolio_policy` 入口；具体参数见[策略说明](design/engine-strategy-protocol-v1.md)。本地验收命令另保留实际数据路径及绑定，不把私人数据路径写入通用配置。
+首次 `features` 保存母矩阵和 `feature-result.json`。训练前设置 `prepared_destination`，将可复用准备件与本次模型的 `output_root` 分开。训练将 `experiment-result.json`、`batch.json`、`prediction-bindings.json` 保存到新的不可变回执目录，现有实验索引定位当前版本；评价阶段从该索引读取已登记回执。`prediction-bindings.json` 交策略入口，`batch.json` 是后续复用的manifest。具体准备目录位置以owner回执为准，不假定它一定是 `prepared_destination/batch.json`。
+
+在完整模板中编辑以下相关字段；表格只列本次需要改变的项目，其余时间、股票池、Label和预算配置仍保留。`time.yaml` 填入dataset的 `periodic_schedule`，evaluation配置填入options的 `evaluation`；实际文件消费关系见[用例入口](design/m2-one-year-executable-case.md#可运行入口)。
+
+| 场景 | 配置与options | 从哪个阶段开始 |
+| --- | --- | --- |
+| 首次准备 | 独立experiment/dataset/model/label；`output_root` 为本次模型目录，`prepared_destination` 为准备目录；不设 `prepared_batch` 或 `reuse_raw_from_batch` | validate → features → train → evaluate，账户另执行 |
+| 换模型 | 新model及experiment引用、新 `output_root`；原Feature入口和COMPLETE `prepared_batch`，清除 `reuse_raw_from_batch` | validate → train → evaluate |
+| 换入模子集 | dataset的 `model_feature_selection`；原Feature入口和 `reuse_raw_from_batch`，新输出及准备目录，清除 `prepared_batch` | validate → train → evaluate |
+| 换训练Label | 新Label及experiment引用；保留兼容Feature，新输出及准备目录；清除旧 `prepared_batch`，Raw复用须另核实 | validate → train → evaluate |
+| 换策略 | 新策略参数、原保存预测及市场、独立账户输出目录 | Engine公共策略/账户入口，再评价与登记 |
+
+已保存母矩阵使用 `feature_result`；增量库已保存训练视图使用 `feature_library_training_view`。两者选择一个对应原owner的入口。`prepared_batch` 与 `reuse_raw_from_batch` 互斥。公开的 `ExperimentReader(index_path).result(result_id, roots=roots)` 返回登记产物；从 `StockMLBatchManifest` 条目的 `root_id`、`relative_path` 解析准确batch路径，UI产物列表也显示该条目，无需扫描目录猜测。
+
+策略使用Engine的 `stock_strategy_spec` 与 `stock_portfolio_policy`；具体参数见[策略说明](design/engine-strategy-protocol-v1.md)。私有Data路径、市场绑定和实际保存身份留在本地配置中。
 新增列或日期使用[增量特征库公开接口](design/incremental-feature-library-v1.md#公开使用接口)：在同一库目录调用 `CatalogFeatureLibrary.ensure`，显式给出登记选列、输出日期和样本证券。它查询覆盖、保留仍有效的旧分区，并只计算缺口；新增特征必须已有定义与算子，来源也须覆盖所需字段、日期及回看历史。上方 A01 脚本说明保留其原母矩阵读取路径，不能仅改旧 `feature-result.json` 就把它转换为增量库。旧 normalized 母矩阵也不能直接充当池无关的 raw/base。
+
+### 完整产物一次登记
+
+A01各阶段会自动发布进度；它们是独立publish调用，每次各自核验保存件。[PR25](https://github.com/sinnergarden/axiom-research/pull/25)只在同一次publish内复用共同读取和验证，跨独立追加仍重新准入。若实验、信号统计与两个账户均已完整保存，可由公开 `publish_stock_result` 在同一次调用登记；该调用读取owner保存件，不训练或运行账户：
+
+```python
+from axiom_research import publish_stock_result
+
+publish_stock_result(
+    request_path="/private/research-results/model-a/.result-request.json",
+    index_path="/private/research-results/index.json",
+    roots={"research": "/private/research-results", "engine": "/private/engine-results"},
+    experiment_result="/private/research-results/model-a/<owner-receipt>/experiment-result.json",
+    signal_evaluation="/private/research-results/model-a/evaluation-result.json",
+    engine_handoff="/private/engine-results/two-accounts-handoff.json",
+)
+```
+
+路径均替换为真实owner回执，沿用首次运行冻结的request。`two-accounts-handoff.json` 的 `accounts` 数组放两个对象，各对象保存下表字段。Publisher逐一检查原身份与状态，再关联到同一实验；账户尚未完成时保留实际缺口，当前T01不能提前登记为完整两账户结果。
+
+| 每个账户对象的字段 | 值来自哪里 |
+| --- | --- |
+| `run_manifest` | Engine保存run的准确路径 |
+| `run_ref` | 原 `{run_id, content_digest, committed_sequence}` 三键，不改名或重算 |
+| `evaluations` | 以原evaluation_ref为键，每个值为 `{"path": "<saved evaluation path>"}`；报告input_run_ref须匹配上行 |
+
+`signal_evaluation` 指向公开evaluate阶段生成的 `evaluation-result.json`，保留statistics及可选by_year的原路径/引用。发布成功后刷新UI索引；不复制大结果、不新增registry，也不以某个阶段的COMPLETE状态替代整个研究问题的验收。
 
 ### 准备与后续迭代的成本
 
@@ -105,13 +149,13 @@ python examples/a01_one_year.py --options /absolute/path/options.json --stage ev
 
 训练兼容投影可以从已保存库生成一次，本次全范围投影测得约11分49秒，Feature 计算为0。每个新进程打开保存的训练视图时仍要核验来源与实际 bytes，并逐日核对数值、有效位、时钟、缺失原因和成员；本次公共冷加载测得约20分钟，Feature 计算同样为0。这是上述样本在执行环境中的测量，其他规模或机器须另测。
 
-完成准入后，同一进程的多个 fold 和窗口共享全期 owner，不为每折重复冷加载。选择已有列或换模型可复用 Feature；投影、必要的新标签、训练、预测、评价和账户执行仍各有成本。新的独立进程需重新准入。精确测量及其范围见 [versions.json](../versions.json)。
+完成准入后，同一进程的多个fold和窗口共享全期owner，不为每折重复冷加载。换模型可显式复用兼容prepared batch，省去Data/Raw/Core及proof写入；换subset仅复用兼容Raw，实际cohort的标准化与控制重新准备。新的独立进程需重新准入，投影、训练、预测、评价和账户执行仍各有成本。PR26的小范围验证没有给出七年迭代耗时或性能达标结论。精确测量及其范围见 [versions.json](../versions.json)。
 ## 人和agent共用的操作约定
 执行者先读对应版本的能力清单，再展开配置、检查覆盖、估计资源，随后运行。所有命令必须来自经过实际执行的版本说明。上方入口与研究用例说明提供本轮已执行的命令；尚未列出实测命令的用法按设计说明理解。
 实验报告至少回答：跑了什么、实际完成多少、结果在哪里、复用了什么、总共花了多久、还有什么限制。缺必要字段、算子或策略类型时明确停止对应步骤，不能偷偷换股票池、特征或价格口径。
 ## 用说明书验收
 - 首次实验能否从配置得到完整结果？
-- 更换特征子集，是否只选列并重训？
+- 更换特征子集，是否复用兼容Feature/Raw并重准备实际cohort，再重训？
 - 换模型或训练标签，是否保留无关准备结果？
 - 换评价标签或指标，是否复用预测？
 - 换策略，是否复用信号并独立生成账户？

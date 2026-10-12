@@ -33,6 +33,39 @@
     "private_artifacts": "local only",
     "installed_package_changed": false
   },
+  "research_iteration_usage": {
+    "as_of": "2026-10-12",
+    "manual": "docs/user-manual.md#实际入口与运行顺序",
+    "status": "implemented_merged_bounded_validation_passed_long_iteration_performance_unmeasured",
+    "normal_entry": "examples/a01_one_year.py",
+    "research_main": "7b5be85c4a06bce8d76d813a053da1e0ae68e076",
+    "same_publish_reuse": {
+      "source_commit": "21239412087c23579ea103f2ac61c712419e4883",
+      "merge_commit": "0818c1cda1e78939da6c75b93bef50a9df641c6a",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/25",
+      "scope": "reuse shared saved-owner reads and validation within one publish_stock_result call; no reuse across independent append calls or CLI stages"
+    },
+    "prepared_model_reuse": {
+      "source_commit": "93d39f806105788a72b2bd1b176aaecd8119d54b",
+      "merge_commit": "7b5be85c4a06bce8d76d813a053da1e0ae68e076",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/26",
+      "review": "parent_and_independent_review_passed",
+      "usage": "prepared_destination separates input storage; prepared_batch consumes compatible COMPLETE inputs with unchanged Feature, Label, folds, preparation options and selection",
+      "bounded_validation": "Data, Raw and Core preparation and proof writes zero for a compatible model change",
+      "subset_boundary": "reuse_raw_from_batch reuses compatible Raw only; actual cohort eligibility, normalized inputs and fold controls are prepared again; mutually exclusive with prepared_batch",
+      "remaining_cost": "fresh-process cold admission, matrix projection, fitting, prediction, evaluation and account execution as applicable",
+      "long_iteration_performance": "not_measured"
+    },
+    "T01_execution": {
+      "completed_training_folds": 359,
+      "completed_signal_evaluation_sessions": 1699,
+      "accounts": "waiting_for_Engine_lifecycle_fix",
+      "main_result_published_to_UI": false,
+      "M1": "not_complete",
+      "evidence": "parent-confirmed execution progress, 2026-10-12; saved private results remain with their owners"
+    },
+    "installed_package_changed": false
+  },
   "incremental_feature_library_candidate": {
     "status": "merged_full_period_feature_preparation_projection_and_public_cold_load_verified",
     "as_of": "2026-10-12",
@@ -120,7 +153,7 @@
     },
     "remaining": {
       "CSI1800_history_and_all_registered_features": "not_prepared",
-      "full_period_model_signal_strategy_evaluation_acceptance": "separate_execution_owner_work",
+      "full_period_model_signal_strategy_evaluation_acceptance": "T01_training_and_signal_evaluation_complete; accounts_wait_Engine_lifecycle_fix; main_result_not_published_to_UI",
       "M1": "not_complete"
     },
     "installed_package_changed": false
