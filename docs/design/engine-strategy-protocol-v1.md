@@ -1,6 +1,6 @@
 # Engine 最小组合策略接口
 
-最小策略配置与纯函数协议已由 [Engine PR31](https://github.com/sinnergarden/axiom-engine/pull/31)实现并合并，当前 [main 306b26d](https://github.com/sinnergarden/axiom-engine/commit/306b26d3ec513fa6422b5647ec6fa3e03dfacf1e)还包含PR38的共享输入保存与重载。历史短样本及T01原双账户各保留其实际验收范围；新的共享输入baseline与SMA120 gate对照仍在运行，尚不报告新性能结论。本页补充 [Trade §6.1](04_axiom_trade.md)，供Engine、Research及使用者理解目标持仓、保留旧持仓、退出覆盖和重新入场状态；账户仍由唯一Runtime执行。
+最小策略配置与纯函数协议已由 [Engine PR31](https://github.com/sinnergarden/axiom-engine/pull/31)实现并合并，当前 [main 306b26d](https://github.com/sinnergarden/axiom-engine/commit/306b26d3ec513fa6422b5647ec6fa3e03dfacf1e)还包含PR38的共享输入保存与重载。历史短样本及T01原双账户各保留其实际验收范围；共享输入baseline与SMA120 gate对照已完成两账户、评价及正常索引/UI；baseline逐业务行与旧结果一致，本轮未重训，保存输入换策略性能已实测。本页补充 [Trade §6.1](04_axiom_trade.md)，供Engine、Research及使用者理解目标持仓、保留旧持仓、退出覆盖和重新入场状态；账户仍由唯一Runtime执行。
 
 ## 模块、输入与输出
 

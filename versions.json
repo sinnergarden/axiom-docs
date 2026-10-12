@@ -48,7 +48,7 @@
     "manual": "docs/user-manual.md#实际入口与运行顺序",
     "status": "implemented_merged_bounded_validation_passed_long_iteration_performance_unmeasured",
     "normal_entry": "examples/a01_one_year.py",
-    "research_main": "7b5be85c4a06bce8d76d813a053da1e0ae68e076",
+    "research_main": "699fa6a706dbce074510d40b22eb48accc9aa4ba",
     "same_publish_reuse": {
       "source_commit": "21239412087c23579ea103f2ac61c712419e4883",
       "merge_commit": "0818c1cda1e78939da6c75b93bef50a9df641c6a",
@@ -79,7 +79,7 @@
       "completed_signal_evaluation_sessions": 1699,
       "accounts": "original_two_accounts_and_evaluations_complete",
       "main_result_published_to_UI": true,
-      "new_shared_baseline_and_SMA120_gate_comparison": "running; performance_target_not_measured",
+      "new_shared_baseline_and_SMA120_gate_comparison": "measured; saved-input strategy comparison and automatic UI completed; baseline business rows match original; no retraining",
       "M1": "not_complete",
       "evidence": "parent-confirmed original T01 completion including normal Research index/UI, 2026-10-12; new comparison remains separate"
     },
@@ -88,7 +88,12 @@
       "merge_commit": "306b26d3ec513fa6422b5647ec6fa3e03dfacf1e",
       "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/38",
       "execution_universe_boundary": "CSI300 only for shared and saved-reloaded market/prediction account inputs; CSI800/1800 require separate admission implementation and validation",
-      "long_performance_acceptance": "not_measured"
+      "long_performance_acceptance": "measured; saved-input strategy comparison and automatic UI completed"
+    },
+    "registered_basis_account": {
+      "source_commit": "583ff9f8b60a6bc1a72bc47807aeab589027e8da",
+      "merge_commit": "699fa6a706dbce074510d40b22eb48accc9aa4ba",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/27"
     },
     "installed_package_changed": false
   },
@@ -180,7 +185,7 @@
     "remaining": {
       "CSI1800_history_and_all_registered_features": "not_prepared",
       "full_period_model_signal_strategy_evaluation_acceptance": "original_T01_training_daily_inference_signal_evaluation_two_accounts_account_evaluation_and_normal_index_UI_complete",
-      "shared_input_baseline_and_SMA120_gate_comparison": "running; performance_target_not_measured; PR26_long_model_iteration_performance_not_measured",
+      "shared_input_baseline_and_SMA120_gate_comparison": "measured; saved-input strategy comparison and automatic UI completed; PR26_long_model_iteration_performance_not_measured",
       "general_account_universe": "CSI300 shared/saved-input path only; CSI800/1800 not_enabled_by_universe_id",
       "M1": "not_complete"
     },
