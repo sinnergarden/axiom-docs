@@ -1,7 +1,7 @@
 # Axiom 使用说明书
 本说明书面向研究者和代为执行实验的 agent。先按研究问题选择用法，再修改对应配置。Notebook 提供少量完整演示；这里说明每种任务需要什么、会做什么、得到什么，以及哪些内容可以复用。
 ## 当前可用范围
-本文首次编写于 2026-10-11，当前状态核对至 2026-10-12。增量特征库的已验证范围和测量统一记录在 [versions.json](../versions.json) 的 `incremental_feature_library_candidate` 条目；操作与边界见[增量特征库指导页](design/incremental-feature-library-v1.md)。T01原七年用例（2019-01-02至2025-12-31，历史CSI300的606只证券、88列、LightGBM）已完成359个周fold训练、每日推理、1699日信号评价、原双账户及账户评价，并已正常登记到Research索引，在UI查看。新的共享输入baseline与SMA120 gate对照仍在运行，性能目标尚未实测。准备件跨模型复用的小范围验证已通过，PR26长期换模型性能仍未测；M1其他验收项尚未全部完成。
+本文首次编写于 2026-10-11，当前状态核对至 2026-10-12。增量特征库的已验证范围和测量统一记录在 [versions.json](../versions.json) 的 `incremental_feature_library_candidate` 条目；操作与边界见[增量特征库指导页](design/incremental-feature-library-v1.md)。T01原七年用例（2019-01-02至2025-12-31，历史CSI300的606只证券、88列、LightGBM）已完成359个周fold训练、每日推理、1699日信号评价、原双账户及账户评价，并已正常登记到Research索引，在UI查看。共享输入baseline与SMA120 gate对照已完成两账户、评价及正常Research索引/UI；baseline逐业务行与旧结果一致，本轮未重训。保存输入换策略性能已实测。准备件跨模型复用的小范围验证已通过，PR26长期换模型性能仍未测；M1其他验收项尚未全部完成。
 已经保存的五年六特征案例证明了该案例的训练、预测和账户链路。短样本宽特征工程案例使用历史CSI300成员并集中的569只证券、88个价量特征；预测区间为2023-01-03至2023-02-07，共21个交易日，母特征覆盖120个日期，模型进行两次训练。新增的可复用库已准备2016-10-13至2025-12-30共2242日、88列的 raw/base 和原历史CSI300每日截面标准化结果，正式训练投影含606只证券；另32只仅用于暖机历史，不进入训练。上述特征准备证据覆盖准备与读取，训练和账户另按各自保存结果验收。88列是可实现的Alpha158子集加中长期趋势及量额特征；CSI1800全特征库、历史行业及其他缺少字段或算子的特征仍未准备。
 ## 先准备一份研究计划
 一个实验由以下独立配置组成。入口只引用这些配置，避免把几百项参数塞进一个文件。
@@ -52,7 +52,7 @@
 第三种只在配置的周频检查点判断，不能写成每日或盘中止损。收益成本口径包含买入费用及已确认股票权益数量，现金分红不从成本扣除。卖不出的持仓仍占槽位，不能假定已卖出后买入更多证券。
 更复杂的策略应实现同一个规划接口，继续交给现有执行引擎。持久运行入口只接纳已经实现并可重建的策略类型；新增类型需要小范围接入，不把任意Python函数塞进保存配置。
 换策略时只编辑对应策略配置，复用已保存的 `prediction-bindings.json`、市场输入和初始资金，以独立目录保存新账户及评价。用Engine公共工厂绑定原执行规则，或调用Research公开的 `stock_request_with_saved_predictions`、`run_saved_stock_strategy`、`evaluate_saved_stock_strategy`；这些入口继续消费Engine owner及其准入检查。A01 CLI只有validate/features/train/evaluate四个阶段，账户另由这些公共入口执行。
-T01原七年双账户及评价已完成；新的共享输入baseline与SMA120 gate对照仍在运行，不据此更新收益或性能结论。Engine [PR38](https://github.com/sinnergarden/axiom-engine/pull/38)提供跨进程保存与重载。以下调用均来自 `axiom_engine.runtime`，market和inputs须已完成准入，两份destination各用独立目录；保留返回的ArtifactRef回执。new_request由原公开请求入口构造，只改变策略并保持兼容输入：
+T01原七年双账户及评价已完成；共享输入baseline与SMA120 gate对照的两账户、评价及正常索引/UI已完成，baseline逐业务行与旧结果一致，本轮未重训。Engine [PR38](https://github.com/sinnergarden/axiom-engine/pull/38)提供跨进程保存与重载。以下调用均来自 `axiom_engine.runtime`，market和inputs须已完成准入，两份destination各用独立目录；保留返回的ArtifactRef回执。new_request由原公开请求入口构造，只改变策略并保持兼容输入：
 
 ```python
 market_ref = save_stock_market_inputs(market, market_destination, limits=limits)
@@ -94,7 +94,7 @@ Research 负责保存结果并自动登记到现有实验索引。登记内容�
 }
 ```
 
-启动前使用 [Research PR26](https://github.com/sinnergarden/axiom-research/pull/26)（main合并版本 [7b5be85](https://github.com/sinnergarden/axiom-research/commit/7b5be85c4a06bce8d76d813a053da1e0ae68e076)，包含PR24/25/26及原组合信号入口）与 [UI PR15](https://github.com/sinnergarden/axiom-ui/pull/15)（默认 `publish/ui-readonly` 分支合并版本 [c3b2966](https://github.com/sinnergarden/axiom-ui/commit/c3b29666c9286c30c4664b33f2531ad5396b4727)）对应的源码及其兼容依赖。历史版本清单中的条目仅记录各自证据，不能证明本机已安装这个入口。将下面的源码路径替换为本机路径后启动：
+启动前使用 [Research PR27](https://github.com/sinnergarden/axiom-research/pull/27)（main合并版本 [699fa6a](https://github.com/sinnergarden/axiom-research/commit/699fa6a706dbce074510d40b22eb48accc9aa4ba)，保留PR24/25/26及原组合信号入口）与 [UI PR16](https://github.com/sinnergarden/axiom-ui/pull/16)（默认 `publish/ui-readonly` 分支合并版本 [c304fa8](https://github.com/sinnergarden/axiom-ui/commit/c304fa8774b41b4503e5e3d53860a07768853161)，保留PR15的summary及显式full读取）对应的源码及其兼容依赖。历史版本清单中的条目仅记录各自证据，不能证明本机已安装这个入口。将下面的源码路径替换为本机路径后启动：
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/path/axiom-ui/src:/path/axiom-research/src:/path/axiom-engine/src python3 -m axiom_ui --serve-results --workspace-config /private/axiom-roots.json
@@ -144,7 +144,7 @@ publish_stock_result(
 )
 ```
 
-路径均替换为真实owner回执，沿用首次运行冻结的request。`two-accounts-handoff.json` 的 `accounts` 数组放两个对象，各对象保存下表字段。Publisher逐一检查原身份与状态，再关联到同一实验。T01原双账户及评价已完成正常登记；正在运行的新对照另按实际保存状态登记，不覆盖原结果。
+路径均替换为真实owner回执，沿用首次运行冻结的request。`two-accounts-handoff.json` 的 `accounts` 数组放两个对象，各对象保存下表字段。Publisher逐一检查原身份与状态，再关联到同一实验。T01原双账户及评价已完成正常登记；新对照也已完成正常索引/UI登记，保留原结果。
 
 | 每个账户对象的字段 | 值来自哪里 |
 | --- | --- |
@@ -153,6 +153,26 @@ publish_stock_result(
 | `evaluations` | 以原evaluation_ref为键，每个值为 `{"path": "<saved evaluation path>"}`；报告input_run_ref须匹配上行 |
 
 `signal_evaluation` 指向公开evaluate阶段生成的 `evaluation-result.json`，保留statistics及可选by_year的原路径/引用。发布成功后刷新UI索引；不复制大结果、不新增registry，也不以某个阶段的COMPLETE状态替代整个研究问题的验收。
+
+### 从固定已登记结果追加新策略账户
+
+[Research PR27](https://github.com/sinnergarden/axiom-research/pull/27)入口适用于训练、原预测及信号评价已有正常登记，本次只保存了新策略账户及账户评价的情况。先从同一索引选择所复用结果的 head，并冻结它的四项 basis 身份，再提交 Engine 保存回执的准确路径：
+
+```python
+from axiom_research import ExperimentReader, attach_stock_account_from_basis
+
+head = next(h for h in ExperimentReader(index_path).index()["result_heads"]
+            if h["result_id"] == result_id)
+basis = {k: head[k] for k in ("result_id", "revision", "manifest_ref")}
+basis["content_digest"] = head["manifest_ref"]["content_digest"]
+attach_stock_account_from_basis(
+    basis, index_path=index_path, roots=roots,
+    run_path="<Engine saved run path>",
+    evaluation_paths=["<Engine saved evaluation path>"],
+)
+```
+
+成功后刷新 UI 保存索引即可在同一结果中看到新增账户。入口要求 basis 含一份原 prediction-bindings，只追加此前没有的策略与预测组合，至少提供一份匹配新账户的评价；原训练、信号和评价引用保持固定。它继承这些历史产物在此前登记时的验证身份，本次完整核验新账户、评价与小型配置/预测绑定内容，不即时重读全部历史叶子。原件检查仍使用 UI full 页面或原 owner loader。其他发布更新了 head 时，此请求会拒绝；刚完成的完全相同请求可用原 basis 重试，保持索引及不可变修订不变。已实现并通过保存产物新增登记验证，耗时以环境实测为准；无需训练或账户重跑。
 
 ### 准备与后续迭代的成本
 

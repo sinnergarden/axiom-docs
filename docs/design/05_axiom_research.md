@@ -152,7 +152,11 @@ Reader 构造、索引、详情和比较仅读取并校验索引元数据，不�
 
 Research producer 在 owner 保存与公共校验后写入新的不可变 manifest，随后用现有索引锁和原子替换更新 head；相同 result_id+revision+digest 重试幂等，冲突拒绝。旧 head 在新 manifest 或引用核验失败时保持可读，失败状态可作为新的修订保存，不能让 RUNNING 或仅有 `experiment-result.json` 的目录冒充 COMPLETE。A01 的 `experiment-result.json`、`batch.json`、`prediction-bindings.json` 和信号评价由 producer 登记为 typed refs；Engine 的多个策略账户及后续评价按原 owner 身份追加 manifest 修订，无须移动已保存文件或逐项运行人工登记工具。未登记的旧目录仍不被 UI 猜测扫描。
 
-现有列表/manifest 读取已轻量；大批保存输出在 publish 中仍可能重复投影和散列。[M1 复用草案](e2e-artifact-reuse-proposal.md)拟在现保存格式上共享同次 publish 的已校验 projection、unique fold 一次，并让同会话追加统计/账户只验新节点和引用边；状态为 proposed、尚未实现。冷进程仍一次完整去重核验，现 schema、公共 loader 与不可变发布保留，不凭落盘 PASS 免验，也不改变上述已实现登记状态。
+纯换策略时，[Research PR27](https://github.com/sinnergarden/axiom-research/pull/27)的公开入口 `attach_stock_account_from_basis(basis, index_path=..., roots=..., run_path=..., evaluation_paths=...)` 在同一 result_id 的下一修订追加一个新的已保存账户及其评价。`basis={result_id,revision,manifest_ref,content_digest}` 固定一次已登记的结果身份；入口核对索引中的登记，并继承该修订的 training、signals、原信号评价和既有账户引用，调用方不能同时改变这些内容。basis 必须有已完成的 Research 阶段和一份原 `StockPredictionBindings` 引用；新增账户的策略与整组预测身份须在 basis 中尚无账户。它读取并核验固定的小型 configuration 与 prediction-bindings 内容身份，完整加载新增 Engine 账户及至少一份保存评价，检查原预测 frame 和账户评价三元组绑定。
+
+此入口继承此前登记时已验证的历史身份，本次不重验历史 fold、预测或信号评价叶子的实际字节；COMPLETE 字符串本身不是准入证明。原 `publish_stock_result`、`ExperimentStore.publish_result` 和 owner full audit 保持全量语义。提交沿用不可变 manifest、发布锁和原子索引替换，在锁内复核 basis、当前 head 以及本次读取的保存件；并发 head 冲突拒绝，只有紧接 basis 的完全相同请求可幂等重试。manifest/head schema 不变，UI summary 可沿现有入口查看新增账户，full 页面继续检查实际历史原件。已实现并通过保存产物新增登记验证，耗时以环境实测为准；该验证没有训练或账户重跑。
+
+同次 `publish_stock_result` 的共同已校验projection与fold复用已由 [Research PR25](https://github.com/sinnergarden/axiom-research/pull/25)实现；固定已登记basis的新增账户走上述PR27入口。原全量publish及owner full audit仍核验历史实际字节。其他复用设想见 [M1复用草案](e2e-artifact-reuse-proposal.md)，各项以所属owner的实际实现及验收范围为准。
 
 2026-10-12 的 Derived 登记增量沿用这些字段。`publish_stock_result(..., derived_signals=[saved_path, ...])` 接受 owner 已保存的组合目录或其中的 `signal.json`；配置入口保存的 `derived_signals` 回执也走同一条路径。它使用公开 `load_stock_derived_signal(path, research_root=...)` 验证原组合、冻结 SignalPlan、原父输出及文件摘要，只保存引用，不重算组合、训练、独立评价或账户。新增固定产物类型 `StockDerivedSignal`，其 `artifact_contract_version='derived_signal_run_v1'`、`artifact_id=signal_run_ref`、`content_digest` 为原 Signal Document 的规范 JSON 摘要，locator 指向根内 `signal.json`。`signals[].prediction_artifact_key` 指向此产物；`lineage_artifact_keys` 保留原训练折或冻结配置引用，实际多个父 Signal/Model/Fold 的身份和原保存定位由 Derived 公共 loader 的已有闭包核验。Derived 的 `signal_plan_ref` 必须等于本结果冻结配置的 SignalPlan 引用，原 universe、calendar 和推理 session 必须属于冻结 Dataset 范围。
 
