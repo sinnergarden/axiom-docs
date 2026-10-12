@@ -1420,7 +1420,7 @@ benchmark 口径、合成检查和逐文件计时见 [软件测试说明](https:
 
 #### 固定输入投影的保存与重新打开（2026-10-12 源码候选）
 
-上面的私有 owner 复用已经实现。本节新增 Engine 正规输入投影产物及其标准保存、加载入口，是本轮待父审的源码候选；小型 fresh-process 对照与一次 606×32 sessions 合成探测已完成，真实多年性能尚未验收。一次完整 Native、市场与预测准入后，市场和预测 owner 分别保存小型 manifest 与有界列数组 parts，后续同输入的不同策略或新进程通过原 owner 重新打开。调用方提供明确 ArtifactRef 和固定 scope，加载核对本产物 schema、完整行键与覆盖、时点、原依赖 refs、全部部件内容和语义版本，在写 ledger 前失败；无需每次重新追溯全部原文件。它没有公开的 PASS 或 skip-validation 参数，也不复制训练、coverage 大图形成另一份闭包 JSON。
+上面的私有 owner 复用已经实现。本节新增 Engine 正规输入投影产物及其标准保存、加载入口，是本轮待父审的源码候选；小型 fresh-process 对照与一次 606×32 sessions 合成探测已完成，真实多年性能尚未验收。一次完整 Native、市场与预测准入后，市场和预测 owner 分别保存小型 manifest 与有界列数组 parts，后续同输入的不同策略或新进程通过原 owner 重新打开。调用方提供明确 ArtifactRef 和固定 scope，加载核对本产物 schema、完整行键与覆盖、时点、原依赖 refs、全部部件内容和语义版本，在写 ledger 前失败；无需每次重新追溯全部原文件。加载也从原 factor 事实核对正值、NULL 原因与连续性限制。它没有公开的 PASS 或 skip-validation 参数，也不复制训练、coverage 大图形成另一份闭包 JSON。
 
 ```python
 save_stock_market_inputs(market, destination, *, limits) -> ArtifactRef
