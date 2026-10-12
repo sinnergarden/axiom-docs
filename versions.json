@@ -1,19 +1,96 @@
 {
   "schema_version": "axiom_docs_versions_v1",
   "incremental_feature_library_candidate": {
-    "status": "implementation_prs_merged_full_period_acceptance_in_progress",
+    "status": "merged_full_period_feature_preparation_projection_and_public_cold_load_verified",
+    "as_of": "2026-10-12",
     "design": "docs/design/incremental-feature-library-v1.md",
     "engine": {
-      "source_commit": "df9d56a38230f3af488f7abee5b080ba5f19f3b2",
-      "merge_commit": "0f5196e4c4a609ade30eca72669ea87dacb2ab85",
-      "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/34"
+      "source_commit": "518ea4c87e74eb7d3dfbc4fa5d8fcda85358ddd4",
+      "merge_commit": "14971de67824ade9cf32aa73a4d641f0db793465",
+      "pull_request": "https://github.com/sinnergarden/axiom-engine/pull/35",
+      "feature_library_base_pull_request": "https://github.com/sinnergarden/axiom-engine/pull/34"
     },
     "research": {
-      "source_commit": "0fa5b62d60964db3b16b8124c2f77ac03999406b",
-      "merge_commit": "547d1033c5e04d05e66bde3acf8cca25b493f169",
-      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/18"
+      "source_commit": "d45f5e04ad5b117fbc3e34502be85a0986f24df8",
+      "merge_commit": "ef35f75674d1a99acb4c7e0a96770c3577503155",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/21",
+      "feature_library_base_pull_request": "https://github.com/sinnergarden/axiom-research/pull/18"
     },
-    "evidence": "real small end-to-end and reuse; synthetic metadata scale; full-history acceptance not claimed",
+    "data": {
+      "commit": "6298fc520cccabc772678a98f936533eb4eb57c2"
+    },
+    "source_universe_generalization_candidate": {
+      "status": "merged_configured_universe_adapter_boundary",
+      "source_commit": "05a96ccae6de9b482a7f511f315912344f2629af",
+      "reviewed_base": "ef35f75674d1a99acb4c7e0a96770c3577503155",
+      "merge_commit": "a49e9499bcb570ee6f60e02a35c29f25d282ce4b",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/22",
+      "review_status": "parent_and_independent_review_passed",
+      "source_url": "https://github.com/sinnergarden/axiom-research/commit/05a96ccae6de9b482a7f511f315912344f2629af",
+      "scope": "forward the verified scope universe; report admitted manifest universe/policy; preserve vendor selection-invariance and dated-membership source-profile restrictions",
+      "synthetic_checks": "four focused checks passed: CSI300/CSI500 fixtures reuse unchanged raw and invalidate changed daily CS references; unsupported policy/profile rejected",
+      "compatibility": "same saved CSI300 fixture retains exact descriptor, partition/semantic refs, five packed buffers and provenance dictionaries; zero Feature Core calls",
+      "real_data_preparation": false,
+      "active_training_checkout_changed": false
+    },
+    "model_backend_boundary": {
+      "verified_backend": "LightGBM",
+      "parameters": "configurable within supported model configuration fields",
+      "other_algorithms": "existing extension interfaces require implemented and verified training, persistence and inference adapters"
+    },
+    "verified_scope": {
+      "reference_universe": "historical_daily_CSI300_membership",
+      "pit_policy": "best_effort_vendor_v1",
+      "columns": 88,
+      "first_feature_session": "2016-10-13",
+      "last_feature_session": "2025-12-30",
+      "feature_sessions": 2242,
+      "physical_securities": 638,
+      "sample_securities": 606,
+      "warmup_only_securities_excluded_from_training": 32,
+      "training_rows": 1358652,
+      "layers": ["raw_base", "daily_CSI300_cross_sectional_zscore"]
+    },
+    "evidence": {
+      "bounded_real_end_to_end": "Feature, training, predictions, two independent Top5 accounts and evaluation completed; subset and model changes computed zero Feature cells",
+      "bounded_real_extension": "seven dates/four columns extended to eight dates/five columns; all 28 old date-column references retained; exact agreement with one-shot control",
+      "bounded_synthetic_invalidation": "reference-pool and input-revision changes invalidate related dependencies while unrelated results remain reusable",
+      "full_period_resume": "all 23598 sealed partition references retained at final cutover; zero raw Core calls and only 551 missing normalized dates computed",
+      "full_period_public_cold_load": "PASS under a fresh public owner: exact values, flags, clocks, reasons, source references and daily membership; zero Feature Core calls",
+      "boundary_reader_checks": "12 targeted checks and bounded old/new exact comparison passed",
+      "record": "parent feature-library handoff, 2026-10-12; private artifacts remain with the execution owner"
+    },
+    "measured_costs": {
+      "first_preparation": {
+        "operations": "prepare/admit source facts and history, compute missing raw and reference-pool layers, seal buffers and coverage",
+        "continuous_total_seconds": null,
+        "measurement_limit": "full-period preparation used interrupted/resumed segments and a reviewed performance fix; no single continuous initial-run total is reported"
+      },
+      "training_projection": {
+        "seconds": 708.54824625,
+        "feature_core_calls": 0,
+        "scope": "full verified 2242-date/606-security/88-column training projection"
+      },
+      "fresh_process_public_cold_load": {
+        "seconds": 1201.723048,
+        "feature_core_calls": 0,
+        "scope": "one full verified training-view sample; fresh source and library admission plus exact semantic comparison",
+        "measurement_limit": "measured on the execution environment; not a fixed cost or guarantee for another scope or machine"
+      },
+      "subsequent_iteration": {
+        "subset_or_model_change_feature_core_calls": 0,
+        "owner_reuse": "folds/windows in the same process share an admitted full-period owner; another process performs fresh admission",
+        "remaining_work": "row/column projection and applicable label preparation, fitting, prediction, evaluation or account execution still cost time"
+      },
+      "peak_rss_bytes": 10666999808,
+      "artifact_bytes": 18405347835
+    },
+    "remaining": {
+      "CSI1800_history_and_all_registered_features": "not_prepared",
+      "full_period_model_signal_strategy_evaluation_acceptance": "separate_execution_owner_work",
+      "M1": "not_complete",
+      "Derived_signal_UI_auto_discovery": "unsupported_registration_reports_BLOCKED"
+    },
     "installed_package_changed": false
   },
   "source_migration": {
