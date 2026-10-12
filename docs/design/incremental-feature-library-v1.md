@@ -76,7 +76,7 @@ with SavedColumnFeatureSource(source_descriptor) as source:
 
 当前真实来源适配已验证历史CSI300参考成员与 `best_effort_vendor_v1`，支持登记 A01 特征使用的价格、成交额及复权事实。已完成范围见 [versions.json](../../versions.json)：88列、2242个输出日的 raw/base 与原每日参考池 normalized 结果已经保存，606证券训练投影通过公共冷加载的完整语义校验。CSI1800历史成员并集、所有登记特征、其他 PIT 政策及新事实字段仍需相应来源与适配验证。已有旧母矩阵保留原身份；使用上述公开接口建立增量库，不把旧 normalized 值改称 raw，也不声称任意旧矩阵已自动导入。
 
-股票池是配置输入。上述已合源码仍有固定CSI300名称检查，独立适配修复候选去掉了此试点限制，按已准入manifest报告真实池名和policy，并用两个不同池的合成样本验证raw复用及每日参考变化。候选状态与固定提交同样见 [versions.json](../../versions.json)；合成检查不扩大全期真实数据的验证范围。现来源共用同一段物理历史，`verify_feature_column_source`仍要求已证明的vendor选择不变口径；`build_feature_column_source`仍检查可见释放时点与稳定的dated-membership来源profile。其他PIT政策须先实现对应的逐cutoff选择语义，不能仅修改policy名字。
+股票池是配置输入。固定CSI300名称的试点限制已随 [Research PR22](https://github.com/sinnergarden/axiom-research/pull/22)移除，来源适配按已准入manifest报告真实池名和policy，并用两个不同池的合成样本验证raw复用及每日参考变化。合并版本与状态见 [versions.json](../../versions.json)；全期真实验证仍限原CSI300数据，其他池目前仅通过有界合成检查。现来源共用同一段物理历史，`verify_feature_column_source`仍要求已证明的vendor选择不变口径；`build_feature_column_source`仍检查可见释放时点与稳定的dated-membership来源profile。其他PIT政策须先实现对应的逐cutoff选择语义，不能仅修改policy名字。
 
 特征库与模型后端分别扩展。当前已验证LightGBM及其支持的参数配置；其他算法须完成现有模型接口的训练、保存和推理适配，不能把特征库可复用写成任意模型已经支持。
 

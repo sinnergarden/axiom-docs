@@ -20,9 +20,12 @@
       "commit": "6298fc520cccabc772678a98f936533eb4eb57c2"
     },
     "source_universe_generalization_candidate": {
-      "status": "independent_candidate_awaiting_parent_review",
+      "status": "merged_configured_universe_adapter_boundary",
       "source_commit": "05a96ccae6de9b482a7f511f315912344f2629af",
       "reviewed_base": "ef35f75674d1a99acb4c7e0a96770c3577503155",
+      "merge_commit": "a49e9499bcb570ee6f60e02a35c29f25d282ce4b",
+      "pull_request": "https://github.com/sinnergarden/axiom-research/pull/22",
+      "review_status": "parent_and_independent_review_passed",
       "source_url": "https://github.com/sinnergarden/axiom-research/commit/05a96ccae6de9b482a7f511f315912344f2629af",
       "scope": "forward the verified scope universe; report admitted manifest universe/policy; preserve vendor selection-invariance and dated-membership source-profile restrictions",
       "synthetic_checks": "four focused checks passed: CSI300/CSI500 fixtures reuse unchanged raw and invalidate changed daily CS references; unsupported policy/profile rejected",
