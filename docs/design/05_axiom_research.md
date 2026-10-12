@@ -139,7 +139,7 @@ Reader 构造、索引、详情和比较仅读取并校验索引元数据，不�
 <a id="experiment-result-discovery"></a>
 #### 保存结果自动发现：v2 增量合同
 
-状态：`accepted design`（2026-10-11）；Research producer 与 UI consumer 尚待实现和合成验收。沿用上述唯一 `ExperimentStore` 索引及问题→版本→运行关系，不建立第二 registry 或数据库。`experiment_index_v1` / `experiment_projection_v1` 继续可读；首次登记新结果时在原子替换中升级为 `experiment_index_v2`，保留原 questions、versions、runs、组织历史与计数语义。v2 新增轻量 `result_heads`；`ExperimentReader.index()` 的 `experiment_projection_v2` 原样保留旧问题投影，并携带这些 head。索引不内嵌训练批次、逐日信号、账户 ledger 或评价序列。
+状态：既有 Raw 保存结果发现已由 Research PR19 和 UI PR13 实现并合并（2026-10-12）；下面的 Derived 保存登记增量为本轮候选，仍待源码亲审和 UI owner 联验。沿用上述唯一 `ExperimentStore` 索引及问题→版本→运行关系，不建立第二 registry 或数据库。`experiment_index_v1` / `experiment_projection_v1` 继续可读；首次登记新结果时在原子替换中升级为 `experiment_index_v2`，保留原 questions、versions、runs、组织历史与计数语义。v2 新增轻量 `result_heads`；`ExperimentReader.index()` 的 `experiment_projection_v2` 原样保留旧问题投影，并携带这些 head。索引不内嵌训练批次、逐日信号、账户 ledger 或评价序列。
 
 | 层次 | v2 保存字段与含义 |
 |---|---|
