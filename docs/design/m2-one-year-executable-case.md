@@ -44,7 +44,7 @@ Engine策略统一职责为`frozen prediction + as-of account + previous complet
 
 换Feature定义/时钟、Snapshot或成员输入：相关母件失效；只换入模subset：复用母矩阵，训练/预测重算；换训练Label/参数：仅必要Label与训练/预测重算；只换评价Label/指标：复用预测；只换策略/成本：复用预测，重新运行唯一账户路径。每次保存新身份与路径，不覆盖旧结果。
 
-当前缓存仍以完整plan和scope为定义单元，已有母矩阵的subset投影不代表增量扩展已实现。88列一年扩至100列两年时，按日期及独立特征列只补缺口尚未实现。后续目标为预备历史CSI1800成员并集和选定特征库，读取窗口所需历史后按列/日期依赖补齐；截面rank、标准化、行业中性化须按目标股票池另算并缓存，不能直接跨池复用。Raw修订、公式或参数改变应只失效相关依赖。这是后续缓存设计方向，不属于本轮现场实现。
+本短样本脚本保留原母矩阵路径；按列、日期补缺口使用现有[增量特征库公开接口](incremental-feature-library-v1.md#公开使用接口)。该库保留仍有效的旧分区，新增列或日期只补实际缺口。当前大样本准备与读取范围、适用源码和测量统一见 [versions.json](../../versions.json)；88列一年扩至100列两年是补算规则示例，未作为此范围的真实大样本验收。历史CSI1800并集及所有登记特征仍未准备，截面标准化结果保持其历史参考池绑定。
 
 本轮新增显式`matrix_v3`路径：`build_stock_feature_inputs(...,storage_options={layout:'matrix_v3',...},column_source=<saved source.json>)`，一次准备共享Data列；每个输出日只保留必要的独立复权锚点数组视图，复用同一编译Core图。保存件版本为`stock_feature_inputs_v4`，由现公共loader验证，保留来源证据和真实Core packed结果身份。新输入遵循统一[Core列式合同](core-feature-columns-v1.md)，不会冒称旧FactBatch/FeatureFrame字节身份。首次来源读取/准入、Feature数值计算、保存及后续模型/subset/标签/策略迭代分别计时，必要逐日锚点计算成本明确披露。
 
@@ -101,12 +101,12 @@ python examples/a01_one_year.py --options /absolute/path/options.json --stage ev
 
 首次Feature准备保存`feature-result.json`；后续train从该文件读取同一母矩阵，不重复运行features。train保存`experiment-result.json`、`batch.json`及原始`prediction-bindings.json`，最后一项直接交Engine。evaluate只读保存的配对样本，调用现Core统计及分组入口。subset用另一个dataset YAML显式列出`model_feature_selection`的精确id/semantic_version，options仍引用原`feature_result`，并以`reuse_raw_from_batch`引用原`batch.json`；变更模型参数也保留这些原输入。重型阶段按同一进程窗口顺序执行。私有目录、Data路径和实际保存身份不写入公开范例。
 
-## 增量缓存后续设计边界（未实现）
+## 增量缓存使用边界
 
-物理行情输入应按冻结Data选择、revision、价格基准和可用时钟登记，与Feature库选择分开。时间序列列或共享节点按算子版本、公式参数、依赖窗口和独立anchor登记；截面列另绑定当日目标成员、行业输入及rank/标准化政策。历史CSI1800并集可以作为Raw准备范围，但CSI300和其他目标池的截面结果必须各自计算。
+增量库按特征语义和实际输入依赖查询覆盖，物理行情输入与Feature选列分开。每个输出日保留原anchor和cutoff；改变实际输入revision、公式或参数会影响相关依赖。改变截面参考成员或行业时，相关截面层需要重算，筛训练或交易行则保持参考池。来源适配已支持配置股票池，当前全期真实验证仍限原历史CSI300数据，其他池仅有小合成验证；现来源要求 `best_effort_vendor_v1`，历史CSI1800并集需要另行准备和验证。适用版本和范围见 [versions.json](../../versions.json)。
 
-88列一年扩到100列两年的验收应证明旧日期/旧列保存摘要不变，只补12列的原区间和全部列的新增日期，以及它们实际需要的暖机依赖。公式/参数变化只失效对应节点及下游；Raw revision变化按实际滚动依赖传播。共同复权anchor仍是价格列的真实依赖，含固定epsilon的公式不能靠假定anchor抵消来复用。成员或行业变更使相关当日截面下游失效，不能只投影另一池的已归一化结果。
+在同一库提交更大的登记选列和日期请求，已有覆盖且依赖相符的区域复用，新增部分由Core计算。新列须有可执行定义与所需事实，新增日期须先覆盖必要回看历史；不能只修改旧母矩阵回执的范围。保存件保留数值、有效位、缺失原因、时钟和来源引用，当前有界真实用例已经验证扩展时旧区域引用不变且与一次性小对照相同。
 
-未来保存件须保留values、validity、reason、availability和来源闭包；公开owner读取和模型subset投影继续复用这些原值。新增列/日期的缺口、实际Data/Core调用数、原件摘要/mtime不变及目标池区别须用有界扩展用例证明。当前producer仍要求物理源与目标catalog/selection一致，按完整plan/scope缓存；本轮只验收母矩阵、模型subset和Raw复用，不声称上述增量生产已经具备。
+首次准备、训练投影、新进程冷加载和同进程迭代分别承担不同成本，见[指导页成本说明](incremental-feature-library-v1.md#成本与进程复用)。Feature计算为0仍包含必要的读取、准入和投影，不表示整个新实验免费；完整多年训练、信号、策略及评价仍按各自实际执行结果验收。
 
 验证范围及复用用例按上文“一个完整case与失效规则”执行。公开 Draft PR 只含代码、测试与通用配置，私人结果保持本地。
