@@ -94,7 +94,7 @@ Research 负责保存结果并自动登记到现有实验索引。登记内容�
 }
 ```
 
-启动前使用 [Research PR27](https://github.com/sinnergarden/axiom-research/pull/27)（main合并版本 [699fa6a](https://github.com/sinnergarden/axiom-research/commit/699fa6a706dbce074510d40b22eb48accc9aa4ba)，保留PR24/25/26及原组合信号入口）与 [UI PR15](https://github.com/sinnergarden/axiom-ui/pull/15)（默认 `publish/ui-readonly` 分支合并版本 [c3b2966](https://github.com/sinnergarden/axiom-ui/commit/c3b29666c9286c30c4664b33f2531ad5396b4727)）对应的源码及其兼容依赖。历史版本清单中的条目仅记录各自证据，不能证明本机已安装这个入口。将下面的源码路径替换为本机路径后启动：
+启动前使用 [Research PR27](https://github.com/sinnergarden/axiom-research/pull/27)（main合并版本 [699fa6a](https://github.com/sinnergarden/axiom-research/commit/699fa6a706dbce074510d40b22eb48accc9aa4ba)，保留PR24/25/26及原组合信号入口）与 [UI PR16](https://github.com/sinnergarden/axiom-ui/pull/16)（默认 `publish/ui-readonly` 分支合并版本 [c304fa8](https://github.com/sinnergarden/axiom-ui/commit/c304fa8774b41b4503e5e3d53860a07768853161)，保留PR15的summary及显式full读取）对应的源码及其兼容依赖。历史版本清单中的条目仅记录各自证据，不能证明本机已安装这个入口。将下面的源码路径替换为本机路径后启动：
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/path/axiom-ui/src:/path/axiom-research/src:/path/axiom-engine/src python3 -m axiom_ui --serve-results --workspace-config /private/axiom-roots.json

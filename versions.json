@@ -20,6 +20,11 @@
       "branch": "publish/ui-readonly",
       "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/14",
       "ordinary_discovery_pull_request": "https://github.com/sinnergarden/axiom-ui/pull/13",
+      "current_entry": {
+        "source_commit": "7f6844659621da9bd95acca756a73caa3902452c",
+        "merge_commit": "c304fa8774b41b4503e5e3d53860a07768853161",
+        "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/16"
+      },
       "summary_reader": {
         "source_commit": "41d27fe32bf4a69041a73e88726b725811594dc9",
         "merge_commit": "c3b29666c9286c30c4664b33f2531ad5396b4727",
