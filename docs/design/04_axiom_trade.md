@@ -818,6 +818,8 @@ stock_execution_rules_ref；supported_security_ids 必须等于完整 execution_
 
 候选只使用该 Feature 日状态，随后执行原 valid/TopK 规则；不以静态身份表的下一交易日日期提前排除。定仓按板块、生效日期和已核实窗口取得数量规则，实际成交仍通过同一 Runtime 的交易日上市、状态、factor 和价格限制。已知退市独立排除，未知生命周期保留 UNKNOWN 原因；已有持仓的 `HELD_MISSING_STOCK_LIFECYCLE_CAPABILITY` 和 `HELD_EQUITY_FACT_GAP` 停止门槛保留。保存决策新增该 reference 与 binding；完整路径的直接 Core 调用需补原证据，旧非完整路径和旧保存结果读取保留。新增真实输入依赖改变 intent_id 和新 run identity，active 的排名、定仓数量和业务 trace 保持一致。回测与 daily shadow 复用这些业务规则，既有 shadow 服务实现缺口不因此成为已验收。
 
+历史 union 保留完整身份与候选行覆盖，不要求尚未上市、未被使用的证券已有当日数量规则。内置 TopK 和 rank_buffer 权重策略使用容量、权益占位及独立生命周期资格约束，不消费数量规则；旧直接调用若提供完整 `quantity_rules` 表，仍按原结构校验。Core 在实际所选证券定量及需退出持仓时查询当日规则；冻结持仓、待到账股份、残余退出与容量约束保留，Runtime 继续核对持仓估值、权益事实和成交条件。已上市证券的规则覆盖检查仍在原准入阶段执行，不回填未来板块规则，也不缩小 union。
+
 #### 按板块和生效日期查数量规则
 
 下表固定所需数值；前两列表示本候选需要冻结的规则区间。正式文档记录原规则的真实
