@@ -68,7 +68,8 @@
 同一 idea 下可以有多个实验版本；每次运行有稳定的结果编号。一个结果可以关联多份预测、信号评价和策略账户。比如同一预测跑 Top5、排名缓冲和退出策略，页面显示三个账户；后来追加年度评价，更新对应账户的评价，不增加一个重复实验。
 Research 负责保存结果并自动登记到现有实验索引。登记内容包括配置、运行状态、实际覆盖、产物类型、版本和位置；完整产物保存成功后才发布对应引用。失败或只完成部分阶段时，页面显示已完成内容和未完成原因。
 首次运行前在 `result_discovery.required_stages` 声明完成条件；完整账户用例填training、signal_evaluation、accounts、account_evaluation，并在 `result_discovery.strategy_refs` 声明原策略引用。默认只要求training与signal_evaluation，因此索引显示COMPLETE也不代表账户完成；已经冻结的同一次尝试不能中途改完成条件。同一idea的变体沿用 `result_discovery.question` 中的question_id，用 `version` 说明本次配置与明确改动；否则默认问题编号随配置变化。
-UI 列表先读取轻量索引，打开详情时才通过对应模块的公共读取接口加载结果。各目录只需配置一次；索引中的路径相对于这些目录解析。刷新和查看结果不触发数据采集、训练或回测。静态导出页面标明生成时间，展示当时的结果快照。
+各目录配置一次后，Research正常登记到result index的实验，在 `--serve-results` 页面点击“刷新保存索引”即可发现；无需逐实验拷贝或静态导出。选择结果默认打开summary摘要，任意fold数量都沿同一读取方式：读取保存的账户评价，校验支持的账户header（元数据），显示登记状态、保存指标及各项可用性。训练、信号评价和账户结果分片明确标为“未展开”，缺件或校验失败各自标注。摘要打开成功只说明这部分读取通过，不代表完整原件验收或M1完成。
+需要检查登记的全部原件时，点击“显式验证全部保存原件（可能较慢）”进入该结果的 `/full` 页面；展开摘要卡片不会切换读取模式。CLI在已刷新目录使用 `--open-result <result_id> --detail-mode full`，并提供 `--workspace-config` 与 `--output`。完整读取可能较慢，具体失败仍按保存件标注。刷新及两种查看模式都不触发采集、训练或回测。
 **已验证范围**：正式 Research v2 索引中的一个主结果包含两折、两个 Signal 和三个策略账户，页面指标与所属模块保存值一致；读取不执行训练或回测。小型回归覆盖重试保存、发布失败保留旧结果、缺件隔离和账户阻断状态。另一次公开静态双组合只读联验中，两个组合 Signal 均通过公共 loader 验证，19 个原 JSON 未变；临时缺一件时，另一件仍正常。此次组合联验仅覆盖保存件发现与读取，未新增组合数学或真实策略收益验收。
 **后续覆盖**：多个 idea、多版本、其他规模和组合仍按实际验证逐项补齐；具体评价及账户的完成状态以所属模块保存值为准。
 
@@ -83,7 +84,7 @@ UI 列表先读取轻量索引，打开详情时才通过对应模块的公共�
 }
 ```
 
-启动前使用 [Research PR26](https://github.com/sinnergarden/axiom-research/pull/26)（main合并版本 [7b5be85](https://github.com/sinnergarden/axiom-research/commit/7b5be85c4a06bce8d76d813a053da1e0ae68e076)，包含PR24/25/26及原组合信号入口）与 [UI PR14](https://github.com/sinnergarden/axiom-ui/pull/14)（默认 `publish/ui-readonly` 分支合并版本 [508841f](https://github.com/sinnergarden/axiom-ui/commit/508841f8fcdeeda8eabda71d1c7128bc76e7c220)）对应的源码及其兼容依赖。历史版本清单中的条目仅记录各自证据，不能证明本机已安装这个入口。将下面的源码路径替换为本机路径后启动：
+启动前使用 [Research PR26](https://github.com/sinnergarden/axiom-research/pull/26)（main合并版本 [7b5be85](https://github.com/sinnergarden/axiom-research/commit/7b5be85c4a06bce8d76d813a053da1e0ae68e076)，包含PR24/25/26及原组合信号入口）与 [UI PR15](https://github.com/sinnergarden/axiom-ui/pull/15)（默认 `publish/ui-readonly` 分支合并版本 [c3b2966](https://github.com/sinnergarden/axiom-ui/commit/c3b29666c9286c30c4664b33f2531ad5396b4727)）对应的源码及其兼容依赖。历史版本清单中的条目仅记录各自证据，不能证明本机已安装这个入口。将下面的源码路径替换为本机路径后启动：
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/path/axiom-ui/src:/path/axiom-research/src:/path/axiom-engine/src python3 -m axiom_ui --serve-results --workspace-config /private/axiom-roots.json

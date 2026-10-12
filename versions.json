@@ -19,7 +19,17 @@
       "merge_commit": "508841f8fcdeeda8eabda71d1c7128bc76e7c220",
       "branch": "publish/ui-readonly",
       "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/14",
-      "ordinary_discovery_pull_request": "https://github.com/sinnergarden/axiom-ui/pull/13"
+      "ordinary_discovery_pull_request": "https://github.com/sinnergarden/axiom-ui/pull/13",
+      "summary_reader": {
+        "source_commit": "41d27fe32bf4a69041a73e88726b725811594dc9",
+        "merge_commit": "c3b29666c9286c30c4664b33f2531ad5396b4727",
+        "branch": "publish/ui-readonly",
+        "pull_request": "https://github.com/sinnergarden/axiom-ui/pull/15",
+        "default_detail_mode": "summary",
+        "summary_scope": "saved account evaluations and supported account headers; training, signal evaluations and account result parts remain explicitly NOT_OPENED at any fold count",
+        "full_read": "explicit result /full route or CLI --open-result with --detail-mode full",
+        "validation_boundary": "summary display is not full saved-artifact validation or M1 acceptance"
+      }
     },
     "validation": {
       "scope": "public static saved dual-combination registration and read-only navigation",
