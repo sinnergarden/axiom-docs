@@ -1444,6 +1444,26 @@ load_stock_prediction_inputs(market, ref, request: BacktestRequest, *, limits, m
 
 唯一 606×32 合成探针（实现收尾前）的实际计时为：Native cold 0.635 秒、market cold 7.869 秒、prediction cold 5.696 秒、保存 0.029 秒、market 重开 1.843 秒、prediction 重开 1.140 秒、第二策略预测借用 0.006 秒；第二策略原预测准入次数为零。primary/control 的账户与结果读取分别 1.278/1.324 秒，观察进程峰值 RSS 637,124,608 bytes。最终加载入口随后补充原投影逐值核对和严格 canonical/schema 检查，未重复规模探针；这些数值不是最终 head 的性能承诺，不能据此宣称多年 60 秒准备或全链目标通过。固定 small tests 的逐项业务结果对照和缺权益/生命周期停止通过，原七年预测与旧账户产物不修改。预测重开对每个原 Signal 的完整内容身份复核同样计入 decoded 预算；超大单一原帧超过该预算时明确拒绝，不能借保存件自动扩大额度。现有 Source 流式入口仍保留。
 
+
+#### 股票市场风险观察与周频门控（2026-10-12，合同候选）
+
+本段对应独立风险源码候选 `1c3ca26`，待与输入复用候选共同亲审。股票策略在原 `stock_strategy_spec_v1` 中显式配置可选 `market_gate`；未启用时 spec、state 和 request 不增加默认字段，原合同身份保持。SMA120 实验使用以下配置，原 Top5/keep10 选股仍由既有策略完成：
+
+```python
+market_gate = {"rule": "close_above_sma", "security_id": "000300.SH",
+               "window_sessions": 120, "check": "rebalance_sessions_only"}
+```
+
+风险数据由请求侧独立的 `risk_input` 与 `risk_input_ref` 绑定。首版 `stock_market_risk_input_v1` 保存有界、单指数的 inline 原生 `view` 与 `native_ref`，保留 Data `read` 的 `decision_facts` 查询目的、逐日 cutoff 和原字段可用时点。它不进入股票执行 `market_input` 或 `StockMarketSpec`，相同股票市场 owner 可继续复用；风险 ref 变化需要重新绑定输入身份。Core 接收明确的 `market_observation`，验证观察身份、日期与可用时点后计算收盘价和 SMA，调用方不能用裸 `risk_on` 布尔值代替证据，也不能改写原预测的 `member` 或 `valid`。
+
+检查沿用周首交易日调度。T 为前一交易日，只使用截至 T 20:30 可知的观察；T+1 周首 08:55 决策并使用原开盘模拟。SMA120 包含 T 及此前 119 个交易日，收盘价严格高于均线才开启，等于或低于均线均关闭；周内穿越等下一次周频检查。
+
+全局状态从 `uninitialized` 开始，取得完整观察后进入 `risk_on`、`exit_pending` 或 `risk_off`。门关闭时先清仓并停止补位；卖出未成交、冻结持仓、待交付股份或登记股票权益尚未清空时，保持 `exit_pending`。登记权益包含 `record_pending_quantity` 形成的 pre-EX 股票权益。只有实际清空且门重新开启，才恢复常规选股，卖出意向不代表成交。
+
+保存件同时核对观察身份和状态转移，并在每条 decision 的 `expected_account_version` 处折叠原 journal 中的数量、可卖数量、待交付股份及 pre-EX 登记权益，核实决策当时的真实持有状态。昨日 positions 不能代替该时点的账本。风险候选已沿现有 `ConfiguredStockStrategy.plan` 接入回测；daily shadow 应消费同一观察上下文，本轮尚未完成其实际验收。原账户、生命周期与权益执行门槛继续生效。
+
+历史 PIT 仍采用既有 `best_effort_vendor_v1` 供应商时点假设，不声称严格历史修订版本可见性。缺失或迟到的风险事实、程序错误，以及未成交或权益 BLOCKED 分别保留；缺风险事实不能默认开启，也不能删除日期掩盖缺口。
+
 ### 6.7 股票公司行动的最小权益状态机（2026-10-09，集中实现候选，待父审）
 
 本节补充新的股票账户合同。现有现金事件、旧请求和保存结果仍按各自冻结版本读取；
