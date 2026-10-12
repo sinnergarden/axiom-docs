@@ -198,6 +198,8 @@ build 的代码来源须可恢复：保存已提交源码的 Git 历史、依赖
 
 名单观察日期、研究 session 和可知时间分别表达。两份快照间默认采用用户已确认的“截至该日最近一份供应商快照延续”：只选 trade_date 不晚于研究 session 且按所选 PIT policy 可见的完整快照，没有任何此前快照时为 unknown。不能把月底新名单回填月初，也不能称已恢复精确官方每日成分。原始快照是事实，日频投影是读取政策；两者使用相同 Raw 与 Snapshot。严格 PIT 仍受实际 receipt 约束，best-effort 才使用明示的供应商日期假设。
 
+成员观测与策略资格分别表达，月度快照延续的 member=true 可以与已知退市并存；原成员值、来源及 NULL/原因保留。Core 的候选资格使用 Feature session 按原 PIT policy 已准入的生命周期事实，实际交易日由 Runtime 按当日事实拒绝成交，池外持仓和待到账权益继续跟踪。上市事件的既定 `best_effort_vendor_v1` profile 为 `tushare.stock_basic.listing_events.v1`，声明 `event_date` 当天上海时间 00:00 可用于终态历史探索；这是供应商日期假设，真实 first_observed_at 与原缺失 availability 保留。静态 operational 身份批次只证明来源和回溯边界，不证明历史候选当时可知；operational PIT 仍从真实 receipt 起可见。
+
 prepare 保留全部供应商历史快照候选并集、lookback 与池外跟踪证券，不能截成今天的 1800 只。月度观察不能证明未遗漏月内短暂成员；此项及外部比对差异以 warning/limitations 表达，不阻断生产初始化。先前必须闭合官网原始调样链的要求已撤销。
 
 先看 Tushare 交易日历和身份，再看供应商停牌记录、请求覆盖。闭市不生成交易 session；未上市、退市、有记录停牌、未知缺数分别解释。上市/退市按供应商日期的声明语义处理；外部公告不覆盖供应商日期，分歧只记录 warning。有记录停牌可以零成交量，不能把缺行当停牌或补零价。Runtime 的最后有效价估值带时间与陈旧说明，不写回新的成交事实；退市存量及后续权益仍跟踪。

@@ -814,6 +814,12 @@ execution_universe 必须等于 execution_rules.universe，
 stock_execution_rules_ref；supported_security_ids 必须等于完整 execution_universe。
 旧 policy 工厂、Core v1/v2 和其严格资格校验保持原行为。
 
+完整股票 Core context 增加 `stock_feature_lifecycle`：公开调用携带 `{reference,binding,owner_batch}`，其中 owner_batch 必须是原单日 states DataBatch，行数与 metadata 仅覆盖该 Feature 日完整 union；多日批次在 hash 前拒绝，不在每次决策重新校验全历史 owner。Runtime 从已准入 owner 借用单日视图，原全批 ref 只作为引用；binding 精确为 `{contract_version:"stock_feature_lifecycle_input_v1",feature_session,knowledge_cutoff,pit_policy,owner_native_ref,stock_execution_rules_ref,availability_policy_ref}`。reference 是 binding 的内容 hash，owner_native_ref 绑定完整原生 bytes；Core 核对原 policy、Feature cutoff、行键和 lifecycle revision/Raw，再解析资格，不接收调用者提供的资格布尔。Runtime 私有调用仅传 `{reference,binding}` 并复用本次原件准入产生的内存证明，按既有预算只保留下一次决策所需的前一日事实；不新增可移植准入标记。
+
+候选只使用该 Feature 日状态，随后执行原 valid/TopK 规则；不以静态身份表的下一交易日日期提前排除。定仓按板块、生效日期和已核实窗口取得数量规则，实际成交仍通过同一 Runtime 的交易日上市、状态、factor 和价格限制。已知退市独立排除，未知生命周期保留 UNKNOWN 原因；已有持仓的 `HELD_MISSING_STOCK_LIFECYCLE_CAPABILITY` 和 `HELD_EQUITY_FACT_GAP` 停止门槛保留。保存决策新增该 reference 与 binding；完整路径的直接 Core 调用需补原证据，旧非完整路径和旧保存结果读取保留。新增真实输入依赖改变 intent_id 和新 run identity，active 的排名、定仓数量和业务 trace 保持一致。回测与 daily shadow 复用这些业务规则，既有 shadow 服务实现缺口不因此成为已验收。
+
+历史 union 保留完整身份与候选行覆盖，不要求尚未上市、未被使用的证券已有当日数量规则。内置 TopK 和 rank_buffer 权重策略使用容量、权益占位及独立生命周期资格约束，不消费数量规则；旧直接调用若提供完整 `quantity_rules` 表，仍按原结构校验。Core 在实际所选证券定量及需退出持仓时查询当日规则；冻结持仓、待到账股份、残余退出与容量约束保留，Runtime 继续核对持仓估值、权益事实和成交条件。已上市证券的规则覆盖检查仍在原准入阶段执行，不回填未来板块规则，也不缩小 union。
+
 #### 按板块和生效日期查数量规则
 
 下表固定所需数值；前两列表示本候选需要冻结的规则区间。正式文档记录原规则的真实
@@ -1011,7 +1017,7 @@ run_ref 原三元组、Signal identity、admission ref、implementation identity
 
 | 当时状态 | 必需性及处理 |
 |---|---|
-| 尚未上市、member=false、无持仓或待结算量 | 保留原null和reason，不要求价格、factor或限价非空，不参与排名或成交。此时member=true或存在持仓属于生命周期矛盾，变更前拒绝。 |
+| 尚未上市、member=false、无持仓或待结算量 | 保留原null和reason，不要求价格、factor或限价非空，不参与排名或成交。原member观测保留，候选按独立生命周期排除；存在持仓时沿既有持仓缺口规则停止。 |
 | 已上市、非成员、无持仓或待结算量 | 保留完整原生网格和缺口，未使用数值不阻断其他证券；入池前的真实历史可以成为Research已保存Feature的预热依赖，不能用填值完成预热。 |
 | 当期成员 | 检查完整成员行及合法保存Feature/预测来源；缺feature按上述策略逐证券排除。入选后，前收定仓和本日交易域必须有合法可见证据，实际缺口保存到该证券，不借排名第k+1替代。 |
 | 已持有或存在待结算量，即使退出成员池 | 继续检查公司行动、factor能力、估值和可卖量，Core照常生成退出意图。估值沿原显式stale政策保存价格日期与原因；没有可用估值或持仓行动未解释时保存BLOCKED，不能删仓。 |
