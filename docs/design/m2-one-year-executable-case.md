@@ -14,7 +14,7 @@
 | `universe.json` | Snapshot、PIT policy、历史成员池、证券并集、资格/覆盖、Native/Reader来源ref | Data选事实与revision；现公共scope/native合同。首例`csi300`；CSI800/行业过滤作为独立输入变体，未有冻结证据不自动开启。 |
 | `features.json` | catalog_ref、有序ID/version、lookback、缺值/归一化、存储与驻留预算 | Research只登记/选配既有Core计划。保存一个不可变母矩阵；Core为唯一Feature数值执行器，Data提供每个输出cutoff的真实选择。 |
 | `label.yaml` | H=40、open(f+1)至close(f+40)、共同anchor复权、因子价格比、成熟/缺失政策 | 复用公共Label执行与保存Raw。准确称40日复权开收收益；不擅称现金权益总回报。首例训练沿现支持的截面z-score，评价使用原始复权收益；原始回归作为另一个显式训练变体，不静默替换。 |
-| `model.yaml` | 固定LightGBM现支持参数、seed、threads、Feature subset、训练Label与目标变换 | 复用Research已有训练适配及持久模型owner；不新增算法，不早停、不自动搜索。输出saved model和原预测，保留完整输入身份。 |
+| `model.yaml` | 固定LightGBM现支持参数、seed、threads | 复用Research已有训练适配及持久模型owner；不新增算法，不早停、不自动搜索。入模子集放dataset.model_feature_selection，训练Label与目标变换放label配置。输出saved model和原预测，保留完整输入身份。 |
 | `strategy-*.json` | strategy id、parameters、目标仓位上限、检查/触发频率、费用/可交易配置 | Engine纯策略接口产生目标权重/持仓方案，由唯一Runtime账本生成订单/成交/NAV；Research仅传配置和保存预测。策略没有训练或Data调用。 |
 | `evaluation.json` | 显式daily/weekly观察频率、固定评价Label、共同mask、rank ties、最小样本、十组/头部10%边界、账户统计口径 | IC/RankIC复用现Core统计；分组数值归Core。账户指标复用保存账本。Research组合保存结果引用，不另建通用统计框架。 |
 
@@ -62,7 +62,7 @@ Research公开入口为`examples/a01_one_year.py`，参数文件由`options.json
 | label.yaml、model.yaml | experiment.yaml的specification_files；训练目标与Label成熟口径由现owner核实 |
 | evaluation.json | 内容复制到options.json的evaluation；evaluate消费该对象 |
 | strategies.json | variants各对象作为stock_strategy_spec的参数；由Engine另绑定原执行规则、费用、市场与保存预测，Research CLI不运行账户 |
-| options.json | 本地Data/output/config路径，4GiB读取缓存、16GiB工作预算、母矩阵保存路径及显式matrix_v3 |
+| options.json | 本地Data/output/config路径，4GiB读取缓存、16GiB工作预算、母矩阵保存路径及显式matrix_v3；prepared_destination分离准备目录，prepared_batch消费兼容的COMPLETE准备件 |
 | subset-dataset/experiment/options | 显式11列subset，feature_result仍指母件，reuse_raw_from_batch指主batch.json |
 
 例如在填好universe/features片段后，按原对象拼合并登记实际文件摘要；这只是配置准备，不是新的执行器：
@@ -99,7 +99,9 @@ python examples/a01_one_year.py --options /absolute/path/options.json --stage tr
 python examples/a01_one_year.py --options /absolute/path/options.json --stage evaluate
 ```
 
-首次Feature准备保存`feature-result.json`；后续train从该文件读取同一母矩阵，不重复运行features。train保存`experiment-result.json`、`batch.json`及原始`prediction-bindings.json`，最后一项直接交Engine。evaluate只读保存的配对样本，调用现Core统计及分组入口。subset用另一个dataset YAML显式列出`model_feature_selection`的精确id/semantic_version，options仍引用原`feature_result`，并以`reuse_raw_from_batch`引用原`batch.json`；变更模型参数也保留这些原输入。重型阶段按同一进程窗口顺序执行。私有目录、Data路径和实际保存身份不写入公开范例。
+首次Feature准备保存`feature-result.json`；后续train从该文件读取同一母矩阵，不重复运行features。以`prepared_destination`分离可复用准备目录与模型输出。train保存不可变回执组的`experiment-result.json`、`batch.json`及原始`prediction-bindings.json`，最后一项直接交Engine；准确batch路径取owner回执或索引产物条目。evaluate只读保存的配对样本，调用现Core统计及分组入口。
+
+只改模型参数时，options保留原Feature入口，以`prepared_batch`消费已保存的COMPLETE batch，使用新的output_root；原Label、fold计划、准备参数及入模特征顺序须一致。换subset则用另一个dataset YAML显式列出`model_feature_selection`的精确id/semantic_version，保留原Feature入口，以`reuse_raw_from_batch`引用原batch，清除`prepared_batch`并使用新准备目录。此时只复用兼容Raw，实际cohort的截面资格、normalized及fold控制重新准备。两个复用字段互斥。正常入口与五类场景见[使用说明书](../user-manual.md#实际入口与运行顺序)，以Research PR26合并版本为准。重型阶段按同一进程窗口顺序执行。私有目录、Data路径和实际保存身份不写入公开范例。
 
 ## 增量缓存使用边界
 
@@ -107,6 +109,6 @@ python examples/a01_one_year.py --options /absolute/path/options.json --stage ev
 
 在同一库提交更大的登记选列和日期请求，已有覆盖且依赖相符的区域复用，新增部分由Core计算。新列须有可执行定义与所需事实，新增日期须先覆盖必要回看历史；不能只修改旧母矩阵回执的范围。保存件保留数值、有效位、缺失原因、时钟和来源引用，当前有界真实用例已经验证扩展时旧区域引用不变且与一次性小对照相同。
 
-首次准备、训练投影、新进程冷加载和同进程迭代分别承担不同成本，见[指导页成本说明](incremental-feature-library-v1.md#成本与进程复用)。Feature计算为0仍包含必要的读取、准入和投影，不表示整个新实验免费；完整多年训练、信号、策略及评价仍按各自实际执行结果验收。
+首次准备、训练投影、新进程冷加载和同进程迭代分别承担不同成本，见[指导页成本说明](incremental-feature-library-v1.md#成本与进程复用)。Feature计算为0仍包含必要的读取、准入和投影。本文21日结果保留其原验收范围；当前T01七年用例已完成359个fold训练及1699日信号评估，账户等待Engine生命周期修复，主结果未发布UI，M1未完成。Prepared复用的小范围验证已通过，长期迭代性能仍待测，不能用本短样本耗时代替。
 
 验证范围及复用用例按上文“一个完整case与失效规则”执行。公开 Draft PR 只含代码、测试与通用配置，私人结果保持本地。
