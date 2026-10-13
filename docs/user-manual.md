@@ -5,15 +5,15 @@
 已经保存的五年六特征案例证明了该案例的训练、预测和账户链路。短样本宽特征工程案例使用历史CSI300成员并集中的569只证券、88个价量特征；预测区间为2023-01-03至2023-02-07，共21个交易日，母特征覆盖120个日期，模型进行两次训练。新增的可复用库已准备2016-10-13至2025-12-30共2242日、88列的 raw/base 和原历史CSI300每日截面标准化结果，正式训练投影含606只证券；另32只仅用于暖机历史，不进入训练。上述特征准备证据覆盖准备与读取，训练和账户另按各自保存结果验收。88列是可实现的Alpha158子集加中长期趋势及量额特征；CSI1800全特征库、历史行业及其他缺少字段或算子的特征仍未准备。
 ### 当前能力与验收边界
 
-本表是当前能力的单一入口；下文说明用法，`versions.json` 记录各轮固定版本和证据。[早期交付记录](current-delivery.md)保留当时状态，不作为现状清单。2026-10-13 公共入口收口属于待审查候选，合并前必须使用该候选源码；它不代表通用 M1 已完成。
+本表是当前能力的单一入口；下文说明用法，`versions.json` 记录各轮固定版本和证据。[早期交付记录](current-delivery.md)保留当时状态，不作为现状清单。2026-10-13 公共入口收口的本次实现、适用固定源码与交付状态见 `versions.json`；它不代表通用 M1 已完成。
 
 | 能力 | 当前状态与证据边界 |
 | --- | --- |
 | 分离配置、rolling 与每日推理 | CSI300、88列、LGBM、H40、359次周fold的七年案例已完成；不是300特征或任意模型后端验收 |
 | 共享准备、换参数与子集 | 同进程共享owner；完整batch换参数和兼容Raw换子集有小型验证，长期换模型、换Label吞吐仍未实测 |
 | 特征库 | 按列/日期缺口复用；`sample_universe` 可投影。扩大物理证券轴的增量复用尚未收口（A04） |
-| 公共模型读取与输入约束 | 候选导出训练视图loader，并以完整fold准入读取v3模型；v3只接纳已标准化Feature，raw在fit前拒绝（A05/A08） |
-| 成本与进度 | 候选接通逐fold计数及分阶段计时；七年历史成本不能由小样本测试替代（A01） |
+| 公共模型读取与输入约束 | 本次实现导出训练视图loader，并以完整fold准入读取v3模型；v3只接纳已标准化Feature，raw在fit前拒绝（A05/A08） |
+| 成本与进度 | 本次实现接通逐fold计数及分阶段计时；七年历史成本不能由小样本测试替代（A01） |
 | 策略及账户 | 同预测换策略、市场/预测重载、basis追加登记已实测；股票账户仍限CSI300，其他股票池和持久daily shadow未完成（A03） |
 | 历史语义兼容 | 无关Engine实现版本变化仍可能阻断新的派生/账户准入；本轮不改兼容规则（A02） |
 | UI与实验管理 | 本机保存索引summary/full和新账户登记可用；远程研究UI、分页及完整多实验工作台不属于本轮交付（A06） |
@@ -142,7 +142,7 @@ python examples/a01_one_year.py --options /absolute/path/options.json --stage ev
 策略使用Engine的 `stock_strategy_spec` 与 `stock_portfolio_policy`；具体参数见[策略说明](design/engine-strategy-protocol-v1.md)。私有Data路径、市场绑定和实际保存身份留在本地配置中。
 新增列或日期使用[增量特征库公开接口](design/incremental-feature-library-v1.md#公开使用接口)：在同一库目录调用 `CatalogFeatureLibrary.ensure`，显式给出登记选列、输出日期和样本证券。它查询覆盖、保留仍有效的旧分区，并只计算缺口；新增特征必须已有定义与算子，来源也须覆盖所需字段、日期及回看历史。上方 A01 脚本说明保留其原母矩阵读取路径，不能仅改旧 `feature-result.json` 就把它转换为增量库。旧 normalized 母矩阵也不能直接充当池无关的 raw/base。
 
-### 公共训练视图和保存模型入口（2026-10-13 候选）
+### 公共训练视图和保存模型入口（2026-10-13 实现）
 
 A01的 `feature_library_training_view` 接受保存的训练视图descriptor。Python调用使用同一个公开loader；descriptor和batch manifest来自原owner回执，不扫描目录拼造身份：
 
@@ -167,7 +167,7 @@ with load_feature_library_training_view(training_view_descriptor, limits=limits)
 
 当前v3生产者声明 `same_date_visible_members_cs_zscore_no_fit`，因此只接纳schema为 `cross_sectional` / `dimensionless` 的已标准化Feature。raw库及其视图仍可读取，但不能直接喂给这个模型profile；公共配置入口和直接fold生产入口都在fit前拒绝。此项明确收紧了以前错误允许、却把raw声明为已标准化的路径；不静默归一化，也不表示已重新审计或修复历史raw产物。
 
-### 读取计时与进度（2026-10-13 候选）
+### 读取计时与进度（2026-10-13 实现）
 
 A01保存回执的 `metrics.sequential`（`stock_sequential_metrics_v1`）记录共享准备至冻结OOS的 `total_seconds`。`stages` 中prepare、input validation、fit、predict、save/admit、OOS、control是同一总时段的分解；save/admit为fold总时减输入校验、fit、predict和OOS的剩余工作，包含剩余转换、保存和准入，不能解释成纯磁盘写耗时。control包含绑定、派生信号构造、上下文清理及其他协调成本。逐fold条目和旧的owner细项是子项，不能再加到这些阶段总量上。
 
