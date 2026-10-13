@@ -1200,7 +1200,7 @@
   },
   "m1_followup_candidate": {
     "as_of": "2026-10-13",
-    "status": "a02_a03_a06_fixed_source_candidates_not_tested_a04_pending",
+    "status": "all_source_candidates_integrated_not_tested_pending_parent_review",
     "scope": [
       "A02 derived Signal semantic compatibility and legacy original-parent replay",
       "A03 existing Data pool propagation in modern shared market/account path",
@@ -1223,7 +1223,11 @@
       "research_base": "b4e6f0792d8f2ec32900297475ce604e8113bef6",
       "docs_base": "28246c663d25694e918db35e3c71f9b39a791cd1",
       "engine_source": "c1b6180be892ce9522345b96c9f42b83e400b59b",
-      "research_source": "ffb43ae3ef8da29a969279bd60792ac4bf30d2ea"
+      "research_source": "ffb43ae3ef8da29a969279bd60792ac4bf30d2ea",
+      "a04_engine_source": "7944e11e8884d93d1f6dcea3b78073b6fb67f5ee",
+      "a04_research_source": "de69adecce5bc93514ee7edc9f825d30af572e69",
+      "engine_integration": "7e4e812adac7d094f6c550e2f653ae69ad12db30",
+      "research_integration": "45faa110d5136e3efe04f4b278aa99807584d266"
     },
     "engine_pr": "https://github.com/sinnergarden/axiom-engine/pull/39",
     "research_pr": "https://github.com/sinnergarden/axiom-research/pull/29"

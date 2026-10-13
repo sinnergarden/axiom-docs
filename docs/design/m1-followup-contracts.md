@@ -20,7 +20,9 @@ Data 已存在 csi300、csi500、csi1000、csi1800 producer，但每次执行仍
 
 ## 特征库证券轴扩展
 
-A04 独立 owner 正在实现旧证券与日期 tile 的保留和缺口增量。截面标准化必须遵循声明的完整 reference universe；raw tile 可复用不代表可以复用另一个截面的标准化结果。待固定源码后补入准确接口、旧件兼容与最小覆盖证据，未完成验收前不宣称通用增量能力已交付。
+A04 候选已整合原 owner 提交，使用 Feature view v3 保存同一列、同一日期的多个证券 block，读取继续兼容 v1/v2。`column_receipts` 返回 `blocks`，每块保留原 dependency、证券轴和 partition；仅单块时保留旧顶层 `partition`。Research 逐块核对当前 source 的局部依赖，不假定每列只有一个 partition。
+
+扩展物理证券轴时应保留旧 raw block，只为缺少的证券计算；字段、历史窗口、有效性、时间或供应商 revision 改变时，相关局部依赖必须失效。截面标准化依赖完整 reference universe；只改变 cohort 时 raw 与复权计算应为零，CS 按需重算。最小测试覆盖 A/B 扩为 A/B/C/D、旧块身份保留、局部事实修改以及 cohort-only 变化。七个测试已写好但尚未运行，未宣称通用增量能力已通过验收。
 
 ## UI 的按需 owner 读取
 
