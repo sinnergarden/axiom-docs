@@ -1200,17 +1200,45 @@
   },
   "m1_followup_candidate": {
     "as_of": "2026-10-13",
-    "status": "all_source_candidates_integrated_not_tested_pending_parent_review",
+    "status": "implemented_scoped_validation_passed_pending_parent_review_merge",
     "scope": [
       "A02 derived Signal semantic compatibility and legacy original-parent replay",
       "A03 existing Data pool propagation in modern shared market/account path",
-      "A04 physical security-axis extension; separate owner candidate",
+      "A04 complete old-axis blocks reused on physical expansion; CS cohort recomputation; bounded leaf metadata",
       "A06 paginated and on-demand saved result UI"
     ],
     "ui_source": "83b4e2b286924e18bb26dbd4e85b14bd1d146311",
     "ui_pr": "https://github.com/sinnergarden/axiom-ui/pull/17",
     "contract": "docs/design/m1-followup-contracts.md",
-    "validation": "Only syntax and diff checks allowed so far. Parent source review precedes one integrated small verification; real summary and v7/v8 account curve reads remain pending.",
+    "validation": {
+      "distinct_tests_passed": 18,
+      "feature_security_tests": 8,
+      "retries": "one test fixture corrected to match production projection; one loopback sandbox retry; only affected tests after leaf-budget fix",
+      "real_signal_contract": "stock_signal_evidence_v6",
+      "real_signal_horizon": 40,
+      "real_signal_valid_days": 1699,
+      "real_signal_read_bytes": 1717301,
+      "real_signal_read_files": 3,
+      "full_ancestor_loader_calls": 0,
+      "generated_v8_reports": 2,
+      "generated_v8_common_pairs": 65,
+      "generated_v8_native_pairs": [
+        68,
+        65
+      ],
+      "actual_engine_owner_accounts": {
+        "v7_nav_rows": 3,
+        "v8_nav_rows": 3,
+        "calls_per_account": 1,
+        "routing": "synthetic manifest; actual owner and saved parts"
+      },
+      "browser_pixel_review": false,
+      "public_index_written": false,
+      "real_training_or_historical_account_replay": false,
+      "local_evidence_directory": ".artifacts/m1-followup",
+      "python": "3.12.12",
+      "lightgbm": "4.6.0"
+    },
     "deferred": [
       "CSI800 new universe semantics",
       "other model backends",
@@ -1226,10 +1254,17 @@
       "research_source": "ffb43ae3ef8da29a969279bd60792ac4bf30d2ea",
       "a04_engine_source": "7944e11e8884d93d1f6dcea3b78073b6fb67f5ee",
       "a04_research_source": "de69adecce5bc93514ee7edc9f825d30af572e69",
-      "engine_integration": "7e4e812adac7d094f6c550e2f653ae69ad12db30",
-      "research_integration": "45faa110d5136e3efe04f4b278aa99807584d266"
+      "engine_integration": "e5710fdc3c6124e0e6f1fb55241e588fa3339f2d",
+      "research_integration": "bc34155ed9b57a6361337b4bdbd1516134767484",
+      "validation_data": "b743b704aba1232941f98dc2b338c6261fd3d8fb"
     },
-    "engine_pr": "https://github.com/sinnergarden/axiom-engine/pull/39",
-    "research_pr": "https://github.com/sinnergarden/axiom-research/pull/29"
+    "engine_pr": "https://github.com/sinnergarden/axiom-engine/pull/40",
+    "research_pr": "https://github.com/sinnergarden/axiom-research/pull/30",
+    "historical_timing": {
+      "old_public_process_minutes": 160.25027733333334,
+      "feature_cold_admission_included_minutes": 24.74050333679964,
+      "fit_minutes": 8.308894476410932,
+      "new_long_training_measured": false
+    }
   }
 }
