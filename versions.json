@@ -1200,7 +1200,7 @@
   },
   "m1_followup_candidate": {
     "as_of": "2026-10-13",
-    "status": "implemented_scoped_validation_passed_pending_parent_review_merge",
+    "status": "code_merged_scoped_validation_passed",
     "scope": [
       "A02 derived Signal semantic compatibility and legacy original-parent replay",
       "A03 existing Data pool propagation in modern shared market/account path",
@@ -1265,6 +1265,11 @@
       "feature_cold_admission_included_minutes": 24.74050333679964,
       "fit_minutes": 8.308894476410932,
       "new_long_training_measured": false
+    },
+    "merges": {
+      "engine": "1c9dcbf32b7b7918e340d01b4a8602148ba7e5af",
+      "research": "a1f320fba669a72b0d8aa17f0d72dbac923e9a89",
+      "ui": "f29d21bef7d12541b1f1d47dfab2f23d6c7b3aad"
     }
   }
 }

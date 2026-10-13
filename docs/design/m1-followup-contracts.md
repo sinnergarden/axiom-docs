@@ -1,6 +1,6 @@
 # M1 本轮兼容和按需读取合同
 
-本页说明 A02/A03/A04/A06 的实现和验收边界。本轮集成源码及限定小验证已完成，等待父任务审查后正常合并。固定版本与验收状态由 [versions.json](../../versions.json) 的 `m1_followup_candidate` 维护；研究者入口见[使用说明](../user-manual.md)。此前七年结果和性能回执保持原有身份与测量范围。
+本页说明 A02/A03/A04/A06 的实现和验收边界。本轮集成源码及限定小验证已完成，Engine、Research、UI 已经父任务审查并正常合并。固定版本与验收状态由 [versions.json](../../versions.json) 的 `m1_followup_candidate` 维护；研究者入口见[使用说明](../user-manual.md)。此前七年结果和性能回执保持原有身份与测量范围。
 
 ## 派生信号的历史身份
 

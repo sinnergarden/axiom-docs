@@ -5,7 +5,7 @@
 已经保存的五年六特征案例证明了该案例的训练、预测和账户链路。短样本宽特征工程案例使用历史CSI300成员并集中的569只证券、88个价量特征；预测区间为2023-01-03至2023-02-07，共21个交易日，母特征覆盖120个日期，模型进行两次训练。新增的可复用库已准备2016-10-13至2025-12-30共2242日、88列的 raw/base 和原历史CSI300每日截面标准化结果，正式训练投影含606只证券；另32只仅用于暖机历史，不进入训练。上述特征准备证据覆盖准备与读取，训练和账户另按各自保存结果验收。88列是可实现的Alpha158子集加中长期趋势及量额特征；CSI1800全特征库、历史行业及其他缺少字段或算子的特征仍未准备。
 ### 当前能力与验收边界
 
-2026-10-13 本轮 A02/A03/A04/A06 实现及限定小验证已完成，当前等待父审后正常合并；安装应使用 `versions.json` 的 `m1_followup_candidate.sources` 集成版本及对应 UI 版本。以下分别说明代码能力、实际数据覆盖和已验证案例，延期项不属于本轮必须补做的功能。
+2026-10-13 本轮 A02/A03/A04/A06 实现及限定小验证已完成，Engine、Research、UI 已经父审并正常合并；安装应使用 `versions.json` 的 `m1_followup_candidate.sources` 集成版本及对应 UI 版本。以下分别说明代码能力、实际数据覆盖和已验证案例，延期项不属于本轮必须补做的功能。
 
 本表是当前能力的单一入口；下文说明用法，`versions.json` 记录各轮固定版本和证据。[早期交付记录](current-delivery.md)保留当时状态，不作为现状清单。2026-10-13 公共入口收口的本次实现、适用固定源码与交付状态见 `versions.json`；它不代表通用 M1 已完成。
 
@@ -115,7 +115,7 @@ A06 本轮实现提供 `/?page=1&page_size=25` 分页（每页最多 100 项）�
 }
 ```
 
-本轮限定验证使用 [Engine PR40](https://github.com/sinnergarden/axiom-engine/pull/40)、[Research PR30](https://github.com/sinnergarden/axiom-research/pull/30) 和 [UI PR17](https://github.com/sinnergarden/axiom-ui/pull/17) 的集成固定源码，准确 SHA 见 `versions.json` 的 `m1_followup_candidate`。当前等待父审合并；已有主线安装不会因文档更新自动获得这些入口。原 PR27/PR16 组合继续对应此前 summary/full 的验收记录。将下面的源码路径替换为本机已选定的兼容版本后启动：
+本轮限定验证使用 [Engine PR40](https://github.com/sinnergarden/axiom-engine/pull/40)、[Research PR30](https://github.com/sinnergarden/axiom-research/pull/30) 和 [UI PR17](https://github.com/sinnergarden/axiom-ui/pull/17) 的集成固定源码，准确 SHA 见 `versions.json` 的 `m1_followup_candidate`。代码已按正常 PR 流程合并；已有本机安装仍须更新到对应版本才能获得这些入口。原 PR27/PR16 组合继续对应此前 summary/full 的验收记录。将下面的源码路径替换为本机已选定的兼容版本后启动：
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/path/axiom-ui/src:/path/axiom-research/src:/path/axiom-engine/src python3 -m axiom_ui --serve-results --workspace-config /private/axiom-roots.json
