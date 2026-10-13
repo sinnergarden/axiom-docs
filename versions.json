@@ -2,7 +2,9 @@
   "schema_version": "axiom_docs_versions_v1",
   "m1_public_entry_closeout": {
     "as_of": "2026-10-13",
-    "status": "review_candidate_four_scoped_tests_passed",
+    "status": "implemented_four_scoped_tests_passed",
+    "research_pr": "https://github.com/sinnergarden/axiom-research/pull/28",
+    "docs_pr": "https://github.com/sinnergarden/axiom-docs/pull/83",
     "research_base": "699fa6a706dbce074510d40b22eb48accc9aa4ba",
     "research_source": "af3bf184ecb4a939dea0d22055a7466336442d92",
     "docs_base": "1171412c7edf0bc9f0e0f56fd958050318e7f242",
