@@ -5,7 +5,7 @@
 > 上位边界：[总体设计](01_axiom_overview.md)。关联：[Data](02_axiom_data.md)、[Core](03_axiom_core.md)、[Trade](04_axiom_trade.md)、[UI](06_axiom_ui.md)。\
 > 来源以 signal-centric、Feature inventory、PIT/LLM 专项及历史讨论为主。历史文档中的“已存在”“可用”“有效”仅代表当时记载，未重新核对的内容不能直接 promotion。
 
-已实现能力、固定版本与实测范围见[当前交付](../current-delivery.md)。早期试点说明保留在[工程历史记录](history-engineering-20261009.md)。本正文定义研究工作流与产物合同。
+已实现能力与用法见[当前使用说明](../user-manual.md)，固定版本与实测范围见[版本记录](../../versions.json)。[早期交付记录](../current-delivery.md)保留历史状态。早期试点说明保留在[工程历史记录](history-engineering-20261009.md)。本正文定义研究工作流与产物合同。
 
 ## 1. 目标与最小闭环
 

@@ -8,10 +8,10 @@
 4. [补丁 A](07_重要补丁_A.md)与[补丁 B](07_重要补丁_B.md)
 5. [已确认研究工作台 PRD](08_axiom_ui_research_prd_draft.md)与[首版只读应用](../ui-workbench-read-contract.md)
 
-[Researcher 教程](../../notebooks/researcher_tutorial.ipynb)和[Developer 教程](../../notebooks/developer_tutorial.ipynb)用真实小样本解释实现；HTML 由 notebook 生成。设计规定目标，教程展示当前真实行为，验收范围见 [当前交付](../current-delivery.md)。
+[Researcher 教程](../../notebooks/researcher_tutorial.ipynb)和[Developer 教程](../../notebooks/developer_tutorial.ipynb)用各自固定版本的小样本解释实现；HTML 由 notebook 生成。设计规定合同与目标，当前执行范围见[使用说明书](../user-manual.md#当前可用范围)，原始验收见[早期交付记录](../current-delivery.md)。
 
 2026-10-03 从工作区 `design/` 迁入，保留了八份正文及 A/B 补丁。原文件未在 Data 的旧 Git 历史内，不虚构迁移前提交历史；首次纳入版本控制后，以本仓提交记录后续变化。原路径仅保留导航，可恢复的迁移前副本保存在仓库外历史归档。
 
-当前实现、测量和未完成事项见 [本轮交付](../current-delivery.md)，适用代码版本见 [versions.json](../../versions.json)。
+当前能力清单只维护在[使用说明书](../user-manual.md#当前可用范围)，适用代码与测量证据见 [versions.json](../../versions.json)。
 
 需要执行实验时，从[使用说明书](../user-manual.md)进入。[ML 工程 Notebook](../../notebooks/ml_engineering_tutorial.ipynb)保留对应版本的教学示例。
