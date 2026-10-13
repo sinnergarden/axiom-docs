@@ -15,7 +15,8 @@ validation reports remain with their implementation owner.
 - [Design](docs/design/README.md)：职责与接口。
 - [Developer tutorial](notebooks/developer_tutorial.ipynb)
 - [Design and PRD maintenance (draft)](docs/design-maintenance.md)
-- [Implementation/reuse checklist](docs/current-delivery.md)：保存证据、验收范围与未完成项。
+- [当前能力与操作](docs/user-manual.md#当前可用范围)：当前入口、验收范围与未完成项。
+- [早期交付记录](docs/current-delivery.md)：2026-10-05前后保存证据，按原版本保留。
 - [Applicable code versions](versions.json)
 
 The Library HTML keeps its existing file identity and is generated from these

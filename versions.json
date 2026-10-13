@@ -1,5 +1,42 @@
 {
   "schema_version": "axiom_docs_versions_v1",
+  "m1_public_entry_closeout": {
+    "as_of": "2026-10-13",
+    "status": "implemented_four_scoped_tests_passed",
+    "research_pr": "https://github.com/sinnergarden/axiom-research/pull/28",
+    "docs_pr": "https://github.com/sinnergarden/axiom-docs/pull/83",
+    "research_base": "699fa6a706dbce074510d40b22eb48accc9aa4ba",
+    "research_source": "af3bf184ecb4a939dea0d22055a7466336442d92",
+    "docs_base": "1171412c7edf0bc9f0e0f56fd958050318e7f242",
+    "scope": [
+      "A05 public Feature loader and full v3 ModelRelease admission/predict",
+      "A08 normalized Feature producer guard before fit",
+      "A01 nested stage metrics and fold progress",
+      "A07 current manual and historical navigation"
+    ],
+    "compatibility": "raw training rejection tightens a previously falsely declared normalized path; old identities and saved values unchanged; no historical raw audit claimed",
+    "deferred": [
+      "A02 semantic implementation compatibility",
+      "A03 more universes/backends/persistent shadow",
+      "A04 physical security-axis incremental reuse",
+      "A06 remote research UI"
+    ],
+    "manual": "docs/user-manual.md#当前能力与验收边界",
+    "validation": {
+      "tests": 4,
+      "scope": "small synthetic public loader, v3 load/predict, prepared parameter/subset reuse, raw rejection and exact HIT metrics; library and two-fold paths use separate existing fixtures",
+      "initial_attempt": "3 passed; fourth stopped before fixture setup because evidence directory was absent",
+      "retry": "only fourth test after mkdir; PASS; no implementation change",
+      "python": "3.12.12",
+      "lightgbm": "4.6.0; 4.7.0 pin not exercised",
+      "engine_source": "306b26d3ec513fa6422b5647ec6fa3e03dfacf1e",
+      "data_source": "b743b704aba1232941f98dc2b338c6261fd3d8fb",
+      "fresh_production_training_account_UI_runs": 0,
+      "full_suite_rerun": false,
+      "historical_artifacts_modified": false
+    },
+    "research_report": "https://github.com/sinnergarden/axiom-research/blob/af3bf184ecb4a939dea0d22055a7466336442d92/reports/m1-public-entry-closeout.md"
+  },
   "saved_result_discovery": {
     "status": "implemented_merged_static_derived_UI_read_only_verification_passed",
     "as_of": "2026-10-12",

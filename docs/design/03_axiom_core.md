@@ -139,13 +139,12 @@ Strategy runtime package
 可后端下推的 Qlib/向量化计算由调用方 adapter 执行，需与基准算子 golden case 等价。性能优化必须报告主键、NaN、dtype、误差和排名边界影响，不只比较相关系数。预测数值在容差内但 TopK、意图或约束结果翻转，仍属于行为变化，不能用数值容差掩盖；需要固定 tie-break/稳定计算或单独批准语义变更。
 
 <a id="signal-statistics-proposal"></a>
-### 4.4 保存信号评价的纯统计增量：待主协调与Engine亲审
+### 4.4 保存信号评价的共享纯统计
 
 Research管理[独立信号评价定义与保存](05_axiom_research.md#saved-signal-quality-proposal)，
-Core提供相关与序列统计的共享纯计算。当前股票IC/RankIC由Research现有helper计算；
-新增算子经审准后，该编排调用Core，不在Research保留另一份数值实现。
+Core提供相关与序列统计的共享纯计算。2026-10-13核对Engine `306b26d` 与Research `699fa6a`：保存信号评价编排已经调用Core的 `evaluate_signal_statistics`。Research负责来源、成熟标签和共同样本准入，Core负责本节统计；现有fold内的历史诊断输出不替代该独立评价入口。
 
-候选公共函数为 `evaluate_signal_statistics(input, *, spec)`。input固定
+公共函数为 `evaluate_signal_statistics(input, *, spec)`。input固定
 `contract_version='signal_statistics_input_v1'`、有序 `sessions/signal_keys` 和 `pairs`；
 每个pair是 `{signal_key,security_id,session,score,outcome}`，由Research选好共同评价范围、
 成员和成熟标签后传入。score/outcome均为有限无量纲数，三字段键唯一；没有有效配对的
@@ -168,14 +167,14 @@ valid_rank_ic_session_count,mean_rank_ic,rank_ic_std,rank_icir,rank_icir_reason}
 Pearson/Spearman使用同一批配对，ties取平均秩，日权重一致。DuckDB等批量后端只能
 执行同一算子语义，经键/null/计数精确一致及相关值绝对误差≤1e-12的golden核对后采用。
 最低验收包含乱序、重复键、单日错位、ties、常量、缺失日及多Signal共同样本。
-本节是有界纯函数候选，不改变当前FeaturePlan执行器或Engine账户评价。
+本节描述已实现的有界纯函数，不改变FeaturePlan执行器或Engine账户评价。
 
 <a id="neutral-cs-batch-proposal"></a>
-### 4.5 中立批量截面入口候选
+### 4.5 中立批量截面入口
 
-> 接口草稿、尚未实现；由 Engine/Core owner 固定和实现。既有 `execute_feature_plan`、FactBatch/FeatureFrame wire 和数学语义不变。调用侧 prepare/packed loader 见 [Research §8.2.1–8.2.2](05_axiom_research.md#821-固定输入矩阵与滚动训练)。
+> 2026-10-13核对Engine `306b26d`：`execute_cs_zscore_batch` 已实现，Research的column准备路径已消费。以下为该有界入口的合同，既有 `execute_feature_plan`、FactBatch/FeatureFrame wire 和数学语义不变。调用侧 prepare/packed loader 见 [Research §8.2.1–8.2.2](05_axiom_research.md#821-固定输入矩阵与滚动训练)。
 
-唯一新增入口候选：
+公共入口：
 
 ```python
 from axiom_engine.core import execute_cs_zscore_batch
