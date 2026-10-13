@@ -5,18 +5,20 @@
 已经保存的五年六特征案例证明了该案例的训练、预测和账户链路。短样本宽特征工程案例使用历史CSI300成员并集中的569只证券、88个价量特征；预测区间为2023-01-03至2023-02-07，共21个交易日，母特征覆盖120个日期，模型进行两次训练。新增的可复用库已准备2016-10-13至2025-12-30共2242日、88列的 raw/base 和原历史CSI300每日截面标准化结果，正式训练投影含606只证券；另32只仅用于暖机历史，不进入训练。上述特征准备证据覆盖准备与读取，训练和账户另按各自保存结果验收。88列是可实现的Alpha158子集加中长期趋势及量额特征；CSI1800全特征库、历史行业及其他缺少字段或算子的特征仍未准备。
 ### 当前能力与验收边界
 
+2026-10-13 本轮 A02/A03/A04/A06 实现及限定小验证已完成，Engine、Research、UI 已经父审并正常合并；安装应使用 `versions.json` 的 `m1_followup_candidate.sources` 集成版本及对应 UI 版本。以下分别说明代码能力、实际数据覆盖和已验证案例，延期项不属于本轮必须补做的功能。
+
 本表是当前能力的单一入口；下文说明用法，`versions.json` 记录各轮固定版本和证据。[早期交付记录](current-delivery.md)保留当时状态，不作为现状清单。2026-10-13 公共入口收口的本次实现、适用固定源码与交付状态见 `versions.json`；它不代表通用 M1 已完成。
 
 | 能力 | 当前状态与证据边界 |
 | --- | --- |
 | 分离配置、rolling 与每日推理 | CSI300、88列、LGBM、H40、359次周fold的七年案例已完成；不是300特征或任意模型后端验收 |
 | 共享准备、换参数与子集 | 同进程共享owner；完整batch换参数和兼容Raw换子集有小型验证，长期换模型、换Label吞吐仍未实测 |
-| 特征库 | 按列/日期缺口复用；`sample_universe` 可投影。扩大物理证券轴的增量复用尚未收口（A04） |
+| 特征库 | 按列/日期缺口复用；`sample_universe` 可投影。A04 已实现物理证券扩轴增量复用，8项相关小测试通过；任意删换证券轴全命中和长期吞吐未验证 |
 | 公共模型读取与输入约束 | 本次实现导出训练视图loader，并以完整fold准入读取v3模型；v3只接纳已标准化Feature，raw在fit前拒绝（A05/A08） |
 | 成本与进度 | 本次实现接通逐fold计数及分阶段计时；七年历史成本不能由小样本测试替代（A01） |
-| 策略及账户 | 同预测换策略、市场/预测重载、basis追加登记已实测；股票账户仍限CSI300，其他股票池和持久daily shadow未完成（A03） |
-| 历史语义兼容 | 无关Engine实现版本变化仍可能阻断新的派生/账户准入；本轮不改兼容规则（A02） |
-| UI与实验管理 | 本机保存索引summary/full和新账户登记可用；远程研究UI、分页及完整多实验工作台不属于本轮交付（A06） |
+| 策略及账户 | 同预测换策略、市场/预测重载、basis追加登记已实测；A03 已贯穿已有 Data 股票池身份；csi500 合成短窗口 source/save/reload/account 一致及错池拒绝通过，真实覆盖依 snapshot；持久 daily shadow 延后 |
+| 历史语义兼容 | A02 已实现语义引用及旧信号原父件重放；跨版本、重签分值篡改、语义不匹配和旧快照拒绝小验证通过 |
+| UI与实验管理 | 本机保存索引 summary/full 和新账户登记可用；A06 分页及按需单项查看已实现；真实 T01 v6、极小 v8 摘要和极小 v7/v8 账户 owner 联调通过；完整多实验工作台未交付 |
 
 ## 先准备一份研究计划
 一个实验由以下独立配置组成。入口只引用这些配置，避免把几百项参数塞进一个文件。
@@ -76,7 +78,7 @@ reopened_market = load_stock_market_inputs(market_ref, StockMarketSpec.from_requ
 reopened_inputs = load_stock_prediction_inputs(reopened_market, prediction_ref, new_request, limits=limits, max_signal_bytes=max_signal_bytes)
 ```
 
-重载仍核验保存分片、范围和语义；每个新账户继续检查策略与risk绑定，以 `reopened_inputs` 为 `run_stock_backtest` 的source，沿原独立sink和账本执行，完成后依次关闭预测、市场owner。原祖先不会因重载而重新采集或训练，冷加载和新账户仍有成本。Engine main [306b26d](https://github.com/sinnergarden/axiom-engine/commit/306b26d3ec513fa6422b5647ec6fa3e03dfacf1e)的共享及重载market/predictions账户路径当前仅支持CSI300；CSI800/1800不能仅改 `universe_id` 启用，也不属于已完成的通用M1交付。
+重载仍核验保存分片、范围和语义；每个新账户继续检查策略与risk绑定，以 `reopened_inputs` 为 `run_stock_backtest` 的source，沿原独立sink和账本执行，完成后依次关闭预测、市场owner。原祖先不会因重载而重新采集或训练，冷加载和新账户仍有成本。已合并 Engine [306b26d](https://github.com/sinnergarden/axiom-engine/commit/306b26d3ec513fa6422b5647ec6fa3e03dfacf1e) 的共享及重载路径限于 CSI300。A03 本轮实现贯穿已存在的 Data 股票池身份：csi300、csi500、csi1000、csi1800。执行前仍须提供对应历史成员 Query 和完整 snapshot 覆盖；更改配置不会生成缺失数据。CSI800 新口径不在本轮，其他模型后端与持久 daily shadow 延后。实现合同与验收边界见[本轮兼容和按需读取合同](design/m1-followup-contracts.md)。
 ## 用法七：评价信号和交易结果
 评价模块的输入输出保持独立。
 | 类别 | 输入 | 输出 |
@@ -96,6 +98,10 @@ Research 负责保存结果并自动登记到现有实验索引。登记内容�
 各目录配置一次后，Research正常登记到result index的实验，在 `--serve-results` 页面点击“刷新保存索引”即可发现；无需逐实验拷贝或静态导出。选择结果默认打开summary摘要，任意fold数量都沿同一读取方式：读取保存的账户评价，校验支持的账户header（元数据），显示登记状态、保存指标及各项可用性。训练、信号评价和账户结果分片明确标为“未展开”，缺件或校验失败各自标注。摘要打开成功只说明这部分读取通过，不代表完整原件验收或M1完成。
 需要检查登记的全部原件时，点击“显式验证全部保存原件（可能较慢）”进入该结果的 `/full` 页面；展开摘要卡片不会切换读取模式。CLI在已刷新目录使用 `--open-result <result_id> --detail-mode full`，并提供 `--workspace-config` 与 `--output`。完整读取可能较慢，具体失败仍按保存件标注。刷新及两种查看模式都不触发采集、训练或回测。
 **已验证范围**：正式 Research v2 索引中的一个主结果包含两折、两个 Signal 和三个策略账户，页面指标与所属模块保存值一致；读取不执行训练或回测。小型回归覆盖重试保存、发布失败保留旧结果、缺件隔离和账户阻断状态。另一次公开静态双组合只读联验中，两个组合 Signal 均通过公共 loader 验证，19 个原 JSON 未变；临时缺一件时，另一件仍正常。此次组合联验仅覆盖保存件发现与读取，未新增组合数学或真实策略收益验收。
+A06 本轮实现提供 `/?page=1&page_size=25` 分页（每页最多 100 项）。分页限制返回的页面内容，刷新仍完整读取保存索引。点击单项信号评价时，Research 摘要 owner 校验该报告的内容身份、保存字节和必要 group binding，并明确标记祖先未审；接口缺失或校验失败只显示该项不可用。`full` 仍执行原有完整读取。
+
+点击单个账户时，Engine 读取并校验这个账户的 profile 和全部结果分片。默认曲线覆盖完整区间，可按日期筛选；曲线最多选取 600 个等距原始行号点并保留首尾，页面标明点数和可能遗漏的波动，明细展示最后 50 行。指标使用 owner 保存值，不按抽样重算。筛选发生在 owner 读取之后，不降低该账户的磁盘读取量。默认列表和摘要不读取账户曲线，也不因点击一个账户加载其他账户。上述入口已通过真实 T01 v6 报告、极小生成 v8 报告及各 3 行的 v7/v8 保存账户 owner 联调；账户路由使用合成 manifest，报告页已核 Label、IC、RankIC 和覆盖字段。未重跑 T01 账户，也未执行浏览器像素验收。
+
 **后续覆盖**：多个 idea、多版本、其他规模和组合仍按实际验证逐项补齐；具体评价及账户的完成状态以所属模块保存值为准。
 
 ### 最小操作
@@ -109,7 +115,7 @@ Research 负责保存结果并自动登记到现有实验索引。登记内容�
 }
 ```
 
-启动前使用 [Research PR27](https://github.com/sinnergarden/axiom-research/pull/27)（main合并版本 [699fa6a](https://github.com/sinnergarden/axiom-research/commit/699fa6a706dbce074510d40b22eb48accc9aa4ba)，保留PR24/25/26及原组合信号入口）与 [UI PR16](https://github.com/sinnergarden/axiom-ui/pull/16)（默认 `publish/ui-readonly` 分支合并版本 [c304fa8](https://github.com/sinnergarden/axiom-ui/commit/c304fa8774b41b4503e5e3d53860a07768853161)，保留PR15的summary及显式full读取）对应的源码及其兼容依赖。历史版本清单中的条目仅记录各自证据，不能证明本机已安装这个入口。将下面的源码路径替换为本机路径后启动：
+本轮限定验证使用 [Engine PR40](https://github.com/sinnergarden/axiom-engine/pull/40)、[Research PR30](https://github.com/sinnergarden/axiom-research/pull/30) 和 [UI PR17](https://github.com/sinnergarden/axiom-ui/pull/17) 的集成固定源码，准确 SHA 见 `versions.json` 的 `m1_followup_candidate`。代码已按正常 PR 流程合并；已有本机安装仍须更新到对应版本才能获得这些入口。原 PR27/PR16 组合继续对应此前 summary/full 的验收记录。将下面的源码路径替换为本机已选定的兼容版本后启动：
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/path/axiom-ui/src:/path/axiom-research/src:/path/axiom-engine/src python3 -m axiom_ui --serve-results --workspace-config /private/axiom-roots.json

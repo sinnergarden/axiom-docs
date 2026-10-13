@@ -188,7 +188,10 @@
       "sample_securities": 606,
       "warmup_only_securities_excluded_from_training": 32,
       "training_rows": 1358652,
-      "layers": ["raw_base", "daily_CSI300_cross_sectional_zscore"]
+      "layers": [
+        "raw_base",
+        "daily_CSI300_cross_sectional_zscore"
+      ]
     },
     "evidence": {
       "bounded_real_end_to_end": "Feature, training, predictions, two independent Top5 accounts and evaluation completed; subset and model changes computed zero Feature cells",
@@ -544,7 +547,11 @@
         "status": "parent_and_independent_review_passed_source_merged_final_data_joint_check_passed",
         "merge_commit": "4e65af8462949f674fa66d3f5f17ce06dc932568",
         "source_tree_unchanged_after_merge": true,
-        "first_parent_delta": {"files": 12, "insertions": 462, "deletions": 44},
+        "first_parent_delta": {
+          "files": 12,
+          "insertions": 462,
+          "deletions": 44
+        },
         "scope": "explicit historical integer floor and mixed_reviewed_sources_v1 declaration; saved accounting and episode attribution; Derived global implementation migration disclosed",
         "floor_baseline_source_commit": "dfdb96ba3dc7cff6e50286b68541772f40ac3715",
         "floor_baseline_unique_related_tests_passed": 145,
@@ -564,7 +571,7 @@
           "cold_market_admission_seconds": 1159.684,
           "prediction_binding_account_execution_and_save_seconds": 277.123,
           "saved_projection_dividend_v2_v3_evaluation_seconds": 22.471,
-          "guardian_wall_seconds": 1591.160,
+          "guardian_wall_seconds": 1591.16,
           "sampled_tree_rss_peak_bytes": 846790656,
           "visible_new_artifact_bytes": 102727172,
           "prior_costs_and_failed_attempts_preserved": true,
@@ -665,9 +672,25 @@
         "source_tree": "db3732a0de708efea8863459ffd29dbaf34c9144",
         "source_branch": "codex/engine-strategy-config-20261011",
         "implementation_ref": "sha256:8c8d777996a439e2e425364614a2d07dfc861230fc006ebae719665fb445b751",
-        "initial_validation": {"source_commit": "bb001fecb5a584f1132b552b3dff6c7f66859969", "new_synthetic_scenarios": 8, "key_legacy_checks": 11, "source_identity_check": 1, "passed": 20, "seconds": 1.677},
-        "validation": {"synthetic_scenarios": 10, "source_identity_check": 1, "passed": 11, "seconds": 0.546, "scope": "current review-fix candidate; initial key legacy evidence retained separately"},
-        "review_corrections": ["preserve-only pending/registered rights explicitly retain zero targets without buys", "exact allocation ratios retain K3 lot boundary; no epsilon or upward quantity rounding"],
+        "initial_validation": {
+          "source_commit": "bb001fecb5a584f1132b552b3dff6c7f66859969",
+          "new_synthetic_scenarios": 8,
+          "key_legacy_checks": 11,
+          "source_identity_check": 1,
+          "passed": 20,
+          "seconds": 1.677
+        },
+        "validation": {
+          "synthetic_scenarios": 10,
+          "source_identity_check": 1,
+          "passed": 11,
+          "seconds": 0.546,
+          "scope": "current review-fix candidate; initial key legacy evidence retained separately"
+        },
+        "review_corrections": [
+          "preserve-only pending/registered rights explicitly retain zero targets without buys",
+          "exact allocation ratios retain K3 lot boundary; no epsilon or upward quantity rounding"
+        ],
         "source_pull_request": "https://github.com/sinnergarden/axiom-engine/pull/31",
         "merge_commit": "6418db146962583b3356a3c0ae31d3d92fc35628",
         "real_case": "Research-owned 2023 historical CSI300 full cross-section with 88 features; not run by Engine",
@@ -1174,5 +1197,79 @@
     "approval_status": "unresolved_per_parent_instruction_2026_10_05",
     "included_by_this_Docs_PR": false,
     "note": "links/status only; no absorption, merge or install to bypass approval"
+  },
+  "m1_followup_candidate": {
+    "as_of": "2026-10-13",
+    "status": "code_merged_scoped_validation_passed",
+    "scope": [
+      "A02 derived Signal semantic compatibility and legacy original-parent replay",
+      "A03 existing Data pool propagation in modern shared market/account path",
+      "A04 complete old-axis blocks reused on physical expansion; CS cohort recomputation; bounded leaf metadata",
+      "A06 paginated and on-demand saved result UI"
+    ],
+    "ui_source": "83b4e2b286924e18bb26dbd4e85b14bd1d146311",
+    "ui_pr": "https://github.com/sinnergarden/axiom-ui/pull/17",
+    "contract": "docs/design/m1-followup-contracts.md",
+    "validation": {
+      "distinct_tests_passed": 18,
+      "feature_security_tests": 8,
+      "retries": "one test fixture corrected to match production projection; one loopback sandbox retry; only affected tests after leaf-budget fix",
+      "real_signal_contract": "stock_signal_evidence_v6",
+      "real_signal_horizon": 40,
+      "real_signal_valid_days": 1699,
+      "real_signal_read_bytes": 1717301,
+      "real_signal_read_files": 3,
+      "full_ancestor_loader_calls": 0,
+      "generated_v8_reports": 2,
+      "generated_v8_common_pairs": 65,
+      "generated_v8_native_pairs": [
+        68,
+        65
+      ],
+      "actual_engine_owner_accounts": {
+        "v7_nav_rows": 3,
+        "v8_nav_rows": 3,
+        "calls_per_account": 1,
+        "routing": "synthetic manifest; actual owner and saved parts"
+      },
+      "browser_pixel_review": false,
+      "public_index_written": false,
+      "real_training_or_historical_account_replay": false,
+      "local_evidence_directory": ".artifacts/m1-followup",
+      "python": "3.12.12",
+      "lightgbm": "4.6.0"
+    },
+    "deferred": [
+      "CSI800 new universe semantics",
+      "other model backends",
+      "persistent daily shadow",
+      "long-run new-model/label/subset throughput",
+      "300-feature full acceptance"
+    ],
+    "sources": {
+      "engine_base": "306b26d3ec513fa6422b5647ec6fa3e03dfacf1e",
+      "research_base": "b4e6f0792d8f2ec32900297475ce604e8113bef6",
+      "docs_base": "28246c663d25694e918db35e3c71f9b39a791cd1",
+      "engine_source": "c1b6180be892ce9522345b96c9f42b83e400b59b",
+      "research_source": "ffb43ae3ef8da29a969279bd60792ac4bf30d2ea",
+      "a04_engine_source": "7944e11e8884d93d1f6dcea3b78073b6fb67f5ee",
+      "a04_research_source": "de69adecce5bc93514ee7edc9f825d30af572e69",
+      "engine_integration": "e5710fdc3c6124e0e6f1fb55241e588fa3339f2d",
+      "research_integration": "bc34155ed9b57a6361337b4bdbd1516134767484",
+      "validation_data": "b743b704aba1232941f98dc2b338c6261fd3d8fb"
+    },
+    "engine_pr": "https://github.com/sinnergarden/axiom-engine/pull/40",
+    "research_pr": "https://github.com/sinnergarden/axiom-research/pull/30",
+    "historical_timing": {
+      "old_public_process_minutes": 160.25027733333334,
+      "feature_cold_admission_included_minutes": 24.74050333679964,
+      "fit_minutes": 8.308894476410932,
+      "new_long_training_measured": false
+    },
+    "merges": {
+      "engine": "1c9dcbf32b7b7918e340d01b4a8602148ba7e5af",
+      "research": "a1f320fba669a72b0d8aa17f0d72dbac923e9a89",
+      "ui": "f29d21bef7d12541b1f1d47dfab2f23d6c7b3aad"
+    }
   }
 }
